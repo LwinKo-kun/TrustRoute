@@ -11,7 +11,7 @@ echo "Starting React frontend..."
 ../frontend
 # Wait a moment then go to frontend directory
 cd ../frontend
-npm run dev &
+npm run dev -- --host&
 FRONTEND_PID=$!
 
 echo "----------------------------------------"
