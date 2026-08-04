@@ -1,8 +1,10 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export default function DeliveryDashboardView() {
+export default function DeliveryDashboardView({ data }) {
   const { user } = useAuth();
+  const stats = data?.stats || {};
+
   return (
     <div className="flex flex-col gap-6">
       <div className="p-6 border border-[var(--border)] rounded-xl bg-[var(--code-bg)]">
@@ -13,11 +15,11 @@ export default function DeliveryDashboardView() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="p-5 border border-[var(--border)] rounded-xl">
           <h3 className="text-sm font-semibold opacity-60">Dispatched Orders</h3>
-          <p className="text-3xl font-bold mt-2">0</p>
+          <p className="text-3xl font-bold mt-2">{stats.assigned_deliveries ?? 0}</p>
         </div>
         <div className="p-5 border border-[var(--border)] rounded-xl">
           <h3 className="text-sm font-semibold opacity-60">Completed Deliveries</h3>
-          <p className="text-3xl font-bold mt-2 text-green-500">0</p>
+          <p className="text-3xl font-bold mt-2 text-green-500">{stats.completed_deliveries ?? 0}</p>
         </div>
       </div>
     </div>

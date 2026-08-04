@@ -12,6 +12,8 @@ export default function DashboardPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const role = String(user?.role || data?.user?.role || '').toLowerCase();
+
   useEffect(() => {
     api.get('/dashboard')
       .then((res) => setData(res.data))
@@ -21,8 +23,7 @@ export default function DashboardPage() {
 
   if (loading) return <p className="text-sm">Loading dashboard...</p>;
 
-  // Render role-specific view if available
-  switch (user?.role) {
+  switch (role) {
     case 'admin':
       return <AdminDashboardView data={data} />;
     case 'shopkeeper':

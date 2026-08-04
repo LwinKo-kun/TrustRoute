@@ -11,7 +11,6 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        // Example conditional data based on roles
         $stats = [
             'active_nodes' => 12,
             'network_health' => '99.98%',
@@ -19,13 +18,23 @@ class DashboardController extends Controller
         ];
 
         if ($user->role === 'admin') {
-             $stats['system_alerts'] = 0; 
+            $stats['system_alerts'] = 0;
+        } elseif ($user->role === 'shopkeeper') {
+            $stats['active_listings'] = 0;
+            $stats['pending_orders'] = 0;
+        } elseif ($user->role === 'delivery') {
+            $stats['assigned_deliveries'] = 0;
+            $stats['completed_deliveries'] = 0;
+        } else {
+            $stats['active_orders'] = 0;
+            $stats['completed_orders'] = 0;
         }
 
         return response()->json([
             'status' => 'success',
             'message' => 'Welcome to the TrustRoute secure node coordinator dashboard.',
-            'user' => $user->load('roles'),
+            'user' => $user,
+            'role' => $user->role,
             'stats' => $stats
         ]);
     }

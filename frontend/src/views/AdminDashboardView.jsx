@@ -1,8 +1,10 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export default function AdminDashboardView() {
+export default function AdminDashboardView({ data }) {
   const { user } = useAuth();
+  const stats = data?.stats || {};
+
   return (
     <div className="flex flex-col gap-6">
       <div className="p-6 border border-red-500/30 rounded-xl bg-red-500/5">
@@ -12,16 +14,16 @@ export default function AdminDashboardView() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-5 border border-[var(--border)] rounded-xl">
-          <h3 className="text-sm font-semibold opacity-60">Total Users</h3>
-          <p className="text-3xl font-bold mt-2">--</p>
+          <h3 className="text-sm font-semibold opacity-60">Network Nodes</h3>
+          <p className="text-3xl font-bold mt-2">{stats.active_nodes ?? '--'}</p>
         </div>
         <div className="p-5 border border-[var(--border)] rounded-xl">
           <h3 className="text-sm font-semibold opacity-60">Open Disputes</h3>
-          <p className="text-3xl font-bold mt-2 text-red-500">0</p>
+          <p className="text-3xl font-bold mt-2 text-red-500">{stats.system_alerts ?? 0}</p>
         </div>
         <div className="p-5 border border-[var(--border)] rounded-xl">
-          <h3 className="text-sm font-semibold opacity-60">Platform Shops</h3>
-          <p className="text-3xl font-bold mt-2">--</p>
+          <h3 className="text-sm font-semibold opacity-60">Pending Transactions</h3>
+          <p className="text-3xl font-bold mt-2">{stats.pending_transactions ?? '--'}</p>
         </div>
       </div>
     </div>

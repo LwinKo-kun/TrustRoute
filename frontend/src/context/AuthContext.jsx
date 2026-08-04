@@ -12,7 +12,8 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       api.get('/user')
         .then((response) => {
-          setUser(response.data);
+          const userData = response.data?.user ?? response.data;
+          setUser(userData);
         })
         .catch(() => {
           logout();

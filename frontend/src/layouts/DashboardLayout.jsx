@@ -7,6 +7,7 @@ import Button from '../components/Button';
 export default function DashboardLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const role = String(user?.role || '').toLowerCase();
 
   const handleLogout = async () => {
     await logout();
@@ -22,18 +23,21 @@ export default function DashboardLayout() {
           </span>
           <nav className="flex items-center gap-4 text-sm font-medium">
             <Link to="/dashboard" className="text-[var(--text-h)] hover:text-[var(--accent)] transition">Dashboard</Link>
-            {user?.role === 'admin' && (
+            {role === 'admin' && (
               <span className="text-xs px-2 py-1 bg-red-500/10 text-red-500 rounded font-bold uppercase">Admin Portal</span>
             )}
-            {user?.role === 'node-operator' && (
-              <span className="text-xs px-2 py-1 bg-[var(--accent)]/10 text-[var(--accent)] rounded font-bold uppercase">Node Mesh</span>
+            {role === 'shopkeeper' && (
+              <span className="text-xs px-2 py-1 bg-amber-500/10 text-amber-500 rounded font-bold uppercase">Shopkeeper Portal</span>
+            )}
+            {role === 'delivery' && (
+              <span className="text-xs px-2 py-1 bg-blue-500/10 text-blue-500 rounded font-bold uppercase">Delivery Hub</span>
             )}
           </nav>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
             <p className="text-sm font-medium text-[var(--text-h)]">{user?.name}</p>
-            <p className="text-xs uppercase tracking-wider opacity-60">{user?.role || 'user'}</p>
+            <p className="text-xs uppercase tracking-wider opacity-60">{role || 'user'}</p>
           </div>
           <Button variant="secondary" onClick={handleLogout}>Logout</Button>
         </div>

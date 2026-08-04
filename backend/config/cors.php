@@ -5,8 +5,8 @@ return [
 
     'allowed_methods' => ['*'],
 
-    // Change '*' to your specific frontend URL
-    'allowed_origins' => ['http://localhost:5173'],
+    // Allow the Vite dev server and local network access
+    'allowed_origins' => ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://192.168.111.109:5173', 'http://0.0.0.0:5173'],
 
     'allowed_origins_patterns' => [],
 
