@@ -2,12 +2,23 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\ShopController;
+use App\Http\Controllers\Api\ListingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Public authentication routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+// Public shop routes
+Route::get('/shops', [ShopController::class, 'index']);
+Route::get('/shops/{shop}', [ShopController::class, 'show']);
+
+// Public listing routes
+Route::get('/listings', [ListingController::class, 'index']);
+Route::get('/listings/{listing}', [ListingController::class, 'show']);
+Route::get('/listings/{listing}/image', [ListingController::class, 'image']);
 
 // Authenticated routes via Sanctum
 Route::middleware('auth:sanctum')->group(function () {
@@ -21,4 +32,16 @@ Route::middleware('auth:sanctum')->group(function () {
             'user' => $request->user()
         ]);
     });
+
+    // Shop Management Routes
+    Route::get('/my-shop', [ShopController::class, 'myShop']);
+    Route::post('/shops', [ShopController::class, 'store']);
+    Route::put('/shops/{shop}', [ShopController::class, 'update']);
+    Route::delete('/shops/{shop}', [ShopController::class, 'destroy']);
+
+    // Listing Management Routes
+    Route::get('/my-shop/listings', [ListingController::class, 'shopListings']);
+    Route::post('/listings', [ListingController::class, 'store']);
+    Route::put('/listings/{listing}', [ListingController::class, 'update']);
+    Route::delete('/listings/{listing}', [ListingController::class, 'destroy']);
 });

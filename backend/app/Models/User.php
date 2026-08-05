@@ -26,7 +26,19 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+
+    /**
+     * A user (shopkeeper) has one shop.
+     */
+    public function shop()
+    {
+        return $this->hasOne(Shop::class, 'shopkeeper_id');
+    }
 }
