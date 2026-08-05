@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Listing;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -17,6 +18,14 @@ class DashboardController extends Controller
             'pending_transactions' => 4,
         ];
 
+        $payload = [
+            'status' => 'success',
+            'message' => 'Welcome to the TrustRoute secure node coordinator dashboard.',
+            'user' => $user,
+            'role' => $user->role,
+            'stats' => $stats,
+        ];
+
         if ($user->role === 'admin') {
             $stats['system_alerts'] = 0;
         } elseif ($user->role === 'shopkeeper') {
@@ -28,14 +37,13 @@ class DashboardController extends Controller
         } else {
             $stats['active_orders'] = 0;
             $stats['completed_orders'] = 0;
+            
+            // Include all marketplace listings for customers to browse across all shops
+            $payload['listings'] = Listing::with('shop')->latest()->get();
         }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Welcome to the TrustRoute secure node coordinator dashboard.',
-            'user' => $user,
-            'role' => $user->role,
-            'stats' => $stats
-        ]);
+        $payload['stats'] = $stats;
+
+        return response()->json($payload);
     }
 }
