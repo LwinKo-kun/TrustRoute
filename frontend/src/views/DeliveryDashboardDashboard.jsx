@@ -8,7 +8,7 @@ export default function DeliveryDashboardView({ data }) {
   return (
     <div className="flex flex-col gap-6">
       <div className="p-6 border border-[var(--border)] rounded-xl bg-[var(--code-bg)]">
-        <span className="text-xs font-bold uppercase tracking-wider text-blue-500">Delivery Agent Hub</span>
+        <span className="text-xs font-bold uppercase tracking-wider text-purple-500">Delivery Agent Hub</span>
         <h1 className="text-2xl font-bold mt-1">Operator: {user?.name}</h1>
         <p className="text-sm mt-2">Check assigned dispatches and update delivery statuses.</p>
       </div>
