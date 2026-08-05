@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 
@@ -7,186 +8,164 @@ export default function ShopkeeperDashboardView({ data }) {
   const stats = data?.stats || {};
 
   const [shop, setShop] = useState(null);
-  const [loadingShop, setLoadingShop] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-
-  // Form states (removed description)
-  const [shopName, setShopName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [message, setMessage] = useState(null);
-  const [error, setError] = useState(null);
-
-  // Fetch current user's shop using your backend endpoint
-  const fetchMyShop = async () => {
-    try {
-      const res = await api.get('/my-shop');
-      setShop(res.data.data);
-      setShopName(res.data.data.shop_name);
-      setSlug(res.data.data.slug);
-    } catch (err) {
-      if (err.response?.status === 404) {
-        setShop(null); // No shop created yet
-      } else {
-        console.error('Failed to load shop details', err);
-      }
-    } finally {
-      setLoadingShop(false);
-    }
-  };
+  const [listings, setListings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchMyShop();
+    const fetchShopData = async () => {
+      try {
+        const shopRes = await api.get('/my-shop');
+        setShop(shopRes.data.data);
+        
+        const listingsRes = await api.get('/my-shop/listings');
+        const listData = listingsRes.data.data || listingsRes.data;
+        setListings(Array.isArray(listData) ? listData : []);
+      } catch (err) {
+        if (err.response?.status !== 404) console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchShopData();
   }, []);
 
-  // Auto-generate slug from shop name if creating
-  const handleNameChange = (e) => {
-    const val = e.target.value;
-    setShopName(val);
-    if (!shop) {
-      setSlug(
-        val
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/(^-|-$)+/g, '')
-      );
-    }
-  };
-
-  const handleSaveShop = async (e) => {
-    e.preventDefault();
-    setMessage(null);
-    setError(null);
-
+  const handleDeleteListing = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this listing?')) return;
     try {
-      if (shop) {
-        // Update existing shop
-        const res = await api.put(`/shops/${shop.id}`, {
-          shop_name: shopName,
-          slug,
-        });
-        setShop(res.data.data);
-        setIsEditing(false);
-        setMessage('Shop updated successfully!');
-      } else {
-        // Create new shop
-        const res = await api.post('/shops', {
-          shop_name: shopName,
-          slug,
-        });
-        setShop(res.data.data);
-        setMessage('Shop created successfully!');
-      }
+      await api.delete(`/listings/${id}`);
+      setListings(listings.filter((item) => item.id !== id));
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save shop details.');
+      alert(err.response?.data?.message || 'Failed to delete listing.');
     }
   };
+
+  if (loading) return <p className="p-8 text-sm opacity-60">Loading control center...</p>;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="p-6 border border-[var(--border)] rounded-xl bg-[var(--code-bg)]">
-        <span className="text-xs font-bold uppercase tracking-wider text-amber-500">Shopkeeper Control Center</span>
-        <h1 className="text-2xl font-bold mt-1">Welcome, {user?.name}</h1>
-        <p className="text-sm mt-2">Manage your marketplace presence, inventory listings, and fulfillment workflow.</p>
+    <div className="flex flex-col gap-8 max-w-7xl mx-auto pb-12">
+      {/* Header Banner */}
+      <div className="p-8 border border-[var(--border)] rounded-2xl bg-gradient-to-r from-[var(--code-bg)] to-transparent flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-500">Shopkeeper Control Center</span>
+          </div>
+          <h1 className="text-3xl font-extrabold mt-2">{shop ? shop.shop_name : `Welcome, ${user?.name}`}</h1>
+          <p className="text-sm opacity-70 mt-1 max-w-xl">
+            {shop ? 'Manage your catalog items, track inventory stock levels, and coordinate storefront activity.' : 'Setup your store profile to start publishing products to the marketplace.'}
+          </p>
+        </div>
+        {shop && (
+          <div className="flex items-center gap-3">
+            <Link
+              to="/shop/edit"
+              className="px-4 py-2.5 border border-[var(--border)] text-sm font-medium rounded-xl hover:bg-[var(--border)]/20 transition"
+            >
+              Manage Shop Settings
+            </Link>
+            <Link
+              to="/listings/create"
+              className="px-5 py-2.5 bg-[var(--accent)] text-white text-sm font-semibold rounded-xl hover:opacity-90 transition shadow-md"
+            >
+              + Add New Listing
+            </Link>
+          </div>
+        )}
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-5 border border-[var(--border)] rounded-xl">
-          <h3 className="text-sm font-semibold opacity-60">Active Listings</h3>
-          <p className="text-3xl font-bold mt-2">{stats.active_listings ?? 0}</p>
+      {/* Metrics Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="p-6 border border-[var(--border)] rounded-2xl bg-[var(--card-bg, transparent)] shadow-sm">
+          <h3 className="text-xs font-bold uppercase opacity-60 tracking-wider">Active Inventory</h3>
+          <p className="text-4xl font-extrabold mt-2">{shop ? listings.length : 0}</p>
         </div>
-        <div className="p-5 border border-[var(--border)] rounded-xl">
-          <h3 className="text-sm font-semibold opacity-60">Pending Orders</h3>
-          <p className="text-3xl font-bold mt-2 text-amber-500">{stats.pending_orders ?? 0}</p>
+        <div className="p-6 border border-[var(--border)] rounded-2xl bg-[var(--card-bg, transparent)] shadow-sm">
+          <h3 className="text-xs font-bold uppercase opacity-60 tracking-wider">Pending Orders</h3>
+          <p className="text-4xl font-extrabold mt-2 text-amber-500">{stats.pending_orders ?? 0}</p>
         </div>
-        <div className="p-5 border border-[var(--border)] rounded-xl">
-          <h3 className="text-sm font-semibold opacity-60">Shop Status</h3>
-          <p className="text-xl font-bold mt-2 uppercase tracking-wide text-emerald-500">
+        <div className="p-6 border border-[var(--border)] rounded-2xl bg-[var(--card-bg, transparent)] shadow-sm">
+          <h3 className="text-xs font-bold uppercase opacity-60 tracking-wider">Store Status</h3>
+          <p className="text-2xl font-extrabold mt-2 uppercase tracking-wide text-emerald-500 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
             {shop ? shop.status : 'No Shop Yet'}
           </p>
         </div>
       </div>
 
-      {/* Shop Management Section */}
-      <div className="p-6 border border-[var(--border)] rounded-xl bg-[var(--card-bg, transparent)]">
-        <h2 className="text-lg font-bold mb-4">My Shop Configuration</h2>
-
-        {loadingShop ? (
-          <p className="text-sm opacity-60">Loading shop profile...</p>
-        ) : (
-          <div>
-            {message && <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 rounded-lg text-sm">{message}</div>}
-            {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-500 rounded-lg text-sm">{error}</div>}
-
-            {shop && !isEditing ? (
-              <div className="flex flex-col gap-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-xs opacity-60 uppercase font-semibold">Shop Name</span>
-                    <p className="text-base font-medium">{shop.shop_name}</p>
-                  </div>
-                  <div>
-                    <span className="text-xs opacity-60 uppercase font-semibold">URL Slug</span>
-                    <p className="text-base font-medium font-mono">/shops/{shop.slug}</p>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="px-4 py-2 bg-[var(--accent)] text-white text-sm font-medium rounded-lg hover:opacity-90 transition"
-                  >
-                    Edit Shop Details
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <form onSubmit={handleSaveShop} className="flex flex-col gap-4 max-w-xl">
-                <div>
-                  <label className="block text-xs font-semibold uppercase opacity-70 mb-1">Shop Name</label>
-                  <input
-                    type="text"
-                    value={shopName}
-                    onChange={handleNameChange}
-                    required
-                    className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
-                    placeholder="e.g. CyberNode Electronics"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase opacity-70 mb-1">Slug</label>
-                  <input
-                    type="text"
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
-                    required
-                    className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-transparent text-sm font-mono focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
-                    placeholder="cyber-node-electronics"
-                  />
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-[var(--accent)] text-white text-sm font-medium rounded-lg hover:opacity-90 transition"
-                  >
-                    {shop ? 'Update Shop' : 'Create Shop'}
-                  </button>
-                  {shop && (
-                    <button
-                      type="button"
-                      onClick={() => setIsEditing(false)}
-                      className="px-4 py-2 border border-[var(--border)] text-sm font-medium rounded-lg hover:opacity-80 transition"
-                    >
-                      Cancel
-                    </button>
-                  )}
-                </div>
-              </form>
-            )}
+      {!shop ? (
+        <div className="p-12 border border-[var(--border)] rounded-2xl bg-[var(--card-bg, transparent)] flex flex-col items-center text-center gap-4 shadow-sm">
+          <h2 className="text-2xl font-bold">You haven't set up your shop yet</h2>
+          <p className="text-sm opacity-70 max-w-md">
+            Create your store profile to configure your custom web slug, display your brand name, and publish inventory items to the marketplace.
+          </p>
+          <Link
+            to="/shop/create"
+            className="px-6 py-3 bg-[var(--accent)] text-white text-sm font-semibold rounded-xl hover:opacity-90 transition mt-2 shadow-md"
+          >
+            Create Shop Now
+          </Link>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-bold">Product Catalog Cards</h2>
+            <span className="text-xs opacity-60 font-medium">{listings.length} items total</span>
           </div>
-        )}
-      </div>
+
+          {listings.length === 0 ? (
+            <div className="p-12 border border-dashed border-[var(--border)] rounded-2xl text-center flex flex-col items-center gap-3">
+              <p className="text-sm opacity-60">No products listed in your catalog yet.</p>
+              <Link to="/listings/create" className="text-xs font-semibold text-[var(--accent)] hover:underline">
+                Publish your first product &rarr;
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {listings.map((item) => (
+                <div key={item.id} className="border border-[var(--border)] rounded-2xl overflow-hidden bg-[var(--card-bg, transparent)] flex flex-col shadow-sm hover:shadow-md transition group">
+                  {/* Product Image Thumbnail */}
+                  <div className="w-full h-48 bg-[var(--border)]/10 relative overflow-hidden flex items-center justify-center">
+                    <img
+                      src={`http://127.0.0.1:8000/api/listings/${item.id}/image`}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-full font-semibold">
+                      Stock: {item.stock}
+                    </div>
+                  </div>
+
+                  {/* Card Content Details */}
+                  <div className="p-5 flex flex-col flex-grow gap-2">
+                    <h3 className="font-bold text-base line-clamp-1">{item.title}</h3>
+                    <p className="text-xs opacity-70 line-clamp-2">{item.description || 'No product description provided.'}</p>
+                    <div className="mt-auto pt-4 flex items-center justify-between">
+                      <span className="text-lg font-extrabold text-[var(--accent)]">${item.price}</span>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          to={`/listings/${item.id}/edit`}
+                          className="px-3 py-1.5 border border-[var(--border)] rounded-lg text-xs font-medium hover:bg-[var(--border)]/20 transition"
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          onClick={() => handleDeleteListing(item.id)}
+                          className="px-3 py-1.5 bg-red-500/10 text-red-500 rounded-lg text-xs font-medium hover:bg-red-500 hover:text-white transition"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
