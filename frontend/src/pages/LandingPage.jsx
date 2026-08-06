@@ -36,6 +36,13 @@ export default function LandingPage() {
     }
   };
 
+  const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTdlNmU3Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJzZXNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjOWM5NmFjIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeD0iMCIgZHk9Ii4zZW0iPllpbGQgdW5hdmFpbGFibGU8L3RleHQ+PC9zdmc+';
+
+  const getListingImageUrl = (product) => {
+    if (!product || !product.id) return fallbackImage;
+    return `http://127.0.0.1:8000/api/listings/${product.id}/image`;
+  };
+
   const featuredCategories = [
     { name: 'Electronics', icon: '📱', count: '1,234', color: 'from-purple-500 to-indigo-600' },
     { name: 'Fashion', icon: '👕', count: '856', color: 'from-pink-500 to-rose-500' },
@@ -100,9 +107,29 @@ export default function LandingPage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-3xl transform rotate-2 scale-105 opacity-30" />
                 <div className="relative bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-2xl">
                   <div className="grid grid-cols-3 gap-4">
-                    {[1, 2, 3, 4, 5, 6].map((i) => (
-                      <div key={i} className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden">
-                        <img src={`https://placehold.co/200x200/e2e8f0/64748b?text=Product+${i}`} alt="Featured" className="w-full h-full object-cover" />
+                    {(products.slice(0, 6).length > 0 ? products.slice(0, 6) : Array.from({ length: 6 }, (_, i) => ({ id: i + 1, title: `Featured item ${i + 1}` }))).map((product, index) => (
+                      <div key={product.id ?? index} className="border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-700/50 flex flex-col shadow-sm hover:shadow-md transition group">
+                        <div className="w-full aspect-square bg-gray-100 dark:bg-gray-700 relative overflow-hidden flex items-center justify-center">
+                          <img
+                            src={getListingImageUrl(product)}
+                            alt={product.title || `Featured item ${index + 1}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                            onError={(e) => {
+                              e.target.src = fallbackImage;
+                            }}
+                          />
+                          <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider">
+                            {product.shop?.shop_name || 'Store'}
+                          </div>
+                          <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-semibold">
+                            {product.stock > 0 ? `Stock: ${product.stock}` : 'Out of stock'}
+                          </div>
+                        </div>
+                        <div className="p-3">
+                          <h3 className="font-semibold text-sm text-gray-900 dark:text-white line-clamp-1">
+                            {product.title || `Featured item ${index + 1}`}
+                          </h3>
+                        </div>
                       </div>
                     ))}
                   </div>
