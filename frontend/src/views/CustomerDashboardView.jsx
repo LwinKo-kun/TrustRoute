@@ -34,7 +34,11 @@ export default function CustomerDashboardView({ data }) {
     if (existingIndex > -1) {
       cart[existingIndex].quantity += 1;
     } else {
-      cart.push({ ...listing, quantity: 1 });
+      cart.push({
+        ...listing,
+        price: Number(listing.price) || 0,
+        quantity: 1,
+      });
     }
 
     localStorage.setItem('cart', JSON.stringify(cart));
