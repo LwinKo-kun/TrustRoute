@@ -17,7 +17,7 @@ export default function DashboardLayout() {
   return (
     <div className="flex flex-col min-h-screen bg-[var(--bg)]">
       {/* Header */}
-      <header className="flex flex-col md:flex-row items-start md:items-center justify-between px-4 md:px-8 py-4 border-b border-[var(--border)] bg-[var(--bg)] gap-4">
+      <header className="flex flex-col md:flex-row items-start md:items-center justify-between px-4 md:px-8 py-4 border-b border-[var(--border)] bg-gradient-to-r from-purple-600 to-indigo-600 gap-4">
         
         {/* Top row for mobile (Logo + Hamburger toggle) */}
         <div className="flex items-center justify-between w-full md:w-auto">
@@ -45,7 +45,7 @@ export default function DashboardLayout() {
               <span className="text-xs px-2 py-1 bg-amber-500/10 text-amber-500 rounded font-bold uppercase">Shopkeeper Portal</span>
             )}
             {role === 'delivery' && (
-              <span className="text-xs px-2 py-1 bg-blue-500/10 text-blue-500 rounded font-bold uppercase">Delivery Hub</span>
+              <span className="text-xs px-2 py-1 bg-purple-500/10 text-purple-500 rounded font-bold uppercase">Delivery Hub</span>
             )}
           </nav>
 

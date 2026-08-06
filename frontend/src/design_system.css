@@ -1,0 +1,35 @@
+/* Design System CSS */
+:root {
+  /* Primary color palette */
+  --color-primary-start: #aa3bff; /* Purple */
+  --color-primary-end: #5c6ac4; /* Indigo */
+  --color-primary: #aa3bff;
+  --color-primary-dark: #7e2ccc;
+  --color-accent: #ff6b6b; /* optional accent */
+
+  /* Backgrounds */
+  --bg-primary: #f5f7ff; /* light background */
+  --bg-primary-dark: #16171d; /* dark mode */
+
+  /* Text */
+  --text-primary: #1a202c;
+  --text-primary-dark: #e5e7eb;
+
+  /* Glassmorphism backdrop */
+  --glass-bg: rgba(255,255,255,0.2);
+  --glass-blur: blur(10px);
+}
+
+/* Utility classes */
+.bg-glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.text-primary {
+  color: var(--text-primary);
+}
+.text-primary-dark {
+  color: var(--text-primary-dark);
+}
