@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\ListingController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\ReviewController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,9 @@ Route::get('/shops/{shop}', [ShopController::class, 'show']);
 Route::get('/listings', [ListingController::class, 'index']);
 Route::get('/listings/{listing}', [ListingController::class, 'show']);
 Route::get('/listings/{listing}/image', [ListingController::class, 'image']);
+
+// Public review route
+Route::get('/reviews', [ReviewController::class, 'index']);
 
 // Authenticated routes via Sanctum
 Route::middleware('auth:sanctum')->group(function () {
@@ -50,4 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
+
+    // Review Management Routes (Authenticated)
+    Route::post('/reviews', [ReviewController::class, 'store']);
 });

@@ -3,3 +3,6 @@ RealStructure.txt
 trustroute_database.txt
 .vscode/
 .kiro/
+structure.txt
+ExpectedStructure.txt
+trustroute_backup.sql
