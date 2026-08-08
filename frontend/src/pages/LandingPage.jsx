@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Header from '../components/common/Header';
 import ProductCard from '../components/common/ProductCard';
 import ShopCard from '../components/market/ShopCard';
+import TrustedShopsAndStats from '../components/TrustedShopsAndStats';
 
 export default function LandingPage() {
   const [products, setProducts] = useState([]);
@@ -255,61 +256,9 @@ export default function LandingPage() {
           )}
         </div>
       </div>
+      
 
-      {/* Trusted Shops */}
-      <div className="py-24 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600">Trusted</span> Shops
-            </h2>
-            <Link to="/marketplace" className="hidden sm:flex items-center gap-2 text-purple-600 dark:text-purple-400 font-semibold hover:text-purple-700 transition">
-              View All Shops
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-          
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-gray-100 dark:bg-gray-700 rounded-3xl h-80 animate-pulse" />
-              ))}
-            </div>
-          ) : shops.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {shops.slice(0, 3).map((shop) => (
-                <ShopCard key={shop.id} shop={shop} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-24">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">No shops yet</h3>
-              <p className="text-gray-600 dark:text-gray-400">Be the first to open a shop!</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Stats Section */}
-      <div className="py-20 bg-gradient-to-r from-purple-700 via-indigo-700 to-blue-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {[
-              { number: '500+', label: 'Verified Shops' },
-              { number: '10K+', label: 'Products' },
-              { number: '99.9%', label: 'Satisfaction' },
-              { number: '24/7', label: 'Support' },
-            ].map((stat, i) => (
-              <div key={i} className="space-y-3">
-                <div className="text-5xl font-bold">{stat.number}</div>
-                <div className="text-purple-100 font-medium">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <TrustedShopsAndStats loading={loading} shops={shops} ShopCard={ShopCard} />
     </div>
   );
 }
