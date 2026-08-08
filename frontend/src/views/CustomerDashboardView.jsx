@@ -18,8 +18,7 @@ export default function CustomerDashboardView({ data }) {
 
     updateCartCount();
     window.addEventListener('storage', updateCartCount);
-    
-    // Custom event listener for local storage changes within the same tab
+
     const interval = setInterval(updateCartCount, 1000);
     return () => {
       clearInterval(interval);
@@ -27,7 +26,8 @@ export default function CustomerDashboardView({ data }) {
     };
   }, []);
 
-  const addToCart = (listing) => {
+  const addToCart = (e, listing) => {
+    e.stopPropagation(); // Prevents navigating to the detail page when clicking the button
     const cart = JSON.parse(localStorage.getItem('cart')) || [];
     const existingIndex = cart.findIndex(item => item.id === listing.id);
 
@@ -42,17 +42,16 @@ export default function CustomerDashboardView({ data }) {
     }
 
     localStorage.setItem('cart', JSON.stringify(cart));
-    
-    // Immediately update count state
+
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     setCartCount(totalItems);
-    
+
     alert(`Added "${listing.title}" to cart!`);
   };
 
   return (
     <div className="flex flex-col gap-8 max-w-7xl mx-auto pb-12">
-      {/* Header Banner with Cart Button */}
+      {/* Header Banner */}
       <div className="p-8 border border-[var(--border)] rounded-2xl bg-gradient-to-r from-[var(--code-bg)] to-transparent flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
         <div>
           <div className="flex items-center gap-2">
@@ -65,7 +64,6 @@ export default function CustomerDashboardView({ data }) {
           </p>
         </div>
 
-        {/* Cart Navigation Button */}
         <Link
           to="/cart"
           className="px-5 py-3 bg-[var(--accent)] text-white text-sm font-semibold rounded-xl shadow-md hover:opacity-90 transition flex items-center gap-2 shrink-0"
@@ -108,38 +106,46 @@ export default function CustomerDashboardView({ data }) {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {listings.map((listing) => (
-              <div key={listing.id} className="border border-[var(--border)] rounded-2xl overflow-hidden bg-[var(--card-bg, transparent)] flex flex-col shadow-sm hover:shadow-md transition group">
-                {/* Product Image Thumbnail */}
-                <div className="w-full h-48 bg-[var(--border)]/10 relative overflow-hidden flex items-center justify-center">
-                  <img
-                    src={`http://127.0.0.1:8000/api/listings/${listing.id}/image`}
-                    alt={listing.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                    }}
-                  />
-                  <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider">
-                    {listing.shop?.shop_name || 'Store'}
+              <div
+                key={listing.id}
+                className="border border-[var(--border)] rounded-2xl overflow-hidden bg-[var(--card-bg, transparent)] flex flex-col shadow-sm hover:shadow-md transition group"
+              >
+                {/* Clickable Card Link */}
+                <Link to={`/listings/${listing.id}`} className="flex flex-col flex-grow">
+                  {/* Product Image Thumbnail */}
+                  <div className="w-full h-48 bg-[var(--border)]/10 relative overflow-hidden flex items-center justify-center">
+                    <img
+                      src={`http://127.0.0.1:8000/api/listings/${listing.id}/image`}
+                      alt={listing.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                    <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider">
+                      {listing.shop?.shop_name || 'Store'}
+                    </div>
+                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-full font-semibold">
+                      Stock: {listing.stock}
+                    </div>
                   </div>
-                  <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-full font-semibold">
-                    Stock: {listing.stock}
-                  </div>
-                </div>
 
-                {/* Card Content Details */}
-                <div className="p-5 flex flex-col flex-grow gap-2">
-                  <h3 className="font-bold text-base line-clamp-1">{listing.title}</h3>
-                  <p className="text-xs opacity-70 line-clamp-2">{listing.description || 'No product description provided.'}</p>
-                  <div className="mt-auto pt-4 flex items-center justify-between">
-                    <span className="text-lg font-extrabold text-[var(--accent)]">${listing.price}</span>
-                    <button 
-                      onClick={() => addToCart(listing)}
-                      className="px-4 py-2 bg-[var(--accent)] text-white text-xs font-semibold rounded-xl shadow-sm hover:opacity-90 transition"
-                    >
-                      Add to Cart
-                    </button>
+                  {/* Card Content Details */}
+                  <div className="p-5 flex flex-col flex-grow gap-2">
+                    <h3 className="font-bold text-base line-clamp-1 group-hover:text-[var(--accent)] transition">{listing.title}</h3>
+                    <p className="text-xs opacity-70 line-clamp-2">{listing.description || 'No product description provided.'}</p>
                   </div>
+                </Link>
+
+                {/* Bottom Action Row (outside inner link to isolate button click) */}
+                <div className="px-5 pb-5 pt-2 flex items-center justify-between mt-auto">
+                  <span className="text-lg font-extrabold text-[var(--accent)]">${listing.price}</span>
+                  <button
+                    onClick={(e) => addToCart(e, listing)}
+                    className="px-4 py-2 bg-[var(--accent)] text-white text-xs font-semibold rounded-xl shadow-sm hover:opacity-90 transition z-10"
+                  >
+                    Add to Cart
+                  </button>
                 </div>
               </div>
             ))}
