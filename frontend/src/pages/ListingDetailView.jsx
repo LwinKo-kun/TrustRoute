@@ -5,12 +5,12 @@ import api from '../api/axios';
 
 export default function ListingDetailView() {
     const params = useParams();
+    // Route Name မတူပါကလည်း id တန်ဖိုး ရရှိစေရန် စစ်ဆေးခြင်း
     const id = params.id || params.listingId || params.listing;
 
     const { user } = useAuth();
 
     const [listing, setListing] = useState(null);
-    const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [quantity, setQuantity] = useState(1);
@@ -21,31 +21,25 @@ export default function ListingDetailView() {
     const [submittingReview, setSubmittingReview] = useState(false);
 
     useEffect(() => {
+        console.log('Route Params:', params);
+        console.log('Extracted ID:', id);
+
         if (!id) {
-            setError('Product ID not found.');
+            setError('Product ID not found in URL.');
             setLoading(false);
             return;
         }
 
-        const fetchData = async () => {
+        const fetchListingDetail = async () => {
             try {
                 setLoading(true);
-                setError(null);
+                const response = await api.get(`/listings/${id}`);
+                console.log('API Raw Response:', response);
 
-                // 1. Fetch Product Detail
-                const productRes = await api.get(`/listings/${id}`);
-                const productData = productRes.data?.listing || productRes.data?.data || productRes.data;
-                setListing(productData);
+                const fetchedData = response.data?.listing || response.data?.data || response.data;
+                console.log('Parsed Listing Data:', fetchedData);
 
-                // 2. Fetch Reviews (Fail ဖြစ်လျှင် Product Detail ပါ မပျက်စီးစေရန် သီးသန့် try catch ထည့်ထားပါသည်)
-                try {
-                    const reviewsRes = await api.get(`/listings/${id}/reviews`);
-                    setReviews(reviewsRes.data || []);
-                } catch (revErr) {
-                    console.warn('Could not fetch reviews separately, fallback to eager loaded reviews:', revErr);
-                    setReviews(productData?.reviews || []);
-                }
-
+                setListing(fetchedData);
             } catch (err) {
                 console.error('Failed to fetch listing details:', err);
                 setError('Product details could not be loaded.');
@@ -54,7 +48,7 @@ export default function ListingDetailView() {
             }
         };
 
-        fetchData();
+        fetchListingDetail();
     }, [id]);
 
     const addToCart = () => {
@@ -96,7 +90,11 @@ export default function ListingDetailView() {
                 created_at: new Date().toISOString(),
             };
 
-            setReviews((prev) => [newReview, ...prev]);
+            setListing((prev) => ({
+                ...prev,
+                reviews: [newReview, ...(prev?.reviews || [])],
+            }));
+
             setCommentText('');
             setRating(5);
             alert('Review submitted successfully!');
@@ -229,10 +227,10 @@ export default function ListingDetailView() {
                 </form>
 
                 <div className="flex flex-col gap-4 mt-2">
-                    {reviews.length === 0 ? (
+                    {!listing.reviews || listing.reviews.length === 0 ? (
                         <p className="text-sm opacity-60 italic">No reviews yet. Be the first to leave a comment!</p>
                     ) : (
-                        reviews.map((rev) => (
+                        listing.reviews.map((rev) => (
                             <div key={rev.id} className="p-5 border border-[var(--border)] rounded-2xl flex flex-col gap-2">
                                 <div className="flex justify-between items-center">
                                     <span className="font-bold text-sm">{rev.user?.name || rev.user_name || 'Customer'}</span>
