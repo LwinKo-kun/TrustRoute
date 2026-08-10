@@ -5,4 +5,6 @@ trustroute_database.txt
 .kiro/
 structure.txt
 ExpectedStructure.txt
+trustroute_backup.sqlbackend/database/migrations/*.php
+/backend/database/migrations/*.php
 trustroute_backup.sql

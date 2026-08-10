@@ -31,6 +31,12 @@ class ReviewController extends Controller
      */
     public function store(Request $request)
     {
+        if (!$request->user()) {
+            return response()->json([
+                'message' => 'Unauthenticated. Please login to leave a review.'
+            ], 401);
+        }
+
         $validated = $request->validate([
             'listing_id' => 'required|exists:listings,id',
             'rating'     => 'required|integer|min:1|max:5',
@@ -46,7 +52,7 @@ class ReviewController extends Controller
 
         return response()->json([
             'message' => 'Review created successfully',
-            'review'  => $review->load('user'),
+            'review'  => $review->load('user'), // User data ပါဝင်အောင် Load လုပ်ပေးထားပါသည်
         ], 201);
     }
 }
