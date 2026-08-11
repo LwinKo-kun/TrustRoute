@@ -6,3 +6,4 @@ trustroute_database.txt
 structure.txt
 ExpectedStructure.txt
 trustroute_backup.sql
+distributed_trustroute.txt
