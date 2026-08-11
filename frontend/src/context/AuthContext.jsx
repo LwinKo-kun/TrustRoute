@@ -28,16 +28,25 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const response = await api.post('/login', { email, password });
-    localStorage.setItem('token', response.data.access_token);
-    setToken(response.data.access_token);
+    const authToken = response.data.access_token || response.data.token;
+    localStorage.setItem('token', authToken);
+    setToken(authToken);
     setUser(response.data.user);
     return response.data;
   };
 
   const signup = async (name, email, password, role = 'customer') => {
-    const response = await api.post('/register', { name, email, password, role });
-    localStorage.setItem('token', response.data.access_token);
-    setToken(response.data.access_token);
+    const response = await api.post('/register', {
+      name,
+      email,
+      password,
+      password_confirmation: password, // Laravel Validation အတွက် ထည့်သွင်းထားသည်
+      role,
+    });
+
+    const authToken = response.data.access_token || response.data.token;
+    localStorage.setItem('token', authToken);
+    setToken(authToken);
     setUser(response.data.user);
     return response.data;
   };

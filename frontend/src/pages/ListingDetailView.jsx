@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 
@@ -8,6 +8,7 @@ export default function ListingDetailView() {
     // Route Name မတူပါကလည်း id တန်ဖိုး ရရှိစေရန် စစ်ဆေးခြင်း
     const id = params.id || params.listingId || params.listing;
 
+    const navigate = useNavigate();
     const { user } = useAuth();
 
     const [listing, setListing] = useState(null);
@@ -174,6 +175,43 @@ export default function ListingDetailView() {
                     </div>
 
                     <hr className="border-[var(--border)]" />
+
+                    {/* ===== SELLER / SHOP BADGE START ===== */}
+                    <div className="p-4 border border-[var(--border)] rounded-2xl bg-[var(--border)]/10 flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-[var(--accent)]/10 text-[var(--accent)] flex items-center justify-center font-bold text-base border border-[var(--accent)]/20">
+                                    {listing.shop?.shop_name ? listing.shop.shop_name.charAt(0).toUpperCase() : 'S'}
+                                </div>
+                                <div>
+                                    <p className="text-[10px] uppercase tracking-wider font-bold opacity-60">Sold By</p>
+                                    <p className="text-sm font-bold">
+                                        {listing.shop?.shop_name || listing.shop?.name || 'Official Store'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {listing.shop?.user?.name && (
+                                <span className="text-xs bg-[var(--accent)]/10 text-[var(--accent)] px-3 py-1.5 rounded-full font-semibold border border-[var(--accent)]/20">
+                                    Seller: {listing.shop.user.name}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Chat with Seller Button */}
+                        {(listing.shop?.user_id || listing.shop?.user?.id) && (
+                            <button
+                                onClick={() => {
+                                    const sellerId = listing.shop?.user_id || listing.shop?.user?.id;
+                                    navigate(`/chat/${sellerId}`);
+                                }}
+                                className="w-full py-2 bg-[var(--accent)]/10 hover:bg-[var(--accent)] hover:text-white text-[var(--accent)] font-semibold text-xs rounded-xl border border-[var(--accent)]/20 transition flex items-center justify-center gap-2 cursor-pointer"
+                            >
+                                💬 Chat with Seller
+                            </button>
+                        )}
+                    </div>
+                    {/* ===== SELLER / SHOP BADGE END ===== */}
 
                     <div className="flex items-center gap-4">
                         <div className="flex items-center border border-[var(--border)] rounded-xl overflow-hidden">

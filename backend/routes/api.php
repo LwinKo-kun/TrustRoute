@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ListingController;
+use App\Http\Controllers\Api\MessageController; // MessageController ကို Import လုပ်ထားပါသည်
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ShopController;
@@ -58,4 +59,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Review Management Routes (Authenticated)
     Route::post('/reviews', [ReviewController::class, 'store']);
+
+    // Message Management Routes (Chat Feature)
+    Route::get('/messages/{receiverId}', [MessageController::class, 'getMessages']);
+    Route::post('/messages', [MessageController::class, 'sendMessage']);
 });
