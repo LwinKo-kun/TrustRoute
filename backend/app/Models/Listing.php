@@ -35,7 +35,6 @@ class Listing extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    // ဒီ Relationship ထပ်ဖြည့်ပေးရပါမည်
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);

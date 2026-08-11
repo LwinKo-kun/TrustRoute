@@ -74,14 +74,23 @@ export default function ListingDetailView() {
         e.preventDefault();
         if (!commentText.trim()) return;
 
+        const token = localStorage.getItem('token');
+
         try {
             setSubmittingReview(true);
+
+            // API ပို့သည့်အခါ Authorization Header ပါဝင်စေရန် ပြင်ဆင်ထားပါသည်
             const res = await api.post('/reviews', {
                 listing_id: id,
                 rating: Number(rating),
                 comment: commentText,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
 
+            // Backend မှ ပြန်လာသော Review (User data အပါအဝင်)
             const newReview = res.data?.review || {
                 id: Date.now(),
                 user: { name: user?.name || 'You' },
@@ -90,6 +99,7 @@ export default function ListingDetailView() {
                 created_at: new Date().toISOString(),
             };
 
+            // Listing reviews state ထဲသို့ review သစ် ပေါင်းထည့်မည်
             setListing((prev) => ({
                 ...prev,
                 reviews: [newReview, ...(prev?.reviews || [])],
@@ -100,7 +110,12 @@ export default function ListingDetailView() {
             alert('Review submitted successfully!');
         } catch (err) {
             console.error('Failed to submit review:', err);
-            alert('Failed to submit review.');
+
+            if (err.response?.status === 401) {
+                alert('Review ရေးသားရန် အရင်ဆုံး Login ဝင်ပေးပါ။');
+            } else {
+                alert(err.response?.data?.message || 'Failed to submit review.');
+            }
         } finally {
             setSubmittingReview(false);
         }
@@ -233,11 +248,15 @@ export default function ListingDetailView() {
                         listing.reviews.map((rev) => (
                             <div key={rev.id} className="p-5 border border-[var(--border)] rounded-2xl flex flex-col gap-2">
                                 <div className="flex justify-between items-center">
-                                    <span className="font-bold text-sm">{rev.user?.name || rev.user_name || 'Customer'}</span>
-                                    <span className="text-xs opacity-50">{rev.created_at ? new Date(rev.created_at).toLocaleDateString() : ''}</span>
+                                    <span className="font-bold text-sm">
+                                        {rev.user?.name || rev.user_name || user?.name || 'Customer'}
+                                    </span>
+                                    <span className="text-xs opacity-50">
+                                        {rev.created_at ? new Date(rev.created_at).toLocaleDateString() : 'Just now'}
+                                    </span>
                                 </div>
                                 <div className="text-yellow-500 text-xs">
-                                    {'★'.repeat(rev.rating)}{'☆'.repeat(5 - rev.rating)}
+                                    {'★'.repeat(rev.rating || 5)}{'☆'.repeat(5 - (rev.rating || 5))}
                                 </div>
                                 <p className="text-xs opacity-80 mt-1">{rev.comment}</p>
                             </div>
