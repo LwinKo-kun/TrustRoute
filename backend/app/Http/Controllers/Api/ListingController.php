@@ -56,7 +56,8 @@ class ListingController extends Controller
 
     public function show(Listing $listing)
     {
-        return response()->json(['data' => $listing->load('shop')]);
+        // reviews နှင့် review ရေးသားသူ user အချက်အလက်များကို ပါဝင်အောင် load လုပ်ထားသည်
+        return response()->json(['data' => $listing->load(['shop', 'reviews.user'])]);
     }
 
     public function image(Listing $listing)
@@ -65,14 +66,12 @@ class ListingController extends Controller
             return response()->json(['message' => 'Image not found'], 404);
         }
 
-        // Fetch raw binary content directly from PostgreSQL stream/blob
         $imageData = $listing->image_data;
         
         if (is_resource($imageData)) {
             $imageData = stream_get_contents($imageData);
         }
 
-        // If stored as a hex string block (\x...), convert it directly to binary
         if (str_starts_with($imageData, '\\x')) {
             $imageData = hex2bin(substr($imageData, 2));
         }
