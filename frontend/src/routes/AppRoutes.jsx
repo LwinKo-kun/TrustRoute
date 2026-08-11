@@ -12,6 +12,7 @@ import ListingEditPage from '../pages/ListingEditPage';
 import ListingDetailView from '../pages/ListingDetailView';
 import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
+import ChatPage from '../pages/ChatPage'; // 💬 1. ChatPage ကို Import လုပ်ပါ (ဖိုင်လမ်းကြောင်း စစ်ပေးပါ)
 import ProtectedRoute from './ProtectedRoute';
 
 export default function AppRoutes() {
@@ -36,6 +37,10 @@ export default function AppRoutes() {
         <Route path="/listings/:id" element={<ListingDetailView />} />
         <Route path="/listings/:id/edit" element={<ListingEditPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
+
+        {/* 💬 2. Chat Route များကို ဒီနေရာမှာ ထည့်ပေးထားပါတယ် */}
+        <Route path="/chat/:sellerId" element={<ChatPage />} />
+        <Route path="/chat" element={<ChatPage />} />
       </Route>
 
       <Route path="/cart" element={<CartPage />} />
