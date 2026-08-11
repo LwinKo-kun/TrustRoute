@@ -1,172 +1,193 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useParams } from 'react-router-dom';
 import api from '../api/axios';
 
 export default function ChatPage() {
-    const { sellerId } = useParams();
-    const { user } = useAuth();
-    const navigate = useNavigate();
-
+    const { userId } = useParams(); // URL မှ /chat/:userId
     const [conversations, setConversations] = useState([]);
+    const [activeUserId, setActiveUserId] = useState(userId || null);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
-    const [loading, setLoading] = useState(false);
 
-    // 1. စာလာပို့ထားသော လူစာရင်း (Conversations List) ဆွဲယူမည်
+    // 1. URL မှ userId ပြောင်းသွားပါက activeUserId ကို Update လုပ်မည်
+    useEffect(() => {
+        if (userId && userId !== 'undefined') {
+            setActiveUserId(userId);
+        }
+    }, [userId]);
+
+    // 2. Conversations စာရင်း ဆွဲထုတ်မည်
     useEffect(() => {
         const fetchConversations = async () => {
             try {
                 const res = await api.get('/conversations');
-                setConversations(res.data?.data || res.data || []);
+                const data = res.data.data || res.data;
+                setConversations(Array.isArray(data) ? data : []);
             } catch (err) {
-                console.error("Failed to fetch conversations:", err);
+                console.error('Failed to load conversations', err);
             }
         };
-
         fetchConversations();
     }, []);
 
-    // 2. ရွေးချယ်ထားသော လူနှင့် မက်ဆေ့ချ်များ ဆွဲယူမည်
+    // 3. activeUserId ရှိပါက မက်ဆေ့ချ်များ ယူမည်
     useEffect(() => {
-        if (!sellerId || sellerId === 'undefined') return;
+        if (!activeUserId || activeUserId === 'undefined') return;
 
         const fetchMessages = async () => {
             try {
-                setLoading(true);
-                const res = await api.get(`/messages/${sellerId}`);
-                setMessages(res.data?.data || res.data || []);
+                const res = await api.get(`/messages/${activeUserId}`);
+                const data = res.data.data || res.data;
+                setMessages(Array.isArray(data) ? data : []);
             } catch (err) {
-                console.error("Failed to fetch messages:", err);
-            } finally {
-                setLoading(false);
+                console.error('Failed to load messages', err);
             }
         };
 
         fetchMessages();
-    }, [sellerId]);
+    }, [activeUserId]);
 
-    // 3. စာပြန်ရန် / စာပို့ရန်
+    // 4. မက်ဆေ့ချ် ပို့မည်
     const handleSendMessage = async (e) => {
         e.preventDefault();
-
-        const targetId = Number(sellerId);
-        if (!targetId || isNaN(targetId)) {
-            alert("စကားပြောရန် User/Seller ID မှန်ကန်မှုမရှိပါ။");
-            return;
-        }
-
-        if (!newMessage.trim()) return;
+        if (!newMessage.trim() || !activeUserId) return;
 
         try {
             const res = await api.post('/messages', {
-                receiver_id: targetId,
+                receiver_id: activeUserId,
                 message: newMessage,
             });
 
-            const sentMsg = res.data?.message || res.data;
+            const sentMsg = res.data.message || res.data;
             setMessages((prev) => [...prev, sentMsg]);
             setNewMessage('');
+
+            // စာပို့ပြီးပါက Conversations စာရင်းကို ပြန် Update လုပ်မည်
+            const resConv = await api.get('/conversations');
+            const convData = resConv.data.data || resConv.data;
+            setConversations(Array.isArray(convData) ? convData : []);
         } catch (err) {
-            console.error("Failed to send message:", err);
-            alert("စာပို့ရာတွင် အမှားအယွင်းရှိနေပါသည်။");
+            console.error('Failed to send message', err);
         }
     };
 
+    // Active User ကို ရှာယူခြင်း
+    const activeUser = conversations.find((c) => Number(c.id) === Number(activeUserId));
+
     return (
-        <div className="max-w-6xl mx-auto my-6 border border-[var(--border)] rounded-2xl overflow-hidden bg-[var(--card-bg,white)] flex h-[600px]">
-            {/* LEFT SIDEBAR: စာလာပို့ထားသော လူများစာရင်း */}
-            <div className="w-1/3 border-r border-[var(--border)] bg-gray-50 dark:bg-gray-900/50 flex flex-col">
-                <div className="p-4 border-b border-[var(--border)] font-bold text-lg">
-                    💬 Messages Inbox
-                </div>
-                <div className="flex-1 overflow-y-auto">
+        <div className="flex border border-[var(--border)] rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 h-[650px] max-w-6xl mx-auto my-6 shadow-sm">
+
+            {/* 🟢 ဘယ်ဘက် - Messages Inbox Sidebar */}
+            <div className="w-1/3 border-r border-[var(--border)] p-4 flex flex-col gap-3">
+                <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
+                    <span>💬</span> Messages Inbox
+                </h3>
+
+                <div className="flex flex-col gap-2 overflow-y-auto">
                     {conversations.length === 0 ? (
-                        <p className="p-4 text-xs opacity-60 text-center">No active chats yet.</p>
+                        <p className="text-xs opacity-60 p-2">No active chats yet.</p>
                     ) : (
-                        conversations.map((chatUser) => (
-                            <div
-                                key={chatUser.id}
-                                onClick={() => navigate(`/chat/${chatUser.id}`)}
-                                className={`p-4 border-b border-[var(--border)] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition flex items-center gap-3 ${String(sellerId) === String(chatUser.id) ? 'bg-purple-50 dark:bg-purple-900/20 font-bold' : ''
-                                    }`}
-                            >
-                                <div className="w-10 h-10 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">
-                                    {chatUser.name?.charAt(0).toUpperCase() || 'U'}
-                                </div>
-                                <div className="flex-1 overflow-hidden">
-                                    <p className="text-sm truncate">{chatUser.name || `User #${chatUser.id}`}</p>
-                                    <p className="text-xs opacity-60 truncate">{chatUser.last_message || 'Click to view chat'}</p>
-                                </div>
-                            </div>
-                        ))
+                        conversations.map((user) => {
+                            const isActive = Number(activeUserId) === Number(user.id);
+                            return (
+                                <button
+                                    key={user.id}
+                                    onClick={() => setActiveUserId(user.id)}
+                                    className={`p-3 rounded-xl transition flex items-center gap-3 text-left ${isActive
+                                            ? 'bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800'
+                                            : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/50'
+                                        }`}
+                                >
+                                    <div className="w-10 h-10 rounded-full bg-purple-600 text-white font-bold flex items-center justify-center shrink-0 text-sm">
+                                        {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                                    </div>
+
+                                    <div className="overflow-hidden">
+                                        <h4 className="font-semibold text-sm truncate text-zinc-900 dark:text-zinc-100">
+                                            {user.name || `User #${user.id}`}
+                                        </h4>
+                                        <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">
+                                            Click to view chat
+                                        </p>
+                                    </div>
+                                </button>
+                            );
+                        })
                     )}
                 </div>
             </div>
 
-            {/* RIGHT MAIN CHAT AREA */}
-            <div className="flex-1 flex flex-col justify-between bg-white dark:bg-gray-950">
-                {!sellerId || sellerId === 'undefined' ? (
-                    <div className="flex-1 flex items-center justify-center text-sm opacity-60">
-                        Select a conversation from the left sidebar or click "Chat with Seller" from a product.
-                    </div>
-                ) : (
+            {/* 🟢 ညာဘက် - Chat Room Main Area */}
+            <div className="w-2/3 flex flex-col justify-between bg-zinc-50/50 dark:bg-zinc-900/50">
+                {activeUserId && activeUserId !== 'undefined' ? (
                     <>
-                        {/* Chat Header */}
-                        <div className="p-4 border-b border-[var(--border)] font-bold text-sm flex items-center justify-between">
-                            <span>Chatting with User #{sellerId}</span>
+                        {/* Header တန်း */}
+                        <div className="p-4 border-b border-[var(--border)] bg-white dark:bg-zinc-900 flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-purple-600 text-white font-bold flex items-center justify-center text-sm">
+                                {activeUser?.name ? activeUser.name.charAt(0).toUpperCase() : 'S'}
+                            </div>
+                            <h2 className="font-bold text-base text-zinc-800 dark:text-zinc-100">
+                                Chatting with {activeUser ? activeUser.name : `Seller (#${activeUserId})`}
+                            </h2>
                         </div>
 
-                        {/* Messages Container */}
-                        <div className="flex-1 p-4 overflow-y-auto space-y-3">
-                            {loading ? (
-                                <p className="text-center text-xs opacity-60">Loading chat history...</p>
-                            ) : messages.length === 0 ? (
-                                <p className="text-center text-xs opacity-60">No messages yet. Say hi!</p>
+                        {/* စာတိုများ ပြသသည့်နေရာ */}
+                        <div className="p-4 flex-grow overflow-y-auto flex flex-col gap-3">
+                            {messages.length === 0 ? (
+                                <div className="m-auto text-center opacity-60 text-xs">
+                                    👋 Start the conversation by sending a message!
+                                </div>
                             ) : (
-                                messages.map((msg, idx) => {
-                                    const isMe = String(msg.sender_id) === String(user?.id);
+                                messages.map((msg, index) => {
+                                    const isMe = Number(msg.sender_id) !== Number(activeUserId);
                                     return (
                                         <div
-                                            key={msg.id || idx}
-                                            className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                                            key={msg.id || index}
+                                            className={`max-w-[70%] p-3.5 rounded-2xl text-sm ${isMe
+                                                    ? 'bg-purple-600 text-white self-end ml-auto rounded-br-xs'
+                                                    : 'bg-white dark:bg-zinc-800 border border-[var(--border)] text-zinc-800 dark:text-zinc-200 self-start rounded-bl-xs shadow-xs'
+                                                }`}
                                         >
-                                            <div
-                                                className={`max-w-[70%] px-4 py-2 rounded-2xl text-sm ${isMe
-                                                        ? 'bg-purple-600 text-white rounded-br-none'
-                                                        : 'bg-gray-100 dark:bg-gray-800 rounded-bl-none'
+                                            <p className="leading-relaxed">{msg.message}</p>
+                                            <span
+                                                className={`text-[10px] mt-1 block opacity-70 ${isMe ? 'text-right text-purple-100' : 'text-left text-zinc-400'
                                                     }`}
                                             >
-                                                <p>{msg.message}</p>
-                                                <span className="text-[10px] opacity-60 block text-right mt-1">
-                                                    {msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                                                </span>
-                                            </div>
+                                                {msg.created_at
+                                                    ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                                    : ''}
+                                            </span>
                                         </div>
                                     );
                                 })
                             )}
                         </div>
 
-                        {/* Send Box */}
-                        <form onSubmit={handleSendMessage} className="p-4 border-t border-[var(--border)] flex gap-2">
+                        {/* စာရိုက်ရန် Input Box */}
+                        <form onSubmit={handleSendMessage} className="p-4 border-t border-[var(--border)] bg-white dark:bg-zinc-900 flex gap-2">
                             <input
                                 type="text"
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
                                 placeholder="Type your message..."
-                                className="flex-1 p-3 border border-[var(--border)] rounded-xl bg-transparent text-sm focus:outline-none focus:border-purple-600"
+                                className="flex-grow p-3 border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:border-purple-500 bg-zinc-50 dark:bg-zinc-800"
                             />
                             <button
                                 type="submit"
-                                className="px-6 py-3 bg-purple-600 text-white rounded-xl text-sm font-semibold hover:opacity-90 transition"
+                                className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-xl text-sm hover:bg-purple-700 transition shadow-xs"
                             >
                                 Send
                             </button>
                         </form>
                     </>
+                ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-sm opacity-60 gap-2">
+                        <span>💬</span>
+                        <p>Select a conversation from the left sidebar or click "Chat with Seller" from a product.</p>
+                    </div>
                 )}
             </div>
+
         </div>
     );
 }

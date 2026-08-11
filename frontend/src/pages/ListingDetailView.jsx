@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 
 export default function ListingDetailView() {
     const params = useParams();
-    // Route Name မတူပါကလည်း id တန်ဖိုး ရရှိစေရန် စစ်ဆေးခြင်း
     const id = params.id || params.listingId || params.listing;
 
-    const navigate = useNavigate();
     const { user } = useAuth();
 
     const [listing, setListing] = useState(null);
+    const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [quantity, setQuantity] = useState(1);
@@ -21,26 +20,38 @@ export default function ListingDetailView() {
     const [rating, setRating] = useState(5);
     const [submittingReview, setSubmittingReview] = useState(false);
 
-    useEffect(() => {
-        console.log('Route Params:', params);
-        console.log('Extracted ID:', id);
+    // 💬 Inline Chat Modal States
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [chatMessages, setChatMessages] = useState([]);
+    const [chatInput, setChatInput] = useState('');
+    const [loadingChat, setLoadingChat] = useState(false);
 
+    useEffect(() => {
         if (!id) {
-            setError('Product ID not found in URL.');
+            setError('Product ID not found.');
             setLoading(false);
             return;
         }
 
-        const fetchListingDetail = async () => {
+        const fetchData = async () => {
             try {
                 setLoading(true);
-                const response = await api.get(`/listings/${id}`);
-                console.log('API Raw Response:', response);
+                setError(null);
 
-                const fetchedData = response.data?.listing || response.data?.data || response.data;
-                console.log('Parsed Listing Data:', fetchedData);
+                // 1. Fetch Product Detail
+                const productRes = await api.get(`/listings/${id}`);
+                const productData = productRes.data?.data || productRes.data?.listing || productRes.data;
+                setListing(productData);
 
-                setListing(fetchedData);
+                // 2. Fetch Reviews
+                try {
+                    const reviewsRes = await api.get(`/listings/${id}/reviews`);
+                    setReviews(reviewsRes.data || []);
+                } catch (revErr) {
+                    console.warn('Could not fetch reviews separately:', revErr);
+                    setReviews(productData?.reviews || []);
+                }
+
             } catch (err) {
                 console.error('Failed to fetch listing details:', err);
                 setError('Product details could not be loaded.');
@@ -49,8 +60,66 @@ export default function ListingDetailView() {
             }
         };
 
-        fetchListingDetail();
+        fetchData();
     }, [id]);
+
+    // 💡 Seller User ID ကို ဆွဲထုတ်ခြင်း
+    const sellerUserId =
+        listing?.shop?.user?.id ||
+        listing?.shop?.user_id ||
+        listing?.shop?.shopkeeper_id ||
+        listing?.user_id;
+
+    // 💬 Chat Box ပွင့်လာသည့်အခါ မက်ဆေ့ချ်များ ခေါ်ယူရန်
+    const handleOpenChat = async () => {
+        if (!sellerUserId) {
+            alert('Seller User ID မတွေ့ရှိပါ။ Console ကို စစ်ဆေးပါ။');
+            console.log('Listing Data:', listing);
+            return;
+        }
+
+        setIsChatOpen(true);
+        setLoadingChat(true);
+
+        try {
+            const res = await api.get(`/messages/${sellerUserId}`);
+            const data = res.data?.data || res.data;
+            setChatMessages(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error('Failed to fetch chat history:', err);
+        } finally {
+            setLoadingChat(false);
+        }
+    };
+
+    // 💬 စာပို့သည့် Handler
+    const handleSendChatMessage = async (e) => {
+        e.preventDefault();
+        if (!chatInput.trim() || !sellerUserId) return;
+
+        const messageToSend = chatInput;
+        setChatInput('');
+
+        try {
+            const res = await api.post('/messages', {
+                receiver_id: sellerUserId,
+                message: messageToSend,
+            });
+
+            const newMsg = res.data?.message || res.data || {
+                id: Date.now(),
+                sender_id: user?.id,
+                receiver_id: sellerUserId,
+                message: messageToSend,
+                created_at: new Date().toISOString()
+            };
+
+            setChatMessages((prev) => [...prev, newMsg]);
+        } catch (err) {
+            console.error('Failed to send message:', err);
+            alert('Message မရောက်ပါ၊ ပြန်လည် ကြိုးစားပါ။');
+        }
+    };
 
     const addToCart = () => {
         if (!listing) return;
@@ -75,23 +144,14 @@ export default function ListingDetailView() {
         e.preventDefault();
         if (!commentText.trim()) return;
 
-        const token = localStorage.getItem('token');
-
         try {
             setSubmittingReview(true);
-
-            // API ပို့သည့်အခါ Authorization Header ပါဝင်စေရန် ပြင်ဆင်ထားပါသည်
             const res = await api.post('/reviews', {
                 listing_id: id,
                 rating: Number(rating),
                 comment: commentText,
-            }, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
             });
 
-            // Backend မှ ပြန်လာသော Review (User data အပါအဝင်)
             const newReview = res.data?.review || {
                 id: Date.now(),
                 user: { name: user?.name || 'You' },
@@ -100,23 +160,13 @@ export default function ListingDetailView() {
                 created_at: new Date().toISOString(),
             };
 
-            // Listing reviews state ထဲသို့ review သစ် ပေါင်းထည့်မည်
-            setListing((prev) => ({
-                ...prev,
-                reviews: [newReview, ...(prev?.reviews || [])],
-            }));
-
+            setReviews((prev) => [newReview, ...prev]);
             setCommentText('');
             setRating(5);
             alert('Review submitted successfully!');
         } catch (err) {
             console.error('Failed to submit review:', err);
-
-            if (err.response?.status === 401) {
-                alert('Review ရေးသားရန် အရင်ဆုံး Login ဝင်ပေးပါ။');
-            } else {
-                alert(err.response?.data?.message || 'Failed to submit review.');
-            }
+            alert('Failed to submit review.');
         } finally {
             setSubmittingReview(false);
         }
@@ -138,7 +188,7 @@ export default function ListingDetailView() {
     }
 
     return (
-        <div className="max-w-7xl mx-auto pb-12 flex flex-col gap-10">
+        <div className="max-w-7xl mx-auto pb-12 flex flex-col gap-10 relative">
             <Link to="/dashboard" className="text-sm font-semibold text-[var(--accent)] hover:underline flex items-center gap-1">
                 ← Back to Marketplace
             </Link>
@@ -176,42 +226,34 @@ export default function ListingDetailView() {
 
                     <hr className="border-[var(--border)]" />
 
-                    {/* ===== SELLER / SHOP BADGE START ===== */}
-                    <div className="p-4 border border-[var(--border)] rounded-2xl bg-[var(--border)]/10 flex flex-col gap-3">
+                    {/* SOLD BY Box & Chat with Seller Button */}
+                    <div className="p-4 border border-[var(--border)] rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 flex flex-col gap-3">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-[var(--accent)]/10 text-[var(--accent)] flex items-center justify-center font-bold text-base border border-[var(--accent)]/20">
-                                    {listing.shop?.shop_name ? listing.shop.shop_name.charAt(0).toUpperCase() : 'S'}
+                                <div className="w-10 h-10 rounded-full bg-purple-600 text-white font-bold flex items-center justify-center text-sm">
+                                    {(listing.shop?.shop_name || listing.shop?.name || 'S').charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                    <p className="text-[10px] uppercase tracking-wider font-bold opacity-60">Sold By</p>
-                                    <p className="text-sm font-bold">
-                                        {listing.shop?.shop_name || listing.shop?.name || 'Official Store'}
-                                    </p>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-60">SOLD BY</span>
+                                    <h4 className="font-bold text-sm">{listing.shop?.shop_name || listing.shop?.name || 'Seller'}</h4>
                                 </div>
                             </div>
-
                             {listing.shop?.user?.name && (
-                                <span className="text-xs bg-[var(--accent)]/10 text-[var(--accent)] px-3 py-1.5 rounded-full font-semibold border border-[var(--accent)]/20">
+                                <span className="text-xs bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full font-medium">
                                     Seller: {listing.shop.user.name}
                                 </span>
                             )}
                         </div>
 
-                        {/* Chat with Seller Button */}
-                        {(listing.shop?.user_id || listing.shop?.user?.id) && (
-                            <button
-                                onClick={() => {
-                                    const sellerId = listing.shop?.user_id || listing.shop?.user?.id;
-                                    navigate(`/chat/${sellerId}`);
-                                }}
-                                className="w-full py-2 bg-[var(--accent)]/10 hover:bg-[var(--accent)] hover:text-white text-[var(--accent)] font-semibold text-xs rounded-xl border border-[var(--accent)]/20 transition flex items-center justify-center gap-2 cursor-pointer"
-                            >
-                                💬 Chat with Seller
-                            </button>
-                        )}
+                        {/* 💬 Chat with Seller Popup ကို ဖွင့်ပေးမည့် ခလုတ် */}
+                        <button
+                            type="button"
+                            onClick={handleOpenChat}
+                            className="w-full py-2.5 bg-purple-100 hover:bg-purple-200 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-center text-xs font-semibold rounded-xl transition flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                            <span>💬</span> Chat with Seller
+                        </button>
                     </div>
-                    {/* ===== SELLER / SHOP BADGE END ===== */}
 
                     <div className="flex items-center gap-4">
                         <div className="flex items-center border border-[var(--border)] rounded-xl overflow-hidden">
@@ -240,6 +282,7 @@ export default function ListingDetailView() {
                 </div>
             </div>
 
+            {/* Customer Reviews Section */}
             <div className="flex flex-col gap-6 pt-8 border-t border-[var(--border)]">
                 <h2 className="text-2xl font-bold">Customer Reviews & Comments</h2>
 
@@ -280,21 +323,17 @@ export default function ListingDetailView() {
                 </form>
 
                 <div className="flex flex-col gap-4 mt-2">
-                    {!listing.reviews || listing.reviews.length === 0 ? (
+                    {reviews.length === 0 ? (
                         <p className="text-sm opacity-60 italic">No reviews yet. Be the first to leave a comment!</p>
                     ) : (
-                        listing.reviews.map((rev) => (
+                        reviews.map((rev) => (
                             <div key={rev.id} className="p-5 border border-[var(--border)] rounded-2xl flex flex-col gap-2">
                                 <div className="flex justify-between items-center">
-                                    <span className="font-bold text-sm">
-                                        {rev.user?.name || rev.user_name || user?.name || 'Customer'}
-                                    </span>
-                                    <span className="text-xs opacity-50">
-                                        {rev.created_at ? new Date(rev.created_at).toLocaleDateString() : 'Just now'}
-                                    </span>
+                                    <span className="font-bold text-sm">{rev.user?.name || rev.user_name || 'Customer'}</span>
+                                    <span className="text-xs opacity-50">{rev.created_at ? new Date(rev.created_at).toLocaleDateString() : ''}</span>
                                 </div>
                                 <div className="text-yellow-500 text-xs">
-                                    {'★'.repeat(rev.rating || 5)}{'☆'.repeat(5 - (rev.rating || 5))}
+                                    {'★'.repeat(rev.rating)}{'☆'.repeat(5 - rev.rating)}
                                 </div>
                                 <p className="text-xs opacity-80 mt-1">{rev.comment}</p>
                             </div>
@@ -302,6 +341,70 @@ export default function ListingDetailView() {
                     )}
                 </div>
             </div>
+
+            {/* 💬 FLOATING CHAT BOX POPUP (ညာဘက်အောက်ခြေတွင် ပေါ်လာမည်) */}
+            {isChatOpen && (
+                <div className="fixed bottom-5 right-5 w-80 sm:w-96 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden h-[450px]">
+                    {/* Header */}
+                    <div className="p-3 bg-purple-600 text-white flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <span className="text-base">💬</span>
+                            <span className="font-bold text-sm truncate">
+                                {listing.shop?.user?.name || listing.shop?.shop_name || 'Seller'}
+                            </span>
+                        </div>
+                        <button
+                            onClick={() => setIsChatOpen(false)}
+                            className="text-white opacity-80 hover:opacity-100 font-bold px-2 py-0.5 text-sm"
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    {/* Messages List */}
+                    <div className="p-3 flex-1 overflow-y-auto flex flex-col gap-2 bg-zinc-50 dark:bg-zinc-950 text-xs">
+                        {loadingChat ? (
+                            <p className="m-auto opacity-50">Loading chat...</p>
+                        ) : chatMessages.length === 0 ? (
+                            <div className="m-auto text-center opacity-60">
+                                👋 Start a conversation with this seller!
+                            </div>
+                        ) : (
+                            chatMessages.map((msg, idx) => {
+                                const isMe = Number(msg.sender_id) === Number(user?.id);
+                                return (
+                                    <div
+                                        key={msg.id || idx}
+                                        className={`p-2.5 rounded-xl max-w-[80%] ${isMe
+                                                ? 'bg-purple-600 text-white ml-auto rounded-br-none'
+                                                : 'bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 mr-auto rounded-bl-none'
+                                            }`}
+                                    >
+                                        <p>{msg.message}</p>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+
+                    {/* Chat Input Form */}
+                    <form onSubmit={handleSendChatMessage} className="p-2 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex gap-2">
+                        <input
+                            type="text"
+                            value={chatInput}
+                            onChange={(e) => setChatInput(e.target.value)}
+                            placeholder="Type a message..."
+                            className="flex-1 p-2 text-xs border border-zinc-200 dark:border-zinc-700 rounded-lg focus:outline-none focus:border-purple-600 dark:bg-zinc-800"
+                        />
+                        <button
+                            type="submit"
+                            className="px-3 py-2 bg-purple-600 text-white text-xs font-bold rounded-lg hover:bg-purple-700 transition"
+                        >
+                            Send
+                        </button>
+                    </form>
+                </div>
+            )}
         </div>
     );
 }
