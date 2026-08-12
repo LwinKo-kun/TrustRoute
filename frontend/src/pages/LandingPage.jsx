@@ -53,26 +53,44 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen overflow-x-hidden bg-[#070b1c] text-white">
       <Header />
 
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gray-900 text-white py-24 px-4 sm:py-32">
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-purple-900" />
-          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-transparent" />
-        </div>
+      <div className="relative isolate overflow-hidden bg-[#070b1c]">
+        <div
+          className="absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage: `
+      linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)
+    `,
+            backgroundSize: '48px 48px',
+          }}
+        />
+        <div className="absolute -left-40 top-20 h-96 w-96 rounded-full bg-blue-600/20 blur-[120px]" />
+        <div className="absolute right-0 top-0 h-[500px] w-[500px] rounded-full bg-cyan-500/10 blur-[140px]" />
         
         <div className="relative max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/20 border border-purple-500/30 mb-6 backdrop-blur-sm">
-                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-sm font-medium text-purple-200">Decentralized Marketplace</span>
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-500/[0.08] px-4 py-2 backdrop-blur-xl">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400" />
+                </span>
+
+                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-200">
+                  Trusted Technology Marketplace
+                </span>
               </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight tracking-tight">
-                Buy & Sell Securely<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">With TrustRoute</span>
+              <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-7xl">
+                Find Technology
+                <br />
+
+                <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
+                  You Can Trust.
+                </span>
               </h1>
               <p className="text-lg sm:text-xl text-purple-100 mb-8 leading-relaxed">
                 The decentralized marketplace for buying and selling. Secure transactions with escrow protection, verified sellers, and direct peer-to-peer connections.
