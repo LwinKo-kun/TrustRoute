@@ -12,7 +12,7 @@ class ListingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Listing::with('shop');
+        $query = Listing::with(['shop.user']);
 
         if ($request->has('search')) {
             $search = $request->query('search');
@@ -56,8 +56,9 @@ class ListingController extends Controller
 
     public function show(Listing $listing)
     {
-        // reviews နှင့် review ရေးသားသူ user အချက်အလက်များကို ပါဝင်အောင် load လုပ်ထားသည်
-        return response()->json(['data' => $listing->load(['shop', 'reviews.user'])]);
+        return response()->json([
+            'data' => $listing->load(['shop.user', 'reviews.user'])
+        ]);
     }
 
     public function image(Listing $listing)

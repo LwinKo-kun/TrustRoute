@@ -37,7 +37,7 @@ export default function ListingDetailView() {
                 const productData = productRes.data?.listing || productRes.data?.data || productRes.data;
                 setListing(productData);
 
-                // 2. Fetch Reviews (Fail ဖြစ်လျှင် Product Detail ပါ မပျက်စီးစေရန် သီးသန့် try catch ထည့်ထားပါသည်)
+                // 2. Fetch Reviews
                 try {
                     const reviewsRes = await api.get(`/listings/${id}/reviews`);
                     setReviews(reviewsRes.data || []);
@@ -123,6 +123,9 @@ export default function ListingDetailView() {
         );
     }
 
+    // 💡 Seller ရဲ့ User ID အမှန်ကို ရှာဖွေခြင်း
+    const sellerUserId = listing.user_id || listing.shop?.user_id || listing.shop?.user?.id;
+
     return (
         <div className="max-w-7xl mx-auto pb-12 flex flex-col gap-10">
             <Link to="/dashboard" className="text-sm font-semibold text-[var(--accent)] hover:underline flex items-center gap-1">
@@ -130,6 +133,7 @@ export default function ListingDetailView() {
             </Link>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                {/* ဘယ်ဘက် Product Image */}
                 <div className="w-full h-96 bg-[var(--border)]/10 rounded-2xl overflow-hidden border border-[var(--border)] flex items-center justify-center relative">
                     <img
                         src={`http://127.0.0.1:8000/api/listings/${listing.id}/image`}
@@ -139,6 +143,7 @@ export default function ListingDetailView() {
                     />
                 </div>
 
+                {/* ညာဘက် Product Info */}
                 <div className="flex flex-col gap-6">
                     <div>
                         <span className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
@@ -162,6 +167,42 @@ export default function ListingDetailView() {
 
                     <hr className="border-[var(--border)]" />
 
+                    {/* 🟢 SOLD BY Box & Chat with Seller Button */}
+                    <div className="p-4 border border-[var(--border)] rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-purple-600 text-white font-bold flex items-center justify-center text-sm">
+                                    {(listing.shop?.shop_name || listing.shop?.name || 'S').charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-60">SOLD BY</span>
+                                    <h4 className="font-bold text-sm">{listing.shop?.shop_name || listing.shop?.name || 'Seller'}</h4>
+                                </div>
+                            </div>
+                            {listing.shop?.user?.name && (
+                                <span className="text-xs bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full font-medium">
+                                    Seller: {listing.shop.user.name}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* 💬 Chat with Seller Link */}
+                        <Link
+                            to={sellerUserId ? `/chat/${sellerUserId}` : '#'}
+                            onClick={(e) => {
+                                if (!sellerUserId) {
+                                    e.preventDefault();
+                                    alert('Seller User ID မရှိသေးပါ။ Console (F12) တွင် Listing Data ကို စစ်ဆေးပါ။');
+                                    console.log('Listing Data:', listing);
+                                }
+                            }}
+                            className="w-full py-2.5 bg-purple-100/80 hover:bg-purple-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/80 text-purple-700 dark:text-purple-300 text-center text-xs font-semibold rounded-xl transition flex items-center justify-center gap-2"
+                        >
+                            <span>💬</span> Chat with Seller
+                        </Link>
+                    </div>
+
+                    {/* Add to Cart Section */}
                     <div className="flex items-center gap-4">
                         <div className="flex items-center border border-[var(--border)] rounded-xl overflow-hidden">
                             <button
@@ -189,6 +230,7 @@ export default function ListingDetailView() {
                 </div>
             </div>
 
+            {/* Customer Reviews Section */}
             <div className="flex flex-col gap-6 pt-8 border-t border-[var(--border)]">
                 <h2 className="text-2xl font-bold">Customer Reviews & Comments</h2>
 

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: 'http://127.0.0.1:8000/api', // 8000 အစား 8001 သို့ ပြောင်းပါ
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
