@@ -1,230 +1,371 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 export default function Header() {
-  const { user, logout } = useAuth();
-  const [cartCount, setCartCount] = useState(0);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchOpen, setSearchOpen] = useState(false);
-  const navigate = useNavigate();
-
-  // Get cart count from localStorage
-  useEffect(() => {
-    const updateCartCount = () => {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
-      const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-      setCartCount(totalItems);
-    };
-    
-    updateCartCount();
-    window.addEventListener('storage', updateCartCount);
-    
-    const interval = setInterval(updateCartCount, 1000);
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('storage', updateCartCount);
-    };
-  }, []);
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [search, setSearch] = useState('');
 
   const handleSearch = (e) => {
-    if (e.key === 'Enter' && searchQuery.trim()) {
-      navigate(`/marketplace?search=${encodeURIComponent(searchQuery)}`);
-    }
-  };
+    e.preventDefault();
 
-  const handleLogoClick = () => {
-    if (user) {
-      navigate('/dashboard');
-    } else {
-      navigate('/');
-    }
-  };
+    if (!search.trim()) return;
 
-  const role = user?.role || 'customer';
-  const roleClasses = {
-    customer: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-    shopkeeper: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-    delivery: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-    admin: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+    window.location.href =
+      `/marketplace?search=${encodeURIComponent(search.trim())}`;
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
-      {/* Top bar with search */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
-            <div className={`text-xs font-medium px-3 py-1 rounded-full ${roleClasses[role] || roleClasses.customer}`}>
-              {role.toUpperCase()} PORTAL
-            </div>
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleSearch}
-                placeholder="Search products, shops..."
-                className="w-full px-4 py-2 bg-white/20 text-white placeholder-white/70 rounded-lg focus:outline-none focus:bg-white/30 transition"
-              />
-              <button
-                onClick={() => handleSearch({ key: 'Enter' })}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-white/20 hover:bg-white/30 rounded-lg transition"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#070b1c]/95 backdrop-blur-xl">
 
-      {/* Main header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <div 
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={handleLogoClick}
+      {/* subtle top glow */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/70 to-transparent" />
+
+      <div className="mx-auto w-full max-w-[1500px] px-3 sm:px-5 lg:px-7">
+
+        {/* =========================================================
+            MAIN HEADER
+        ========================================================= */}
+        <div className="flex h-[72px] min-w-0 items-center gap-2 lg:gap-3">
+
+          {/* =======================================================
+              LOGO
+          ======================================================= */}
+          <Link
+            to="/"
+            className="group flex shrink-0 items-center gap-2.5"
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-xl">TR</span>
-            </div>
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">
-              Trust<span className="text-indigo-600 dark:text-indigo-400">Route</span>
-            </span>
-          </div>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
-            <Link to={user ? '/dashboard' : '/'} className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium transition">
-              Home
-            </Link>
-            <Link to="/marketplace" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium transition">
-              Marketplace
-            </Link>
-            <Link to="/categories" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium transition">
-              Categories
-            </Link>
-            <Link to="/help" className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium transition">
-              Help
-            </Link>
-          </nav>
-
-          {/* Right side - Cart & User */}
-          <div className="flex items-center gap-4">
-            {/* Cart */}
             <div className="relative">
-              <Link 
-                to="/cart"
-                className="p-2 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 w-6 h-6 bg-indigo-600 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-md">
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
+
+              {/* glow */}
+              <div className="absolute inset-0 rounded-xl bg-blue-500/40 blur-lg opacity-60 transition group-hover:opacity-100" />
+
+              {/* logo */}
+              <div className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-blue-400/30 bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-400 shadow-lg shadow-blue-600/20">
+                <span className="text-sm font-black tracking-tight text-white">
+                  TN
+                </span>
+              </div>
+
             </div>
 
-            {/* User Profile */}
-            {user ? (
-              <div className="relative">
-                <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
-                >
-                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="hidden lg:block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {user.name}
-                  </span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-
-                {/* Dropdown Menu */}
-                {mobileMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 animate-fade-in-down">
-                    <Link to="/dashboard" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      Dashboard
-                    </Link>
-                    {role === 'shopkeeper' && (
-                      <Link to="/my-shop" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                        My Shop
-                      </Link>
-                    )}
-                    {role === 'customer' && (
-                      <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                        Order History
-                      </Link>
-                    )}
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
+            <div className="hidden xl:block leading-none">
+              <div className="text-[17px] font-extrabold tracking-tight text-white">
+                Trust<span className="text-blue-400">Node</span>
               </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <Link to="/login" className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition">
-                  Login
-                </Link>
-                <Link to="/signup" className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition">
-                  Sign Up
-                </Link>
-              </div>
-            )}
 
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              <div className="mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Technology Marketplace
+              </div>
+            </div>
+          </Link>
+
+          {/* =======================================================
+              DESKTOP NAVIGATION
+          ======================================================= */}
+          <nav className="hidden shrink-0 items-center gap-0.5 lg:flex">
+
+            <Link
+              to="/marketplace"
+              className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white xl:px-3.5"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+              Marketplace
+
+              <span className="absolute bottom-0 left-3 right-3 h-[2px] scale-x-0 rounded-full bg-blue-500 transition group-hover:scale-x-100" />
+            </Link>
+
+            <Link
+              to="/shops"
+              className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white xl:px-3.5"
+            >
+              Shops
+
+              <span className="absolute bottom-0 left-3 right-3 h-[2px] scale-x-0 rounded-full bg-cyan-400 transition group-hover:scale-x-100" />
+            </Link>
+
+            <button
+              type="button"
+              className="group flex items-center gap-1 rounded-lg px-3 py-2 text-[13px] font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white xl:px-3.5"
+            >
+              Categories
+
+              <svg
+                className="h-3.5 w-3.5 text-slate-500 transition group-hover:text-blue-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="m6 9 6 6 6-6"
+                />
               </svg>
             </button>
+
+            <a
+              href="#about"
+              className="rounded-lg px-3 py-2 text-[13px] font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white xl:px-3.5"
+            >
+              About
+            </a>
+
+          </nav>
+
+          {/* =======================================================
+              MODERN SEARCH
+          ======================================================= */}
+          <form
+            onSubmit={handleSearch}
+            className="group relative min-w-0 flex-1"
+          >
+
+            {/* glow */}
+            <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-r from-blue-500/0 via-blue-500/30 to-cyan-400/0 opacity-0 blur-md transition duration-300 group-focus-within:opacity-100" />
+
+            <div className="relative flex h-11 min-w-0 items-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.045] transition-all duration-300 group-hover:border-white/20 group-focus-within:border-blue-400/40 group-focus-within:bg-white/[0.07]">
+
+              {/* Search icon */}
+              <div className="flex h-full w-10 shrink-0 items-center justify-center">
+                <svg
+                  className="h-[18px] w-[18px] text-slate-500 transition group-focus-within:text-blue-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.8"
+                    d="m21 21-4.35-4.35m2.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"
+                  />
+                </svg>
+              </div>
+
+              
+
+              {/* Category */}
+              <button
+                type="button"
+                className="hidden shrink-0 items-center gap-1.5 border-l border-white/10 px-3 text-[11px] font-semibold text-slate-400 transition hover:text-white xl:flex"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400" />
+
+                <span>All Categories</span>
+
+                <svg
+                  className="h-3 w-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="m6 9 6 6 6-6"
+                  />
+                </svg>
+              </button>
+
+              {/* Search button */}
+              <button
+                type="submit"
+                aria-label="Search"
+                className="mr-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20 transition hover:scale-105 hover:shadow-blue-500/40"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="m21 21-4.35-4.35m2.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"
+                  />
+                </svg>
+              </button>
+
+            </div>
+          </form>
+
+          {/* =======================================================
+              ACTIONS
+          ======================================================= */}
+          <div className="flex shrink-0 items-center gap-1">
+
+            {/* Cart */}
+            <button
+              type="button"
+              aria-label="Shopping cart"
+              className="relative hidden h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white/5 hover:text-white sm:flex"
+            >
+              <svg
+                className="h-[19px] w-[19px]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.7"
+                  d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H6"
+                />
+                <circle cx="10" cy="20" r="1" />
+                <circle cx="18" cy="20" r="1" />
+              </svg>
+
+              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[8px] font-bold text-white">
+                0
+              </span>
+            </button>
+
+            
+
+            {/* Notification */}
+            <button
+              type="button"
+              aria-label="Notifications"
+              className="hidden h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white/5 hover:text-white xl:flex"
+            >
+              <svg
+                className="h-[19px] w-[19px]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.7"
+                  d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"
+                />
+              </svg>
+
+              <span className="absolute" />
+            </button>
+
+            
+
+            {/* Login */}
+            <Link
+              to="/login"
+              className="hidden px-2 text-[12px] font-semibold text-slate-300 transition hover:text-white xl:block"
+            >
+              Login
+            </Link>
+
+            {/* Sign Up */}
+            <Link
+              to="/signup"
+              className="hidden h-10 items-center rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 px-3.5 text-[12px] font-bold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:shadow-blue-500/30 md:flex"
+            >
+              Sign Up
+            </Link>
+
+            {/* Mobile */}
+            <button
+              type="button"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 lg:hidden"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? (
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 6l12 12M18 6 6 18"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              )}
+            </button>
+
           </div>
+
         </div>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-gray-700 pt-4">
-            <nav className="flex flex-col gap-2">
-              <Link 
-                to={user ? '/dashboard' : '/'} 
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
+        {/* =========================================================
+            MOBILE MENU
+        ========================================================= */}
+        {mobileOpen && (
+          <div className="border-t border-white/10 py-4 lg:hidden">
+
+            <nav className="grid gap-1">
+
+              <Link
+                to="/marketplace"
+                onClick={() => setMobileOpen(false)}
+                className="rounded-lg px-4 py-3 text-sm font-semibold text-slate-300 hover:bg-white/5 hover:text-white"
               >
-                Home
-              </Link>
-              <Link to="/marketplace" className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition">
                 Marketplace
               </Link>
-              <Link to="/categories" className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition">
-                Categories
+
+              <Link
+                to="/shops"
+                onClick={() => setMobileOpen(false)}
+                className="rounded-lg px-4 py-3 text-sm font-semibold text-slate-300 hover:bg-white/5 hover:text-white"
+              >
+                Shops
               </Link>
-              <Link to="/help" className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition">
-                Help
-              </Link>
+
+              <a
+                href="#about"
+                onClick={() => setMobileOpen(false)}
+                className="rounded-lg px-4 py-3 text-sm font-semibold text-slate-300 hover:bg-white/5 hover:text-white"
+              >
+                About
+              </a>
+
             </nav>
+
+            <div className="mt-3 grid grid-cols-2 gap-1">
+
+              <Link
+                to="/login"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-center rounded-lg border border-white/10 bg-white/5 py-2.5 text-sm font-semibold text-slate-300"
+              >
+                Login
+              </Link>
+
+              <Link
+                to="/signup"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 py-2.5 text-sm font-bold text-white"
+              >
+                Sign Up
+              </Link>
+
+            </div>
+
           </div>
         )}
+
       </div>
     </header>
   );
