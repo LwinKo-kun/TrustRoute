@@ -4,12 +4,21 @@ import Header from '../components/layout/Header';
 
 export default function DashboardLayout() {
   return (
+<<<<<<< HEAD
     <div className="flex flex-col min-h-screen bg-slate-50 text-gray-900 dark:bg-[#070b1c] dark:text-gray-100 transition-colors duration-300">
       {/* Shared Unified Header */}
       <Header />
 
       {/* Main Page Content */}
       <main className="flex-grow p-4 text-left transition-colors duration-300 md:p-8">
+=======
+    <div className="flex flex-col min-h-screen bg-slate-50">
+      {/* 🟢 Reusable Role-Aware Header */}
+      <Header />
+
+      {/* Page Content */}
+      <main className="flex-grow">
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
         <Outlet />
       </main>
 

@@ -9,8 +9,12 @@ export default function CustomerDashboardView({ data }) {
 
   const addToCart = (e, listing) => {
     e.stopPropagation();
+<<<<<<< HEAD
     const cartKey = `cart_user_${user?.id || 'guest'}`;
     const cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
+=======
+    const cart = JSON.parse(localStorage.getItem(`cart_user_${user?.id}`) || localStorage.getItem('cart') || '[]');
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
     const existingIndex = cart.findIndex(item => item.id === listing.id);
 
     if (existingIndex > -1) {
@@ -19,7 +23,11 @@ export default function CustomerDashboardView({ data }) {
       cart.push({ ...listing, price: Number(listing.price) || 0, quantity: 1 });
     }
 
+<<<<<<< HEAD
     localStorage.setItem(cartKey, JSON.stringify({ timestamp: Date.now(), items: cart }));
+=======
+    localStorage.setItem(`cart_user_${user?.id}`, JSON.stringify({ timestamp: Date.now(), items: cart }));
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
     window.dispatchEvent(new Event('cartUpdated'));
     alert(`Added "${listing.title}" to cart!`);
   };
@@ -39,6 +47,7 @@ export default function CustomerDashboardView({ data }) {
             Browse marketplace listings from all active shops, add items to your cart, and track your active deliveries.
           </p>
         </div>
+<<<<<<< HEAD
 
         <Link
           to="/cart"
@@ -49,6 +58,8 @@ export default function CustomerDashboardView({ data }) {
           </svg>
           View Cart
         </Link>
+=======
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
       </div>
 
       {/* Stats Grid */}

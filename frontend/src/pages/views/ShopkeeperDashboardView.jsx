@@ -63,10 +63,14 @@ export default function ShopkeeperDashboardView({ data }) {
             <Link to="/shop/edit" className="px-4 py-2.5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition">
               Manage Shop Settings
             </Link>
+<<<<<<< HEAD
             <Link to="/chat" className="px-4 py-2.5 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900 transition flex items-center gap-2">
               💬 Customer Chats
             </Link>
             <Link to="/listings/create" className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-gradient-to-r dark:from-blue-600 dark:to-cyan-500 text-white text-sm font-semibold rounded-xl transition shadow-md">
+=======
+            <Link to="/listings/create" className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition shadow-md">
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
               + Add New Listing
             </Link>
           </div>

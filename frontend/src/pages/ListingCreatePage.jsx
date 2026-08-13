@@ -14,28 +14,30 @@ export default function ListingCreatePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
 
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', description);
     formData.append('price', price);
     formData.append('stock', stock);
-    if (image) formData.append('image', image);
+
+    // Make sure 'image' holds the raw File object from <input type="file" onChange={(e) => setImage(e.target.files[0])} />
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
 
     try {
       await api.post('/listings', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
+      alert('Product created successfully!');
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create listing.');
-    } finally {
-      setLoading(false);
+      console.error('Failed to create listing:', err);
     }
   };
-
   return (
     <div className="p-6 max-w-2xl mx-auto flex flex-col gap-6">
       <h1 className="text-2xl font-bold">Create New Listing</h1>

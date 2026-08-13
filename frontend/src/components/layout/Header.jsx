@@ -1,13 +1,23 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getCart } from '../../utils/cartStorage';
 import ThemeToggle from '../common/ThemeToggle';
+=======
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { getCart } from '../../utils/cartStorage';
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
 
 export default function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+<<<<<<< HEAD
   const [mobileOpen, setMobileOpen] = useState(false);
+=======
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
   const [search, setSearch] = useState('');
   const [cartCount, setCartCount] = useState(0);
 
@@ -46,6 +56,7 @@ export default function Header() {
   };
 
   return (
+<<<<<<< HEAD
     <header className="sticky top-0 z-50 w-full border-b border-gray-200/80 bg-white/90 backdrop-blur-xl transition-colors duration-300 dark:border-white/10 dark:bg-[#070b1c]/95">
       {/* Top Accent Glow */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-70 dark:via-cyan-400" />
@@ -67,28 +78,55 @@ export default function Header() {
                 Trust<span className="text-blue-600 dark:text-cyan-400">Route</span>
               </div>
               <div className="mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] text-gray-500 dark:text-slate-400">
+=======
+    <header className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/95 backdrop-blur-md">
+      <div className="w-full px-4 sm:px-8 lg:px-12">
+        <div className="flex h-[72px] w-full items-center justify-between gap-4 lg:gap-6">
+          
+          {/* 1. Brand Logo */}
+          <Link to="/" className="group flex shrink-0 items-center gap-2.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-md shadow-blue-500/20">
+              <span className="text-sm font-black tracking-tight text-white">TR</span>
+            </div>
+            <div className="leading-none">
+              <div className="text-[17px] font-extrabold tracking-tight text-slate-900">
+                Trust<span className="text-blue-600">Route</span>
+              </div>
+              <div className="mt-0.5 text-[8px] font-bold uppercase tracking-widest text-slate-400">
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
                 Technology Marketplace
               </div>
             </div>
           </Link>
 
+<<<<<<< HEAD
           {/* 2. DESKTOP NAVIGATION */}
           <nav className="hidden shrink-0 items-center gap-0.5 lg:flex">
             <Link
               to="/marketplace"
               className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white xl:px-3.5"
             >
+=======
+          {/* 2. Navigation Links */}
+          <nav className="hidden xl:flex shrink-0 items-center gap-6 text-[13px] font-semibold text-slate-600">
+            <Link to="/marketplace" className="hover:text-blue-600 transition">
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
               Marketplace
               <span className="absolute bottom-0 left-3 right-3 h-[2px] scale-x-0 rounded-full bg-blue-500 transition group-hover:scale-x-100 dark:bg-cyan-400" />
             </Link>
+<<<<<<< HEAD
 
             <Link
               to="/shops"
               className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white xl:px-3.5"
             >
+=======
+            <Link to="/shops" className="hover:text-blue-600 transition">
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
               Shops
               <span className="absolute bottom-0 left-3 right-3 h-[2px] scale-x-0 rounded-full bg-blue-500 transition group-hover:scale-x-100 dark:bg-cyan-400" />
             </Link>
+<<<<<<< HEAD
 
             {user && (
               <Link
@@ -111,10 +149,26 @@ export default function Header() {
                 </svg>
               </div>
 
+=======
+            <Link to="/dashboard" className="hover:text-blue-600 transition">
+              Dashboard
+            </Link>
+          </nav>
+
+          {/* 3. Search Bar */}
+          <form onSubmit={handleSearch} className="flex-1 max-w-md mx-2 hidden md:block">
+            <div className="relative flex h-10 w-full items-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50/80 p-1 transition-all focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100">
+              <span className="pl-3 text-slate-400">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </span>
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+<<<<<<< HEAD
                 placeholder="Search products, shops..."
                 className="min-w-0 flex-1 bg-transparent px-1 text-sm text-gray-900 outline-none placeholder:text-gray-400 dark:text-white dark:placeholder:text-slate-500"
               />
@@ -123,12 +177,21 @@ export default function Header() {
                 type="submit"
                 aria-label="Search"
                 className="mr-1 flex h-9 px-3.5 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 text-xs font-bold text-white shadow-md shadow-blue-500/20 transition hover:scale-105 active:scale-95"
+=======
+                placeholder="Search laptops, accessories, electronics..."
+                className="w-full bg-transparent px-3 text-xs text-slate-900 outline-none placeholder:text-slate-400"
+              />
+              <button
+                type="submit"
+                className="h-8 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white transition shadow-xs"
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
               >
                 Search
               </button>
             </div>
           </form>
 
+<<<<<<< HEAD
           {/* 4. ACTIONS & CONTROLS */}
           <div className="flex shrink-0 items-center gap-2">
             
@@ -144,10 +207,25 @@ export default function Header() {
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+=======
+          {/* 4. Action Icons & Controls */}
+          <div className="flex shrink-0 items-center gap-3.5">
+            
+            {/* 💬 CHAT BOX BUTTON (Visible for Logged-In Users) */}
+            {user && (
+              <Link
+                to="/chat"
+                className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-blue-600 transition shadow-xs"
+                title="Open Messages & Chat"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
                 </svg>
               </Link>
             )}
 
+<<<<<<< HEAD
             {/* Cart Icon Button (Customers Only) */}
             {user?.role === 'customer' && (
               <Link
@@ -162,12 +240,27 @@ export default function Header() {
                 </svg>
                 {cartCount > 0 && (
                   <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[8px] font-extrabold text-white dark:bg-cyan-400 dark:text-gray-900">
+=======
+            {/* 🛒 CART BUTTON (Visible strictly for Customers) */}
+            {user?.role === 'customer' && (
+              <Link
+                to="/cart"
+                className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-blue-600 transition shadow-xs"
+                title="Shopping Cart"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[9px] font-extrabold text-white ring-2 ring-white">
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
                     {cartCount}
                   </span>
                 )}
               </Link>
             )}
 
+<<<<<<< HEAD
             {/* Auth Buttons / Logout */}
             {!user ? (
               <div className="flex items-center gap-1.5">
@@ -181,10 +274,20 @@ export default function Header() {
                   to="/signup"
                   className="hidden h-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 px-4 text-[13px] font-bold text-white shadow-md shadow-blue-500/20 transition hover:-translate-y-0.5 active:scale-95 sm:flex"
                 >
+=======
+            {/* AUTH STATES */}
+            {!user ? (
+              <div className="flex items-center gap-2">
+                <Link to="/login" className="px-3 py-2 text-xs font-bold text-slate-700 hover:text-blue-600 transition">
+                  Login
+                </Link>
+                <Link to="/signup" className="h-9 px-4 flex items-center justify-center rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-sm transition">
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
                   Sign Up
                 </Link>
               </div>
             ) : (
+<<<<<<< HEAD
               <div className="flex items-center gap-2">
                 <span className="hidden md:inline-flex text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 dark:bg-cyan-950/60 dark:text-cyan-300 dark:border-cyan-500/30">
                   {user.role}
@@ -192,12 +295,24 @@ export default function Header() {
                 <button
                   onClick={handleLogout}
                   className="h-9 px-3 text-xs font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition dark:border-white/10 dark:text-slate-300 dark:hover:bg-red-950/40 dark:hover:text-red-400 dark:hover:border-red-500/30"
+=======
+              <div className="flex items-center gap-2.5">
+                {/* Role Portal Badge */}
+                <span className="hidden sm:inline-flex px-2.5 py-1 bg-amber-100 text-amber-800 text-[10px] font-extrabold uppercase rounded-full tracking-wider border border-amber-200">
+                  {user.role}
+                </span>
+
+                <button
+                  onClick={handleLogout}
+                  className="px-3 py-2 text-xs font-semibold text-slate-600 hover:text-red-600 border border-slate-200 rounded-xl hover:bg-red-50 transition"
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
                 >
                   Logout
                 </button>
               </div>
             )}
 
+<<<<<<< HEAD
             {/* Mobile Menu Toggle Button */}
             <button
               type="button"
@@ -215,6 +330,8 @@ export default function Header() {
                 </svg>
               )}
             </button>
+=======
+>>>>>>> 6ec9421 ( every thing recovered and change matching design using same nav bar (header) for multipages)
           </div>
 
         </div>

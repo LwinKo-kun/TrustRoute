@@ -7,7 +7,6 @@ use App\Http\Requests\StoreListingRequest;
 use App\Http\Requests\UpdateListingRequest;
 use App\Models\Listing;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ListingController extends Controller
 {
@@ -21,10 +20,6 @@ class ListingController extends Controller
                 $q->where('title', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%");
             });
-        }
-
-        if ($request->filled('category')) {
-            $query->where('category', $request->category);
         }
 
         return response()->json($query->latest()->paginate(12));
@@ -50,9 +45,12 @@ class ListingController extends Controller
         $data = $request->validated();
         $data['shop_id'] = $shop->id;
 
+        // Store image as PostgreSQL Bytea Hex Stream
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('listings', 'public');
-            $data['image_path'] = $path;
+            $file = $request->file('image');
+            $data['image_data'] = '\\x' . bin2hex(file_get_contents($file->getRealPath()));
+            $data['image_mime_type'] = $file->getMimeType();
+            unset($data['image']);
         }
 
         $listing = Listing::create($data);
@@ -63,7 +61,7 @@ class ListingController extends Controller
         ], 201);
     }
 
-        public function show(Listing $listing)
+    public function show(Listing $listing)
     {
         return response()->json([
             'data' => $listing->load(['shop.user', 'comments.user'])
@@ -72,12 +70,6 @@ class ListingController extends Controller
 
     public function image(Listing $listing)
     {
-        // 1. Check local/public storage disk
-        if (isset($listing->image_path) && Storage::disk('public')->exists($listing->image_path)) {
-            return Storage::disk('public')->response($listing->image_path);
-        }
-
-        // 2. Fallback to database binary stream / hex bytea
         if (!empty($listing->image_data)) {
             $imageData = $listing->image_data;
 
@@ -85,9 +77,9 @@ class ListingController extends Controller
                 $imageData = stream_get_contents($imageData);
             }
 
-            if (str_starts_with($imageData, '\\x')) {
+            if (is_string($imageData) && str_starts_with($imageData, '\\x')) {
                 $imageData = hex2bin(substr($imageData, 2));
-            } elseif (str_starts_with($imageData, 'data:image')) {
+            } elseif (is_string($imageData) && str_starts_with($imageData, 'data:image')) {
                 $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $imageData));
             }
 
@@ -103,13 +95,12 @@ class ListingController extends Controller
     {
         $data = $request->validated();
 
+        // Update image bytea and mime type
         if ($request->hasFile('image')) {
-            if (isset($listing->image_path) && Storage::disk('public')->exists($listing->image_path)) {
-                Storage::disk('public')->delete($listing->image_path);
-            }
-
-            $path = $request->file('image')->store('listings', 'public');
-            $data['image_path'] = $path;
+            $file = $request->file('image');
+            $data['image_data'] = '\\x' . bin2hex(file_get_contents($file->getRealPath()));
+            $data['image_mime_type'] = $file->getMimeType();
+            unset($data['image']);
         }
 
         $listing->update($data);
@@ -124,10 +115,6 @@ class ListingController extends Controller
     {
         if (auth()->id() !== $listing->shop->user_id && auth()->id() !== $listing->shop->shopkeeper_id) {
             return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        if (isset($listing->image_path) && Storage::disk('public')->exists($listing->image_path)) {
-            Storage::disk('public')->delete($listing->image_path);
         }
 
         $listing->delete();

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\ListingCommentController;
 use App\Http\Controllers\Api\ListingController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\OrderController;
@@ -23,9 +24,11 @@ Route::get('/listings', [ListingController::class, 'index']);
 Route::get('/listings/{listing}', [ListingController::class, 'show']);
 Route::get('/listings/{listing}/image', [ListingController::class, 'image']);
 
-// Public review routes (FIXED: Route pointing to standard index or fallback)
+// Public listing review / comment routes
+Route::get('/listings/{listing}/reviews', [ListingCommentController::class, 'index']);
+
+// Public order review routes
 Route::get('/reviews', [ReviewController::class, 'index']);
-Route::get('/listings/{listing}/reviews', [ReviewController::class, 'index']);
 
 // Authenticated routes via Sanctum
 Route::middleware('auth:sanctum')->group(function () {
@@ -57,8 +60,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
 
-    // Review Management Routes
-    Route::post('/reviews', [ReviewController::class, 'store']);
+    // Listing Review / Comment Submission
+    Route::post('/reviews', [ListingCommentController::class, 'store']);
 
     // Message Management Routes
     Route::get('/conversations', [MessageController::class, 'getConversations']);
