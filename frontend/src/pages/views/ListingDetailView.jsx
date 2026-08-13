@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import RatingStars from '../../components/common/RatingStars';
 
 export default function ListingDetailView() {
     const params = useParams();
@@ -45,7 +46,8 @@ export default function ListingDetailView() {
                 // 2. Fetch Reviews
                 try {
                     const reviewsRes = await api.get(`/listings/${id}/reviews`);
-                    setReviews(Array.isArray(reviewsRes.data) ? reviewsRes.data : reviewsRes.data?.data || []);
+                    const reviewData = Array.isArray(reviewsRes.data) ? reviewsRes.data : reviewsRes.data?.data || [];
+                    setReviews(reviewData);
                 } catch (revErr) {
                     console.warn('Could not fetch reviews endpoint, using pre-loaded reviews:', revErr);
                     setReviews(productData?.reviews || []);
@@ -87,10 +89,15 @@ export default function ListingDetailView() {
         e.preventDefault();
         if (!commentText.trim()) return;
 
+        if (!user) {
+            alert('Please sign in to submit a review.');
+            return;
+        }
+
         try {
             setSubmittingReview(true);
             const res = await api.post('/reviews', {
-                listing_id: id,
+                listing_id: Number(id),
                 rating: Number(rating),
                 comment: commentText,
             });
@@ -109,7 +116,7 @@ export default function ListingDetailView() {
             alert('Review submitted successfully!');
         } catch (err) {
             console.error('Failed to submit review:', err);
-            alert('Failed to submit review.');
+            alert(err.response?.data?.message || 'Failed to submit review.');
         } finally {
             setSubmittingReview(false);
         }
@@ -132,6 +139,9 @@ export default function ListingDetailView() {
 
     const sellerUserId = listing.user_id || listing.shop?.user_id || listing.shop?.user?.id || listing.shop?.shopkeeper_id;
     const apiBaseUrl = api.defaults.baseURL || '/api';
+    const averageRating = reviews.length > 0
+        ? reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / reviews.length
+        : 0;
 
     return (
         <div className="max-w-7xl mx-auto pb-12 px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-10 text-slate-900 dark:text-white transition-colors duration-300">
@@ -157,6 +167,12 @@ export default function ListingDetailView() {
                             {listing.shop?.shop_name || listing.shop?.name || 'Store'}
                         </span>
                         <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mt-1">{listing.title || 'Untitled Product'}</h1>
+                        
+                        {/* Rating Display */}
+                        <div className="mt-2">
+                            <RatingStars rating={averageRating} count={reviews.length} size="md" />
+                        </div>
+
                         <p className="text-2xl font-bold text-blue-600 dark:text-cyan-400 mt-3">
                             ${listing.price !== undefined ? listing.price : '0.00'}
                         </p>
@@ -199,7 +215,6 @@ export default function ListingDetailView() {
                                 if (!sellerUserId) {
                                     e.preventDefault();
                                     alert('Seller ID could not be identified from this listing.');
-                                    console.log('Listing Object:', listing);
                                 }
                             }}
                             className="w-full py-2.5 bg-purple-100/80 hover:bg-purple-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/80 text-purple-700 dark:text-purple-300 text-center text-xs font-semibold rounded-xl transition flex items-center justify-center gap-2"
@@ -283,8 +298,12 @@ export default function ListingDetailView() {
                         reviews.map((rev) => (
                             <div key={rev.id} className="p-5 border border-slate-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#0d1326] flex flex-col gap-2 shadow-sm">
                                 <div className="flex justify-between items-center">
-                                    <span className="font-bold text-sm text-slate-900 dark:text-white">{rev.user?.name || rev.user_name || 'Customer'}</span>
-                                    <span className="text-xs text-slate-400 dark:text-slate-500">{rev.created_at ? new Date(rev.created_at).toLocaleDateString() : ''}</span>
+                                    <span className="font-bold text-sm text-slate-900 dark:text-white">
+                                        {rev.user?.name || rev.reviewer?.name || rev.user_name || 'Customer'}
+                                    </span>
+                                    <span className="text-xs text-slate-400 dark:text-slate-500">
+                                        {rev.created_at ? new Date(rev.created_at).toLocaleDateString() : ''}
+                                    </span>
                                 </div>
                                 <div className="text-yellow-500 text-xs">
                                     {'★'.repeat(rev.rating)}{'☆'.repeat(5 - rev.rating)}

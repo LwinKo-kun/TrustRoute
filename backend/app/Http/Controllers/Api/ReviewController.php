@@ -3,48 +3,58 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Listing;
-use App\Models\Review;
+use App\Http\Requests\StoreReviewRequest;
+use App\Models\ListingComment;
 use Illuminate\Http\Request;
 
 class ReviewController extends Controller
 {
     /**
-     * Display all reviews.
+     * Display listing reviews/comments.
      */
-    public function index()
+    public function index(Request $request, $listing = null)
     {
-        return response()->json(Review::with(['user', 'listing'])->latest()->get());
+        if ($listing) {
+            $comments = ListingComment::where('listing_id', $listing)
+                ->with('user')
+                ->latest()
+                ->get();
+            return response()->json($comments);
+        }
+
+        return response()->json(ListingComment::with(['user', 'listing'])->latest()->get());
     }
 
     /**
-     * Display reviews for a specific listing.
+     * Display comments for a specific listing.
      */
-    public function listingReviews(Listing $listing)
+    public function listingReviews($listingId)
     {
-        $reviews = $listing->reviews()->with('user')->latest()->get();
-        return response()->json($reviews);
+        $comments = ListingComment::where('listing_id', $listingId)
+            ->with('user')
+            ->latest()
+            ->get();
+
+        return response()->json($comments);
     }
 
     /**
-     * Store a new review.
+     * Store a new listing comment/review.
      */
-    public function store(Request $request)
+    public function store(StoreReviewRequest $request)
     {
-        if (!$request->user()) {
+        $user = $request->user();
+
+        if (!$user) {
             return response()->json([
                 'message' => 'Unauthenticated. Please login to leave a review.'
             ], 401);
         }
 
-        $validated = $request->validate([
-            'listing_id' => 'required|exists:listings,id',
-            'rating'     => 'required|integer|min:1|max:5',
-            'comment'    => 'required|string',
-        ]);
+        $validated = $request->validated();
 
-        $review = Review::create([
-            'user_id'    => $request->user()->id,
+        $comment = ListingComment::create([
+            'user_id'    => $user->id,
             'listing_id' => $validated['listing_id'],
             'rating'     => $validated['rating'],
             'comment'    => $validated['comment'],
@@ -52,7 +62,7 @@ class ReviewController extends Controller
 
         return response()->json([
             'message' => 'Review created successfully',
-            'review'  => $review->load('user'), // User data ပါဝင်အောင် Load လုပ်ပေးထားပါသည်
+            'review'  => $comment->load('user'),
         ], 201);
     }
 }
