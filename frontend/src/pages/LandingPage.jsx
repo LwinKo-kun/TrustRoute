@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Header from '../components/common/Header';
 import ProductCard from '../components/common/ProductCard';
 import ShopCard from '../components/market/ShopCard';
+import TrustedShopsAndStats from '../components/TrustedShopsAndStats';
 
 export default function LandingPage() {
   const [products, setProducts] = useState([]);
@@ -891,6 +892,7 @@ export default function LandingPage() {
         </p>
 
       </div>
+      
 
       <Link
         to="/marketplace"

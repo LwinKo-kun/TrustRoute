@@ -1,0 +1,42 @@
+version: '3.8'
+
+networks:
+  trustroute_net:
+    driver: bridge
+
+services:
+  validator_1:
+    build: ./p2p-node
+    container_name: validator_1
+    environment:
+      - PORT=5001
+      - NODE_ID=node_1
+      - PEERS=""
+    ports:
+      - "5001:5001"
+    networks:
+      - trustroute_net
+
+  validator_2:
+    build: ./p2p-node
+    container_name: validator_2
+    environment:
+      - PORT=5002
+      - NODE_ID=node_2
+      - PEERS=http://validator_1:5001
+    ports:
+      - "5002:5002"
+    networks:
+      - trustroute_net
+
+  validator_3:
+    build: ./p2p-node
+    container_name: validator_3
+    environment:
+      - PORT=5003
+      - NODE_ID=node_3
+      - PEERS=http://validator_1:5001
+    ports:
+      - "5003:5003"
+    networks:
+      - trustroute_net

@@ -12,7 +12,7 @@ class ListingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Listing::with('shop');
+        $query = Listing::with(['shop.user']);
 
         if ($request->has('search')) {
             $search = $request->query('search');
@@ -56,7 +56,9 @@ class ListingController extends Controller
 
     public function show(Listing $listing)
     {
-        return response()->json(['data' => $listing->load('shop')]);
+        return response()->json([
+            'data' => $listing->load(['shop.user', 'reviews.user'])
+        ]);
     }
 
     public function image(Listing $listing)
@@ -65,14 +67,12 @@ class ListingController extends Controller
             return response()->json(['message' => 'Image not found'], 404);
         }
 
-        // Fetch raw binary content directly from PostgreSQL stream/blob
         $imageData = $listing->image_data;
         
         if (is_resource($imageData)) {
             $imageData = stream_get_contents($imageData);
         }
 
-        // If stored as a hex string block (\x...), convert it directly to binary
         if (str_starts_with($imageData, '\\x')) {
             $imageData = hex2bin(substr($imageData, 2));
         }
