@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
-use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\ListingController;
+use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\ShopController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,16 +23,20 @@ Route::get('/listings', [ListingController::class, 'index']);
 Route::get('/listings/{listing}', [ListingController::class, 'show']);
 Route::get('/listings/{listing}/image', [ListingController::class, 'image']);
 
+// Public review routes
+Route::get('/reviews', [ReviewController::class, 'index']);
+Route::get('/listings/{listing}/reviews', [ReviewController::class, 'listingReviews']);
+
 // Authenticated routes via Sanctum
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/dashboard', [DashboardController::class, 'index']);
-    
+
     // Retrieve authenticated user
     Route::get('/user', function (Request $request) {
         return response()->json([
             'status' => 'success',
-            'user' => $request->user()
+            'user' => $request->user(),
         ]);
     });
 
@@ -50,4 +56,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
+
+    // Review Management Routes (Authenticated)
+    Route::post('/reviews', [ReviewController::class, 'store']);
+
+    // Message Management Routes (Chat Feature)
+    Route::get('/conversations', [MessageController::class, 'getConversations']); // 💬 ဒီလိုင်း အသစ်ထည့်လိုက်သည်
+    Route::get('/messages/{receiverId}', [MessageController::class, 'getMessages']);
+    Route::post('/messages', [MessageController::class, 'sendMessage']);
 });

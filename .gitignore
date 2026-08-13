@@ -3,3 +3,10 @@ RealStructure.txt
 trustroute_database.txt
 .vscode/
 .kiro/
+structure.txt
+ExpectedStructure.txt
+trustroute_backup.sqlbackend/database/migrations/*.php
+/backend/database/migrations/*.php
+trustroute_backup.sql
+trustroute_backup.sql:Zone.Identifier
+distributed_trustroute.txt

@@ -16,7 +16,7 @@ export default function ShopkeeperDashboardView({ data }) {
       try {
         const shopRes = await api.get('/my-shop');
         setShop(shopRes.data.data);
-        
+
         const listingsRes = await api.get('/my-shop/listings');
         const listData = listingsRes.data.data || listingsRes.data;
         setListings(Array.isArray(listData) ? listData : []);
@@ -55,6 +55,7 @@ export default function ShopkeeperDashboardView({ data }) {
             {shop ? 'Manage your catalog items, track inventory stock levels, and coordinate storefront activity.' : 'Setup your store profile to start publishing products to the marketplace.'}
           </p>
         </div>
+
         {shop && (
           <div className="flex items-center gap-3">
             <Link
@@ -63,6 +64,15 @@ export default function ShopkeeperDashboardView({ data }) {
             >
               Manage Shop Settings
             </Link>
+
+            {/* 💬 Customer Chats Button အသစ် */}
+            <Link
+              to="/chat"
+              className="px-4 py-2.5 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 text-sm font-medium rounded-xl hover:bg-purple-200 transition flex items-center gap-2"
+            >
+              💬 Customer Chats
+            </Link>
+
             <Link
               to="/listings/create"
               className="px-5 py-2.5 bg-[var(--accent)] text-white text-sm font-semibold rounded-xl hover:opacity-90 transition shadow-md"
