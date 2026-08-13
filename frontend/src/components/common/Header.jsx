@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
-import { useTheme } from '../../context/ThemeContext';
+
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);

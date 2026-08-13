@@ -1,35 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function ThemeToggle() {
-  const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem('theme') === 'dark';
-  });
+  const { theme, toggleTheme } = useTheme();
 
-  useEffect(() => {
-    const root = document.documentElement;
-
-    if (darkMode) {
-      root.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      root.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [darkMode]);
+  const isDark = theme === 'dark';
 
   return (
     <button
       type="button"
-      onClick={() => setDarkMode((prev) => !prev)}
-      aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-      title={darkMode ? 'Light mode' : 'Dark mode'}
+      onClick={toggleTheme}
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      title={isDark ? 'Light mode' : 'Dark mode'}
       className="
         group relative
         flex h-10 w-10
         items-center justify-center
         overflow-hidden
         rounded-xl
-        border border-gray-200
+        border
+        border-gray-200
         bg-gray-50
         text-gray-600
         shadow-sm
@@ -64,11 +54,14 @@ export default function ThemeToggle() {
       />
 
       <span className="relative z-10">
-
-        {darkMode ? (
+        {isDark ? (
           /* Sun */
           <svg
-            className="h-5 w-5 transition-transform duration-500 group-hover:rotate-45"
+            className="
+              h-5 w-5
+              transition-transform duration-500
+              group-hover:rotate-45
+            "
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -93,7 +86,11 @@ export default function ThemeToggle() {
         ) : (
           /* Moon */
           <svg
-            className="h-5 w-5 transition-transform duration-500 group-hover:-rotate-12"
+            className="
+              h-5 w-5
+              transition-transform duration-500
+              group-hover:-rotate-12
+            "
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -102,7 +99,8 @@ export default function ThemeToggle() {
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"
+              d="M21 12.79A9 9 0 1 1 11.21 3
+                 7 7 0 0 0 21 12.79Z"
             />
           </svg>
         )}
