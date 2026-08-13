@@ -9,7 +9,7 @@ export default function ProductCard({ product }) {
 
   // Always attempt to fetch the image via the listing endpoint; fallback handles errors gracefully
   const imageUrl =
-  `http://127.0.0.1:8000/api/listings/${product.id}/image`;
+  `/api/listings/${product.id}/image`;
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-US', {

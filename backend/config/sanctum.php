@@ -1,6 +1,8 @@
 <?php
 
 return [
-    'supports_credentials' => true,
-    'allowed_origins' => ['http://localhost:5173'],
+    //
+    // CORS settings are handled in config/cors.php.
+    // Sanctum-specific overrides can be added here if needed.
+    //
 ];

@@ -16,6 +16,7 @@ class Shop extends Model
         'shop_name',
         'slug',
         'status',
+        'description',
     ];
 
     public function user(): BelongsTo

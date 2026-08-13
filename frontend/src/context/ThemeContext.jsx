@@ -10,15 +10,19 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     const root = document.documentElement;
 
-    root.classList.toggle('dark', theme === 'dark');
+    if (theme === 'dark') {
+      root.classList.add('dark');
+      root.style.colorScheme = 'dark';
+    } else {
+      root.classList.remove('dark');
+      root.style.colorScheme = 'light';
+    }
 
     localStorage.setItem('theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme((currentTheme) =>
-      currentTheme === 'dark' ? 'light' : 'dark'
-    );
+    setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'));
   };
 
   return (
@@ -32,9 +36,7 @@ export function useTheme() {
   const context = useContext(ThemeContext);
 
   if (!context) {
-    throw new Error(
-      'useTheme must be used inside ThemeProvider'
-    );
+    throw new Error('useTheme must be used inside ThemeProvider');
   }
 
   return context;

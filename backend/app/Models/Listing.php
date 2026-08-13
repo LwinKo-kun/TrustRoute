@@ -35,8 +35,8 @@ class Listing extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    public function reviews(): HasMany
+    public function comments(): HasMany
     {
-        return $this->hasMany(Review::class);
+        return $this->hasMany(ListingComment::class, 'listing_id');
     }
 }

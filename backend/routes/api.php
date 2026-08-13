@@ -23,9 +23,9 @@ Route::get('/listings', [ListingController::class, 'index']);
 Route::get('/listings/{listing}', [ListingController::class, 'show']);
 Route::get('/listings/{listing}/image', [ListingController::class, 'image']);
 
-// Public review routes
+// Public review routes (FIXED: Route pointing to standard index or fallback)
 Route::get('/reviews', [ReviewController::class, 'index']);
-Route::get('/listings/{listing}/reviews', [ReviewController::class, 'listingReviews']);
+Route::get('/listings/{listing}/reviews', [ReviewController::class, 'index']);
 
 // Authenticated routes via Sanctum
 Route::middleware('auth:sanctum')->group(function () {
@@ -57,11 +57,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
 
-    // Review Management Routes (Authenticated)
+    // Review Management Routes
     Route::post('/reviews', [ReviewController::class, 'store']);
 
-    // Message Management Routes (Chat Feature)
-    Route::get('/conversations', [MessageController::class, 'getConversations']); // 💬 ဒီလိုင်း အသစ်ထည့်လိုက်သည်
+    // Message Management Routes
+    Route::get('/conversations', [MessageController::class, 'getConversations']);
     Route::get('/messages/{receiverId}', [MessageController::class, 'getMessages']);
     Route::post('/messages', [MessageController::class, 'sendMessage']);
 });

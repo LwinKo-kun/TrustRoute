@@ -6,12 +6,14 @@ import AppRoutes from './routes/AppRoutes';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <ThemeProvider>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <div className="w-full min-h-screen bg-[var(--bg)] text-[var(--text)] m-0 p-0 overflow-x-hidden transition-colors duration-300">
+      <BrowserRouter>
+        <ThemeProvider>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    </div>
   );
 }

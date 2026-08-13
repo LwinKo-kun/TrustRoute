@@ -1,23 +1,64 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import Header from '../components/common/Header';
-import ProductCard from '../components/common/ProductCard';
+import Header from '../components/layout/Header';
 import ShopCard from '../components/market/ShopCard';
+import Layout from '../components/layout/Layout';
+import api from '../api/axios';
 
 export default function LandingPage() {
   const [products, setProducts] = useState([]);
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(true);
+  const heroRef = useRef(null);
+  
+  const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+  const [particles, setParticles] = useState([]);
 
   useEffect(() => {
     fetchProducts();
     fetchShops();
+
+    const generated = [];
+    for (let i = 0; i < 95; i++) {
+      generated.push({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * 7 + 2,
+        opacity: Math.random() * 0.9 + 0.1,
+        color: i % 4 === 0 ? '#3b82f6' : i % 4 === 1 ? '#06b6d4' : i % 4 === 2 ? '#60a5fa' : '#818cf8',
+        speedX: (Math.random() - 0.5) * 0.2,
+        speedY: (Math.random() - 0.5) * 0.2 - 0.12,
+      });
+    }
+
+    setParticles(generated);
+
+    const interval = setInterval(() => {
+      setParticles(prev =>
+        prev.map(p => ({
+          ...p,
+          opacity: Math.random() > 0.25 ? Math.random() * 0.95 + 0.15 : 0.05,
+        }))
+      );
+    }, 220);
+
+    return () => clearInterval(interval);
   }, []);
+
+  const handleMouseMove = (e) => {
+    if (!heroRef.current) return;
+    const rect = heroRef.current.getBoundingClientRect();
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/listings');
-      const data = await response.json();
+      const res = await api.get('/listings');
+      const data = res.data;
       setProducts(data.data || data);
     } catch (err) {
       console.error('Failed to fetch products:', err);
@@ -28,838 +69,390 @@ export default function LandingPage() {
 
   const fetchShops = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/shops');
-      const data = await response.json();
+      const res = await api.get('/shops');
+      const data = res.data;
       setShops(data.data || data);
     } catch (err) {
       console.error('Failed to fetch shops:', err);
     }
   };
 
-  const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTdlNmU3Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJzZXNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjOWM5NmFjIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeD0iMCIgZHk9Ii4zZW0iPllpbGQgdW5hdmFpbGFibGU8L3RleHQ+PC9zdmc+';
+  const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjFmMmY0Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjIwIiBmaWxsPSIjOTNhM2I4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeD0iMCIgZHk9Ii4zZW0iPkltYWdlIFVuYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg==';
 
   const getListingImageUrl = (product) => {
     if (!product || !product.id) return fallbackImage;
-    return `http://127.0.0.1:8000/api/listings/${product.id}/image`;
+    return `/api/listings/${product.id}/image`;
   };
 
   const featuredCategories = [
-    { name: 'Electronics', icon: '📱', count: '1,234', color: 'from-purple-500 to-indigo-600' },
-    { name: 'Fashion', icon: '👕', count: '856', color: 'from-pink-500 to-rose-500' },
-    { name: 'Home & Garden', icon: '🏠', count: '678', color: 'from-emerald-500 to-teal-600' },
-    { name: 'Sports', icon: '⚽', count: '432', color: 'from-orange-500 to-amber-500' },
-    { name: 'Books', icon: '📚', count: '345', color: 'from-purple-500 to-pink-500' },
-    { name: 'Toys', icon: '🧸', count: '234', color: 'from-red-500 to-pink-600' },
+    { name: 'Electronics', icon: '📱', count: '1,234' },
+    { name: 'Fashion', icon: '👕', count: '856' },
+    { name: 'Home & Garden', icon: '🏠', count: '678' },
+    { name: 'Sports', icon: '⚽', count: '432' },
+    { name: 'Books', icon: '📚', count: '345' },
+    { name: 'Toys', icon: '🧸', count: '234' },
   ];
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#070b1c] text-white">
-      <Header />
-
+    <Layout>
       {/* =========================
           HERO SECTION
       ========================= */}
-      <section className="relative isolate overflow-hidden bg-[#070b1c]">
-        {/* Background Grid */}
+      <section 
+        ref={heroRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setMousePos({ x: -1000, y: -1000 })}
+        className="relative isolate overflow-hidden bg-white dark:bg-[#070b1c] border-b border-slate-200/80 dark:border-white/10 w-full shadow-sm transition-colors duration-300"
+      >
         <div
-          className="absolute inset-0 opacity-[0.035]"
+          className="absolute inset-0 opacity-[0.2] dark:opacity-[0.05] pointer-events-none"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px)
+              linear-gradient(to right, #cbd5e1 1px, transparent 1px),
+              linear-gradient(to bottom, #cbd5e1 1px, transparent 1px)
             `,
-            backgroundSize: '48px 48px',
+            backgroundSize: '56px 56px',
           }}
         />
 
-        {/* Glow Effects */}
-        <div className="pointer-events-none absolute -left-40 top-20 h-[500px] w-[500px] rounded-full bg-blue-600/20 blur-[140px]" />
-        <div className="pointer-events-none absolute right-[-150px] top-[-100px] h-[600px] w-[600px] rounded-full bg-cyan-500/10 blur-[150px]" />
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[350px] w-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/5 blur-[120px]" />
+        {particles.map((p) => {
+          const clientWidth = heroRef.current?.clientWidth || 1200;
+          const clientHeight = heroRef.current?.clientHeight || 700;
+          const pxX = (p.x / 100) * clientWidth;
+          const pxY = (p.y / 100) * clientHeight;
 
-        {/* Hero Container */}
-        <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-16 sm:px-6 sm:pb-24 sm:pt-20 lg:px-8 lg:pb-28 lg:pt-24">
-          <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+          const distance = Math.hypot(mousePos.x - pxX, mousePos.y - pxY);
+          const maxDistance = 180;
+          let pushX = 0;
+          let pushY = 0;
 
-            {/* =========================
-                LEFT CONTENT
-            ========================= */}
-            <div className="max-w-2xl">
-              {/* Status Badge */}
-              <div className="mb-7 inline-flex items-center gap-3 rounded-full border border-cyan-400/20 bg-cyan-400/[0.06] px-4 py-2 backdrop-blur-xl">
+          if (distance < maxDistance && mousePos.x !== -1000) {
+            const angle = Math.atan2(pxY - mousePos.y, pxX - mousePos.x);
+            const force = (1 - distance / maxDistance) * 45;
+            pushX = Math.cos(angle) * force;
+            pushY = Math.sin(angle) * force;
+          }
+
+          return (
+            <div
+              key={p.id}
+              className="absolute rounded-full pointer-events-none transition-all duration-200 ease-out"
+              style={{
+                top: `${p.y}%`,
+                left: `${p.x}%`,
+                width: `${p.size}px`,
+                height: `${p.size}px`,
+                backgroundColor: p.color,
+                opacity: p.opacity,
+                boxShadow: `0 0 ${p.size * 4}px ${p.color}, 0 0 ${p.size * 8}px ${p.color}, 0 0 ${p.size * 12}px rgba(59, 130, 246, 0.6)`,
+                transform: `translate(${pushX}px, ${pushY}px) scale(${p.opacity > 0.2 ? 1.2 : 0.4})`,
+              }}
+            />
+          );
+        })}
+
+        <div className="pointer-events-none absolute -left-20 top-10 h-[500px] w-[500px] rounded-full bg-blue-500/10 blur-[150px]" />
+        <div className="pointer-events-none absolute right-[-50px] top-[-50px] h-[600px] w-[600px] rounded-full bg-cyan-400/10 blur-[160px]" />
+
+        <div className="relative w-full px-6 pb-24 pt-16 sm:px-12 sm:pb-28 sm:pt-24 lg:px-24 lg:pb-36 lg:pt-32">
+          <div className="grid items-center gap-16 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20 w-full">
+            <div className="w-full">
+              <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-blue-200/80 bg-blue-50/90 dark:border-cyan-400/20 dark:bg-cyan-400/[0.06] px-4 py-2 shadow-sm backdrop-blur-md">
                 <span className="relative flex h-2.5 w-2.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-60" />
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-cyan-400" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 dark:bg-cyan-400 opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-600 dark:bg-cyan-400" />
                 </span>
-                <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-cyan-200">
+                <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-700 dark:text-cyan-200">
                   Trusted Technology Marketplace
                 </span>
               </div>
 
-              {/* Heading */}
-              <h1 className="text-4xl font-bold leading-[1.05] tracking-[-0.03em] text-white sm:text-5xl md:text-6xl lg:text-7xl">
+              <h1 className="text-4xl font-extrabold leading-[1.08] tracking-[-0.03em] text-slate-900 dark:text-white sm:text-5xl md:text-6xl lg:text-7xl">
                 Find Technology
                 <br />
-                <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-600 via-cyan-600 to-indigo-600 dark:from-blue-400 dark:via-cyan-300 dark:to-blue-500 bg-clip-text text-transparent">
                   You Can Trust.
                 </span>
               </h1>
 
-              {/* Description */}
-              <p className="mt-7 max-w-xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
+              <p className="mt-7 text-base leading-relaxed text-slate-600 dark:text-slate-300 sm:text-lg sm:leading-8 max-w-2xl">
                 Discover laptops, computers, accessories and more from
                 trusted sellers. Buy securely with verified shops,
                 protected transactions and transparent marketplace
                 technology.
               </p>
 
-              {/* =========================
-                  SEARCH BOX
-              ========================= */}
-              <div className="mt-8 max-w-xl">
-                <div className="group flex items-center rounded-2xl border border-white/10 bg-white/[0.06] p-1.5 shadow-2xl shadow-black/20 backdrop-blur-xl transition-all duration-300 focus-within:border-cyan-400/40 focus-within:bg-white/[0.08]">
-                  {/* Search Icon */}
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center text-slate-400">
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="m21 21-4.35-4.35m2.1-5.4a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" />
-                    </svg>
-                  </div>
-
-                  {/* Search Input */}
-                  <input
-                    type="text"
-                    placeholder="Search laptops, accessories, electronics..."
-                    className="min-w-0 flex-1 bg-transparent px-2 text-sm text-white outline-none placeholder:text-slate-500 sm:text-base"
-                  />
-
-                  {/* Search Button */}
-                  <Link
-                    to="/marketplace"
-                    className="flex h-12 shrink-0 items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 px-4 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:from-blue-400 hover:to-cyan-400 hover:shadow-cyan-500/30 sm:px-5"
-                  >
-                    <span className="hidden sm:inline">Search</span>
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14m-6-6 6 6-6 6" />
-                    </svg>
-                  </Link>
-                </div>
-              </div>
-
-              {/* =========================
-                  CTA BUTTONS
-              ========================= */}
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                 <Link
                   to="/marketplace"
-                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-3.5 text-sm font-semibold text-white shadow-xl shadow-blue-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:from-blue-400 hover:to-cyan-400 hover:shadow-cyan-500/30"
+                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 dark:bg-gradient-to-r dark:from-blue-500 dark:to-cyan-500 px-8 py-4 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:-translate-y-1 hover:bg-blue-700"
                 >
                   Browse Products
-                  <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14m-6-6 6 6-6 6" />
+                  <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M5 12h14m-6-6 6 6-6 6" />
                   </svg>
                 </Link>
 
                 <Link
                   to="/signup"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-xl transition-all duration-300 hover:border-cyan-400/30 hover:bg-white/[0.08]"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 dark:border-white/10 bg-white dark:bg-white/[0.04] px-8 py-4 text-sm font-bold text-slate-700 dark:text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-400 hover:bg-slate-50 dark:hover:bg-white/[0.08]"
                 >
                   Start Selling
                 </Link>
               </div>
 
-              {/* =========================
-                  TRUST INDICATORS
-              ========================= */}
-              <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-slate-400">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-400/10">
-                    <svg className="h-3.5 w-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m5 12 4 4L19 6" />
-                    </svg>
-                  </span>
+              <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-slate-600 dark:text-slate-400 font-semibold">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-400/10 text-emerald-700 dark:text-emerald-400 font-bold text-xs">✓</span>
                   Verified sellers
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-400/10">
-                    <svg className="h-3.5 w-3.5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2Zm10-8V9a4 4 0 0 0-8 0v2h8Z" />
-                    </svg>
-                  </span>
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-100 dark:bg-cyan-400/10 text-cyan-700 dark:text-cyan-400 text-xs">🔒</span>
                   Secure transactions
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-400/10">
-                    <svg className="h-3.5 w-3.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z" />
-                    </svg>
-                  </span>
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-400/10 text-blue-700 dark:text-blue-400 text-xs">🛡️</span>
                   Escrow protected
                 </div>
               </div>
             </div>
 
-            {/* =========================
-                RIGHT PRODUCT SHOWCASE
-            ========================= */}
-            <div className="relative hidden lg:block">
-              {/* Outer Glow */}
-              <div className="absolute -inset-6 rounded-[2rem] bg-gradient-to-r from-blue-500/10 via-cyan-400/10 to-blue-500/10 blur-2xl" />
+            <div className="relative hidden lg:block w-full">
+              <div className="absolute -inset-6 rounded-[2.5rem] bg-gradient-to-r from-blue-500/15 via-cyan-400/15 to-indigo-500/15 blur-2xl" />
 
-              {/* Main Glass Card */}
-              <div className="relative rounded-[2rem] border border-white/10 bg-[#0d1326]/80 p-5 shadow-2xl shadow-black/40 backdrop-blur-2xl">
-                {/* Header */}
-                <div className="mb-5 flex items-center justify-between">
+              <div className="relative rounded-[2.5rem] border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-[#0d1326]/80 p-8 shadow-2xl shadow-slate-300/70 dark:shadow-black/40 backdrop-blur-2xl w-full">
+                <div className="mb-6 flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
-                      <span className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">
-                        Live Marketplace
-                      </span>
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/50 animate-pulse" />
+                      <span className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Live Marketplace</span>
                     </div>
-                    <h2 className="mt-1 text-lg font-semibold text-white">
-                      Featured Technology
-                    </h2>
+                    <h2 className="mt-1.5 text-xl font-extrabold text-slate-900 dark:text-white">Featured Technology</h2>
                   </div>
-
-                  <Link to="/marketplace" className="text-xs font-medium text-cyan-400 transition hover:text-cyan-300">
+                  <Link to="/marketplace" className="text-xs font-bold text-blue-600 dark:text-cyan-400 transition hover:underline">
                     View all →
                   </Link>
                 </div>
 
-                {/* Product Grid */}
-                <div className="grid grid-cols-2 gap-3">
-                  {(products.slice(0, 6).length > 0
-                    ? products.slice(0, 6)
-                    : Array.from({ length: 6 }, (_, i) => ({
-                        id: i + 1,
-                        title: `Featured item ${i + 1}`,
-                      }))
+                <div className="grid grid-cols-2 gap-4 w-full">
+                  {(
+                    products.slice(0, 6).length > 0
+                      ? products.slice(0, 6)
+                      : Array.from({ length: 6 }, (_, i) => ({ id: i + 1, title: `Featured item ${i + 1}` }))
                   ).map((product, index) => (
                     <div
                       key={product.id ?? index}
-                      className="group overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.035] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/20 hover:bg-white/[0.06]"
+                      className="group overflow-hidden rounded-2xl border border-slate-200 dark:border-white/[0.07] bg-slate-50/70 dark:bg-white/[0.035] transition-all duration-300 hover:-translate-y-1.5 hover:border-blue-400 dark:hover:border-cyan-400/20 w-full"
                     >
-                      {/* Product Image */}
-                      <div className="relative aspect-[1.15/1] overflow-hidden bg-[#11192e]">
+                      <div className="relative aspect-[1.15/1] overflow-hidden bg-slate-100 dark:bg-[#11192e] w-full">
                         <img
                           src={getListingImageUrl(product)}
                           alt={product.title || `Featured item ${index + 1}`}
-                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                          onError={(e) => {
-                            e.currentTarget.src = fallbackImage;
-                          }}
+                          className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+                          onError={(e) => { e.currentTarget.src = fallbackImage; }}
                         />
-
-                        {/* Image Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-                        {/* Shop */}
                         <div className="absolute left-2.5 top-2.5">
-                          <span className="rounded-lg border border-white/10 bg-black/50 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-white backdrop-blur-md">
+                          <span className="rounded-lg border border-slate-200/60 dark:border-white/10 bg-white/95 dark:bg-black/50 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider text-slate-800 dark:text-white shadow-md">
                             {product.shop?.shop_name || 'Store'}
                           </span>
                         </div>
-
-                        {/* Stock */}
                         <div className="absolute right-2.5 top-2.5">
-                          <span
-                            className={`rounded-lg border px-2 py-1 text-[9px] font-semibold backdrop-blur-md ${
-                              product.stock > 0
-                                ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300'
-                                : 'border-red-400/20 bg-red-400/10 text-red-300'
-                            }`}
-                          >
+                          <span className={`rounded-lg border px-2 py-1 text-[9px] font-extrabold shadow-md ${product.stock > 0 ? 'border-emerald-200 dark:border-emerald-400/20 bg-emerald-50/90 dark:bg-emerald-400/10 text-emerald-700 dark:text-emerald-300' : 'border-rose-200 dark:border-rose-400/20 bg-rose-50/90 dark:bg-rose-400/10 text-rose-700 dark:text-rose-300'}`}>
                             {product.stock > 0 ? `${product.stock} available` : 'Sold out'}
                           </span>
                         </div>
                       </div>
 
-                      {/* Product Info */}
-                      <div className="p-3">
-                        <h3 className="line-clamp-1 text-sm font-semibold text-white">
+                      <div className="p-3.5 w-full bg-white dark:bg-transparent">
+                        <h3 className="line-clamp-1 text-sm font-bold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-300 transition">
                           {product.title || `Featured item ${index + 1}`}
                         </h3>
-
-                        <div className="mt-2 flex items-center justify-between">
-                          <span className="text-xs text-slate-500">Verified listing</span>
-                          <span className="flex items-center gap-1 text-[10px] text-cyan-400">
-                            <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M10 15l-5.878 3.09 1.123-6.545L.49 6.91l6.561-.955L10 0l2.939 5.955 6.561.955-4.755 4.635 1.123 6.545z" />
-                            </svg>
-                            Trusted
-                          </span>
+                        <div className="mt-2.5 flex items-center justify-between text-[11px]">
+                          <span className="text-slate-400 font-medium">Verified listing</span>
+                          <span className="flex items-center gap-1 font-bold text-blue-600 dark:text-cyan-400 bg-blue-50 dark:bg-cyan-950/50 px-2 py-0.5 rounded-md">★ Trusted</span>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Bottom Status */}
-                <div className="mt-4 flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-                    <span className="text-xs text-slate-400">Marketplace active</span>
+                <div className="mt-6 flex items-center justify-between rounded-xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/80 dark:bg-white/[0.025] px-4 py-3.5 w-full">
+                  <div className="flex items-center gap-2.5">
+                    <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-500" />
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-400">Marketplace active & operational</span>
                   </div>
-                  <span className="text-xs font-medium text-slate-300">Secure & verified</span>
+                  <span className="text-xs font-bold text-blue-600 dark:text-cyan-400 bg-blue-100/60 dark:bg-cyan-950/60 px-2.5 py-1 rounded-lg">Escrow Secured</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Bottom Fade */}
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#070b1c] to-transparent" />
       </section>
 
-      {/* Features Section */}
-      <section className="relative overflow-hidden bg-[#070b1c] py-24 sm:py-28">
-        {/* Technical grid background */}
-        <div
-          className="absolute inset-0 opacity-[0.025]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px)
-            `,
-            backgroundSize: '48px 48px',
-          }}
-        />
-
-        {/* Background glow */}
-        <div className="absolute left-1/4 top-20 h-72 w-72 rounded-full bg-blue-600/10 blur-[120px]" />
-        <div className="absolute right-1/4 bottom-0 h-80 w-80 rounded-full bg-cyan-500/10 blur-[130px]" />
-
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <div className="mx-auto mb-16 max-w-3xl text-center">
-            {/* Small label */}
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/[0.06] px-4 py-2 backdrop-blur-xl">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
-                Built for Trust
-              </span>
+      {/* =========================
+          FEATURES SECTION
+      ========================= */}
+      <section className="relative overflow-hidden bg-slate-50/70 dark:bg-[#070b1c] py-28 sm:py-36 border-b border-slate-200 dark:border-white/10 w-full transition-colors duration-300">
+        <div className="w-full px-6 sm:px-12 lg:px-24">
+          <div className="mx-auto mb-20 text-center max-w-3xl">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200 dark:border-cyan-400/20 bg-blue-50 dark:bg-cyan-400/[0.06] px-4 py-1.5 shadow-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-600 dark:bg-cyan-400" />
+              <span className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700 dark:text-cyan-300">Built for Trust</span>
             </div>
-
-            {/* Heading */}
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-              Everything You Need
-              <br />
-              <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
+            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl w-full">
+              Everything You Need <br />
+              <span className="bg-gradient-to-r from-blue-600 via-cyan-600 to-indigo-600 dark:from-blue-400 dark:via-cyan-300 dark:to-blue-500 bg-clip-text text-transparent">
                 To Trade With Confidence
               </span>
             </h2>
-
-            {/* Description */}
-            <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
-              TrustRoute combines secure transactions, verified sellers, and
-              decentralized technology to create a safer marketplace experience.
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg">
+              TrustRoute combines secure transactions, verified sellers, and transparent technology to create a safer experience.
             </p>
           </div>
 
-          {/* Feature Cards */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 w-full">
             {[
-              {
-                title: 'Secure Escrow',
-                desc: 'Funds remain protected until the buyer confirms successful delivery.',
-                label: 'SECURITY',
-                icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 12l1.7 1.7 3.5-3.5" />
-                  </svg>
-                ),
-              },
-              {
-                title: 'Verified Shops',
-                desc: 'Shop with confidence through verified and trusted marketplace sellers.',
-                label: 'VERIFIED',
-                icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l2.2 2.1 3-.1.8 2.9 2.4 1.8-1.5 2.6.5 3-2.9.8-1.8 2.4-2.7-1.4-2.8 1.4-1.8-2.4-2.9-.8.5-3-1.5-2.6 2.4-1.8.8-2.9 3 .1L12 3z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 12l1.7 1.7 3.5-3.5" />
-                  </svg>
-                ),
-              },
-              {
-                title: 'Direct P2P',
-                desc: 'Connect buyers and sellers directly without unnecessary intermediaries.',
-                label: 'PEER TO PEER',
-                icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h8" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h3v8H5a3 3 0 010-8z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 8h3a3 3 0 010 8h-3V8z" />
-                  </svg>
-                ),
-              },
-              {
-                title: 'Dispute Resolution',
-                desc: 'A transparent resolution process helps protect both buyers and sellers.',
-                label: 'PROTECTION',
-                icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 7h14" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 7l-3 6h6L7 7z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 7l-3 6h6l-3-6z" />
-                  </svg>
-                ),
-              },
-              {
-                title: 'Global Access',
-                desc: 'Discover technology products and sellers from anywhere in the marketplace.',
-                label: 'CONNECTED',
-                icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                    <circle cx="12" cy="12" r="8.5" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.8 12h16.4" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3.5c2.2 2.3 3.4 5.1 3.4 8.5s-1.2 6.2-3.4 8.5c-2.2-2.3-3.4-5.1-3.4-8.5S9.8 5.8 12 3.5z" />
-                  </svg>
-                ),
-              },
-              {
-                title: 'Fast Shipping',
-                desc: 'Track your orders and receive your technology products with confidence.',
-                label: 'DELIVERY',
-                icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h11v10H3z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M14 10h4l3 3v3h-7z" />
-                    <circle cx="7" cy="18" r="1.5" />
-                    <circle cx="18" cy="18" r="1.5" />
-                  </svg>
-                ),
-              },
+              { title: 'Secure Escrow', desc: 'Funds remain protected until the buyer confirms successful delivery.', label: 'SECURITY', icon: '🔒' },
+              { title: 'Verified Shops', desc: 'Shop with confidence through verified and trusted marketplace sellers.', label: 'VERIFIED', icon: '🛡️' },
+              { title: 'Direct P2P', desc: 'Connect buyers and sellers directly without unnecessary intermediaries.', label: 'PEER TO PEER', icon: '🤝' },
+              { title: 'Dispute Resolution', desc: 'A transparent resolution process helps protect both buyers and sellers.', label: 'PROTECTION', icon: '⚖️' },
+              { title: 'Global Access', desc: 'Discover technology products and sellers from anywhere in the marketplace.', label: 'CONNECTED', icon: '🌐' },
+              { title: 'Fast Shipping', desc: 'Track your orders and receive your technology products with confidence.', label: 'DELIVERY', icon: '📦' },
             ].map((feature, i) => (
               <div
                 key={i}
-                className="group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.035] p-7 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:border-cyan-400/30 hover:bg-white/[0.055] hover:shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
+                className="group relative overflow-hidden rounded-3xl border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-white/[0.035] p-9 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:border-blue-400 dark:hover:border-cyan-400/30 w-full"
               >
-                {/* Card glow */}
-                <div className="absolute -right-16 -top-16 h-32 w-32 rounded-full bg-cyan-400/0 blur-3xl transition-all duration-500 group-hover:bg-cyan-400/10" />
-
-                {/* Top technical line */}
-                <div className="absolute left-0 top-0 h-px w-0 bg-gradient-to-r from-blue-400 to-cyan-300 transition-all duration-500 group-hover:w-full" />
-
-                {/* Icon */}
-                <div className="relative mb-7 flex items-center justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/[0.08] text-cyan-300 transition-all duration-300 group-hover:border-cyan-400/40 group-hover:bg-cyan-400/[0.14] group-hover:text-cyan-200 group-hover:shadow-[0_0_25px_rgba(34,211,238,0.12)]">
+                <div className="absolute top-0 left-0 h-1.5 w-0 bg-gradient-to-r from-blue-600 to-cyan-500 transition-all duration-500 group-hover:w-full" />
+                <div className="mb-6 flex items-center justify-between">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 dark:bg-cyan-400/[0.08] text-2xl text-blue-600 dark:text-cyan-300 transition-all duration-300 group-hover:scale-110">
                     {feature.icon}
                   </div>
-                  <span className="font-mono text-[10px] font-semibold tracking-[0.18em] text-slate-600 transition group-hover:text-cyan-500/70">
-                    0{i + 1}
-                  </span>
+                  <span className="font-mono text-sm font-extrabold text-slate-300 dark:text-slate-600 group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition">0{i + 1}</span>
                 </div>
-
-                {/* Feature label */}
-                <div className="mb-3">
-                  <span className="font-mono text-[10px] font-semibold tracking-[0.18em] text-cyan-400/70">
-                    {feature.label}
-                  </span>
-                </div>
-
-                {/* Title */}
-                <h3 className="mb-3 text-xl font-semibold tracking-tight text-white">
-                  {feature.title}
-                </h3>
-
-                {/* Description */}
-                <p className="text-sm leading-6 text-slate-400">
-                  {feature.desc}
-                </p>
-
-                {/* Bottom arrow */}
-                <div className="mt-6 flex items-center gap-2 text-xs font-medium text-slate-600 transition-all duration-300 group-hover:gap-3 group-hover:text-cyan-400">
-                  <span>LEARN MORE</span>
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M13 6l6 6-6 6" />
-                  </svg>
-                </div>
+                <span className="font-mono text-[11px] font-bold tracking-widest text-blue-600 dark:text-cyan-400 uppercase">{feature.label}</span>
+                <h3 className="mt-2 mb-3 text-2xl font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-300 transition">{feature.title}</h3>
+                <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">{feature.desc}</p>
               </div>
             ))}
-          </div>
-
-          {/* Trust indicators */}
-          <div className="mt-14 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 border-t border-white/[0.06] pt-8">
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Verified sellers
-            </div>
-            <div className="hidden h-4 w-px bg-white/10 sm:block" />
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
-              Secure transactions
-            </div>
-            <div className="hidden h-4 w-px bg-white/10 sm:block" />
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-              Decentralized marketplace
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Categories Section */}
-      <section className="relative overflow-hidden bg-[#070b1c] py-24 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="mb-12 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      {/* =========================
+          CATEGORIES SECTION
+      ========================= */}
+      <section className="relative overflow-hidden bg-white dark:bg-[#070b1c] py-28 sm:py-36 border-b border-slate-200 dark:border-white/10 w-full transition-colors duration-300">
+        <div className="w-full px-6 sm:px-12 lg:px-24">
+          <div className="mb-14 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between w-full">
             <div>
-              <div className="mb-4 flex items-center gap-2">
-                <span className="h-px w-8 bg-cyan-400" />
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
-                  Explore Marketplace
-                </span>
-              </div>
-              <h2 className="text-3xl font-bold text-white sm:text-4xl">
-                Shop by{' '}
-                <span className="bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
-                  Category
-                </span>
+              <span className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600 dark:text-cyan-300">Explore Marketplace</span>
+              <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl lg:text-5xl mt-1.5">
+                Shop by <span className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-cyan-300 bg-clip-text text-transparent">Category</span>
               </h2>
-              <p className="mt-3 text-slate-400">
-                Find the technology you need.
-              </p>
             </div>
-
-            <Link
-              to="/marketplace"
-              className="group inline-flex items-center gap-2 text-sm font-semibold text-cyan-300 transition hover:text-white"
-            >
-              View all categories
-              <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+            <Link to="/marketplace" className="group inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 dark:text-cyan-300 hover:underline transition">
+              View all categories <span className="transition-transform group-hover:translate-x-1">→</span>
             </Link>
           </div>
 
-          {/* Categories */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-6 w-full">
             {featuredCategories.map((cat, i) => (
               <Link
                 key={i}
                 to={`/marketplace?category=${cat.name}`}
-                className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0d1429] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/30 hover:bg-[#111a35] hover:shadow-xl hover:shadow-blue-950/30"
+                className="group relative overflow-hidden rounded-3xl border border-slate-200 dark:border-white/[0.07] bg-slate-50/50 dark:bg-[#0d1429] p-8 transition-all duration-300 hover:-translate-y-2 hover:border-blue-400 dark:hover:border-cyan-400/30 text-center w-full"
               >
-                {/* Number */}
-                <div className="absolute right-4 top-4 text-[10px] font-mono text-slate-600 group-hover:text-cyan-400/50">
-                  0{i + 1}
-                </div>
-
-                {/* Icon */}
-                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] text-3xl transition group-hover:border-cyan-400/30 group-hover:bg-cyan-400/10 group-hover:scale-105">
+                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-white dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/[0.08] text-3xl shadow-sm transition-all duration-300 group-hover:scale-110">
                   {cat.icon}
                 </div>
-
-                <h3 className="font-semibold text-white">
-                  {cat.name}
-                </h3>
-
-                <p className="mt-2 text-xs text-slate-500">
-                  {cat.count} products
-                </p>
-
-                <div className="mt-5 h-px w-0 bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-500 group-hover:w-full" />
+                <h3 className="font-bold text-slate-900 dark:text-white text-base">{cat.name}</h3>
+                <p className="mt-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500">{cat.count} items</p>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Trusted Shops */}
-      <section className="relative overflow-hidden bg-[#080d20] py-24 sm:py-28">
-        {/* Background grid */}
-        <div
-          className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px)
-            `,
-            backgroundSize: '48px 48px',
-          }}
-        />
-
-        {/* Background glow */}
-        <div className="absolute -right-40 top-20 h-96 w-96 rounded-full bg-cyan-500/10 blur-[130px]" />
-        <div className="absolute -left-40 bottom-0 h-96 w-96 rounded-full bg-blue-600/10 blur-[130px]" />
-
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <div className="mb-12 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      {/* =========================
+          TRUSTED SHOPS SECTION
+      ========================= */}
+      <section className="relative overflow-hidden bg-slate-50/70 dark:bg-[#080d20] py-28 sm:py-36 border-b border-slate-200 dark:border-white/10 w-full transition-colors duration-300">
+        <div className="w-full px-6 sm:px-12 lg:px-24">
+          <div className="mb-14 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between w-full">
             <div>
-              {/* Small label */}
-              <div className="mb-4 flex items-center gap-2">
-                <span className="h-px w-8 bg-cyan-400" />
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
-                  Trusted Network
-                </span>
-              </div>
-
-              {/* Heading */}
-              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Trusted{' '}
-                <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
-                  Shops
-                </span>
+              <span className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600 dark:text-cyan-300">Trusted Network</span>
+              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl mt-1.5">
+                Trusted <span className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-cyan-300 bg-clip-text text-transparent">Shops</span>
               </h2>
-
-              {/* Description */}
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-                Discover verified sellers and trusted technology stores on the
-                TrustRoute marketplace.
-              </p>
+              <p className="mt-2 text-slate-600 dark:text-slate-400 text-base">Discover verified sellers and trusted technology stores.</p>
             </div>
-
-            {/* View all */}
-            <Link
-              to="/marketplace"
-              className="group inline-flex items-center gap-2 text-sm font-semibold text-cyan-300 transition-colors hover:text-white"
-            >
-              View All Shops
-              <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+            <Link to="/marketplace" className="group inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 dark:text-cyan-300 transition">
+              View All Shops <span className="transition-transform group-hover:translate-x-1">→</span>
             </Link>
           </div>
 
-          {/* Loading */}
           {loading ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 w-full">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-80 animate-pulse rounded-2xl border border-white/[0.06] bg-white/[0.03]" />
+                <div key={i} className="h-80 animate-pulse rounded-3xl border border-slate-200 dark:border-white/[0.06] bg-slate-200 dark:bg-white/[0.03] w-full" />
               ))}
             </div>
           ) : shops.length > 0 ? (
-            /* Shop Cards */
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 w-full">
               {shops.slice(0, 3).map((shop) => (
-                <ShopCard key={shop.id} shop={shop} />
+                <div key={shop.id} className="transform transition duration-300 hover:-translate-y-1">
+                  <ShopCard shop={shop} />
+                </div>
               ))}
             </div>
           ) : (
-            /* Empty State */
-            <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] px-6 py-20 text-center backdrop-blur-xl">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/5">
-                <svg className="h-7 w-7 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />
-                </svg>
-              </div>
-
-              <h3 className="text-xl font-semibold text-white">
-                No shops yet
-              </h3>
-
-              <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
+            <div className="rounded-3xl border border-slate-200 dark:border-white/[0.07] bg-white dark:bg-white/[0.025] px-8 py-24 text-center shadow-md w-full">
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 dark:bg-cyan-400/5 text-blue-600 dark:text-cyan-400 text-2xl font-bold">🏪</div>
+              <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white">No shops yet</h3>
+              <p className="mx-auto mt-2 max-w-md text-sm text-slate-500 leading-relaxed">
                 Be the first seller to open a trusted shop on TrustRoute.
               </p>
-
-              <Link
-                to="/signup"
-                className="mt-6 inline-flex items-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-2.5 text-sm font-semibold text-cyan-300 transition hover:border-cyan-400/40 hover:bg-cyan-400/15"
-              >
-                Start Selling
+              <Link to="/signup" className="mt-8 inline-flex items-center rounded-xl bg-blue-600 dark:bg-cyan-400/10 px-7 py-3.5 text-sm font-bold text-white dark:text-cyan-300 shadow-lg transition">
+                Start Selling Now
               </Link>
             </div>
           )}
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="relative overflow-hidden bg-[#050816] py-24 text-white sm:py-28">
-        {/* Background Grid */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.025]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(148,163,184,.8) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(148,163,184,.8) 1px, transparent 1px)
-            `,
-            backgroundSize: '64px 64px',
-          }}
-        />
-
-        {/* Ambient Glows */}
-        <div className="pointer-events-none absolute left-1/4 top-0 h-[400px] w-[400px] rounded-full bg-indigo-600/10 blur-[140px]" />
-        <div className="pointer-events-none absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-cyan-500/10 blur-[140px]" />
-
-        {/* Main Container */}
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <div className="mb-16 flex flex-col items-center text-center">
-            {/* Status Badge */}
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-700/80 bg-slate-900/70 px-4 py-2 shadow-lg shadow-black/20 backdrop-blur-xl">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-60" />
-                <span className="relative h-2 w-2 rounded-full bg-cyan-400" />
-              </span>
-              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-300">
-                Live Platform Data
-              </span>
-            </div>
-
-            {/* Heading */}
-            <h2 className="max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-              The Numbers Behind{' '}
-              <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-500 bg-clip-text text-transparent">
-                TrustRoute
-              </span>
+      {/* =========================
+          STATS SECTION
+      ========================= */}
+      <section className="relative overflow-hidden bg-white dark:bg-[#050816] py-28 sm:py-36 text-slate-900 dark:text-white w-full transition-colors duration-300">
+        <div className="w-full px-6 sm:px-12 lg:px-24">
+          <div className="mx-auto mb-20 text-center max-w-3xl">
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-cyan-400">Live Platform Data</span>
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl text-slate-900 dark:text-white w-full">
+              The Numbers Behind <span className="bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-cyan-400 dark:to-indigo-500 bg-clip-text text-transparent">TrustRoute</span>
             </h2>
-
-            {/* Description */}
-            <p className="mt-5 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
-              A growing technology marketplace connecting trusted sellers
-              with buyers through secure and transparent transactions.
-            </p>
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-400">A secure technology marketplace connecting trusted buyers and sellers globally.</p>
           </div>
 
-          {/* Statistics Panel */}
-          <div className="relative overflow-hidden rounded-[2rem] border border-slate-800/80 bg-slate-900/50 shadow-2xl shadow-black/30 backdrop-blur-xl">
-            {/* Top Accent */}
-            <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
-
-            {/* Statistics Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4">
-              {[
-                {
-                  number: '500+',
-                  label: 'Verified Shops',
-                  description: 'Trusted technology sellers',
-                  type: 'shops',
-                },
-                {
-                  number: '10K+',
-                  label: 'Technology Products',
-                  description: 'Laptops & accessories',
-                  type: 'products',
-                },
-                {
-                  number: '99.9%',
-                  label: 'Secure Transactions',
-                  description: 'Protected by escrow',
-                  type: 'security',
-                },
-                {
-                  number: '24/7',
-                  label: 'Customer Support',
-                  description: 'Always available',
-                  type: 'support',
-                },
-              ].map((stat, index) => (
-                <div
-                  key={index}
-                  className={`
-                    group relative p-6 sm:p-8 lg:p-10 transition-all duration-500 hover:bg-white/[0.025]
-                    ${index < 2 ? 'border-b border-slate-800/70 lg:border-b-0' : ''}
-                    ${index % 2 === 0 ? 'border-r border-slate-800/70 lg:border-r' : ''}
-                    ${index === 1 ? 'lg:border-r' : ''}
-                    ${index === 2 ? 'lg:border-r' : ''}
-                  `}
-                >
-                  {/* Hover Glow */}
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-500/[0.03] via-transparent to-indigo-500/[0.04] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-
-                  {/* Icon */}
-                  <div className="relative mb-7">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-700 bg-slate-800/70 text-cyan-400 shadow-lg shadow-black/20 transition-all duration-500 group-hover:border-cyan-400/40 group-hover:bg-cyan-400/10 group-hover:shadow-cyan-500/10">
-                      {/* Shop Icon */}
-                      {stat.type === 'shops' && (
-                        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M5 10v10h14V10M4 10l1.5-6h13L20 10M9 20v-5h6v5" />
-                        </svg>
-                      )}
-
-                      {/* Products Icon */}
-                      {stat.type === 'products' && (
-                        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}>
-                          <rect x="3" y="4" width="18" height="13" rx="2" />
-                          <path strokeLinecap="round" d="M8 21h8M12 17v4" />
-                        </svg>
-                      )}
-
-                      {/* Security Icon */}
-                      {stat.type === 'security' && (
-                        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" />
-                        </svg>
-                      )}
-
-                      {/* Support Icon */}
-                      {stat.type === 'support' && (
-                        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 13a8 8 0 0116 0v4a2 2 0 01-2 2h-2v-6h4M4 13v4a2 2 0 002 2h2v-6H4" />
-                          <path strokeLinecap="round" d="M9 19h2" />
-                        </svg>
-                      )}
-                    </div>
-
-                    {/* Connection Dot */}
-                    <div className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 border-slate-900 bg-cyan-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                  </div>
-
-                  {/* Number */}
-                  <div className="relative">
-                    <div className="bg-gradient-to-r from-white via-cyan-100 to-blue-400 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl">
-                      {stat.number}
-                    </div>
-
-                    {/* Label */}
-                    <h3 className="mt-3 text-sm font-semibold text-white sm:text-base">
-                      {stat.label}
-                    </h3>
-
-                    {/* Description */}
-                    <p className="mt-2 max-w-[190px] text-xs leading-relaxed text-slate-500 sm:text-sm">
-                      {stat.description}
-                    </p>
-                  </div>
-
-                  {/* Bottom Status */}
-                  <div className="mt-7 flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
-                    <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-600">
-                      Active
-                    </span>
-                  </div>
-
-                  {/* Hover Line */}
-                  <div className="absolute bottom-0 left-1/2 h-px w-0 -translate-x-1/2 bg-gradient-to-r from-transparent via-cyan-400 to-transparent transition-all duration-500 group-hover:w-2/3" />
-                </div>
-              ))}
-            </div>
-
-            {/* Bottom Platform Status */}
-            <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-800/70 bg-slate-950/30 px-6 py-5 sm:flex-row sm:px-8">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10">
-                  <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-300">
-                    Platform Status
-                  </p>
-                  <p className="text-[11px] text-slate-600">
-                    All systems operational
-                  </p>
-                </div>
+          <div className="grid grid-cols-2 gap-6 lg:grid-cols-4 w-full">
+            {[
+              { number: '500+', label: 'Verified Shops', desc: 'Trusted tech sellers' },
+              { number: '10K+', label: 'Products', desc: 'Laptops & components' },
+              { number: '99.9%', label: 'Secure', desc: 'Protected by escrow' },
+              { number: '24/7', label: 'Support', desc: 'Always available' },
+            ].map((stat, index) => (
+              <div 
+                key={index} 
+                className="group rounded-3xl border border-slate-200/90 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-900/50 p-9 text-center shadow-sm transition-all duration-500 hover:-translate-y-2 hover:border-blue-400 dark:hover:border-cyan-400/40 w-full relative overflow-hidden"
+              >
+                <div className="text-4xl font-black text-blue-600 dark:text-cyan-400 sm:text-6xl tracking-tight mb-2">{stat.number}</div>
+                <h3 className="text-base font-extrabold text-slate-800 dark:text-white">{stat.label}</h3>
+                <p className="mt-1 text-xs font-semibold text-slate-400 dark:text-slate-500">{stat.desc}</p>
               </div>
-
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-                <span className="text-[11px] font-medium uppercase tracking-wider text-emerald-400">
-                  Operational
-                </span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
-    </div>
+    </Layout>
   );
 }

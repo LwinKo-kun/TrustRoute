@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import Input from '../components/Input';
-import Button from '../components/Button';
+import Input from '../components/common/Input';
+import Button from '../components/common/Button';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -25,12 +25,39 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[var(--bg)] animate-fade-in">
-      <div className="w-full max-w-sm bg-[var(--code-bg)] p-6 rounded-xl shadow-lg">
+    <div className="flex min-h-screen w-full items-center justify-center bg-white dark:bg-[#070b1c] text-slate-900 dark:text-white selection:bg-blue-600 selection:text-white px-4 py-12 relative overflow-hidden transition-colors duration-300">
+      
+      {/* Full-Screen Background Grid Pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.3] dark:opacity-[0.05] pointer-events-none"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, #cbd5e1 1px, transparent 1px),
+            linear-gradient(to bottom, #cbd5e1 1px, transparent 1px)
+          `,
+          backgroundSize: '48px 48px',
+        }}
+      />
+
+      {/* Ambient Glows */}
+      <div className="pointer-events-none absolute -left-20 top-10 h-[400px] w-[400px] rounded-full bg-blue-500/5 dark:bg-cyan-500/10 blur-[120px]" />
+      <div className="pointer-events-none absolute -right-20 bottom-10 h-[400px] w-[400px] rounded-full bg-cyan-500/5 dark:bg-blue-600/10 blur-[120px]" />
+
+      <div className="relative w-full max-w-md bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 p-8 sm:p-10 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-black/40 backdrop-blur-xl animate-fade-in transition-colors duration-300">
+        
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <Link to="/" className="inline-block text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">
+            Trust<span className="text-blue-600 dark:text-cyan-400">Route</span>
+          </Link>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-white">Welcome Back</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Sign in to your secure account</p>
+        </div>
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Email address
               </label>
               <Input
@@ -40,12 +67,12 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
-                className="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#070b1c] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 dark:focus:ring-cyan-400 focus:border-transparent outline-none transition"
               />
             </div>
 
             <div>
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Password
               </label>
               <div className="relative">
@@ -56,12 +83,12 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   required
-                  className="w-full px-4 py-3 pr-12 rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#070b1c] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 dark:focus:ring-cyan-400 focus:border-transparent outline-none transition"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition focus:outline-none"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition focus:outline-none"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
@@ -85,17 +112,17 @@ export default function LoginPage() {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                className="w-4 h-4 text-blue-600 dark:text-cyan-400 rounded border-slate-300 dark:border-white/10 dark:bg-[#070b1c] focus:ring-blue-500 dark:focus:ring-cyan-400 cursor-pointer"
               />
-              <span className="text-gray-600 dark:text-gray-400">Remember me</span>
+              <span className="text-slate-600 dark:text-slate-400">Remember me</span>
             </label>
-            <a href="#" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium">
+            <a href="#" className="text-blue-600 dark:text-cyan-400 hover:text-blue-700 dark:hover:text-cyan-300 font-semibold">
               Forgot password?
             </a>
           </div>
 
           {error && (
-            <div className="p-4 mb-4 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-2">
+            <div className="p-4 text-sm text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -103,28 +130,27 @@ export default function LoginPage() {
             </div>
           )}
 
-          <Button type="submit" className="w-full py-3.5 text-lg font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl shadow-lg shadow-purple-500/30 hover:shadow-purple-500/40 transition transform hover:-translate-y-0.5">
+          <Button type="submit" className="w-full py-3.5 text-base font-bold bg-blue-600 hover:bg-blue-700 dark:bg-gradient-to-r dark:from-blue-600 dark:to-cyan-500 text-white rounded-xl shadow-lg shadow-blue-500/20 transition-all">
             Sign In
           </Button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+              <div className="w-full border-t border-slate-200 dark:border-white/10"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white dark:bg-gray-800 text-gray-500">New to TrustRoute?</span>
+              <span className="px-4 bg-white dark:bg-[#0d1326] text-slate-500 dark:text-slate-400">New to TrustRoute?</span>
             </div>
           </div>
-          <div className="mt-6">
-            <p className="text-center">
-              <Link to="/signup" className="text-purple-600 dark:text-purple-400 font-semibold hover:text-purple-700 dark:hover:text-purple-300 hover:underline">
-                Create your account
-              </Link>
-            </p>
+          <div className="mt-6 text-center">
+            <Link to="/signup" className="text-blue-600 dark:text-cyan-400 font-bold hover:text-blue-700 dark:hover:text-cyan-300 hover:underline">
+              Create your account
+            </Link>
           </div>
         </div>
+
       </div>
     </div>
   );

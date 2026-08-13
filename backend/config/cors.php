@@ -6,7 +6,11 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'], // <--- Development အတွက် '*' ပြောင်းပေးလိုက်ပါ
+    // Must be a specific origin (not '*') when withCredentials: true is used on the frontend
+    'allowed_origins' => [
+        'http://localhost:5173',
+        'http://192.168.26.118:5173', // Network IP for local network access
+    ],
 
     'allowed_origins_patterns' => [],
 
@@ -16,6 +20,7 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => false, // '*' သုံးထားပါက false ထားရပါမည်
+    // Must be true to allow cookies/Authorization headers with withCredentials: true
+    'supports_credentials' => true,
 
 ];

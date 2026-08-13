@@ -8,8 +8,6 @@ BACKEND_PID=$!
 
 # Navigate to frontend and start Vite server
 echo "Starting React frontend..."
-../frontend
-# Wait a moment then go to frontend directory
 cd ../frontend
 npm run dev -- --host&
 FRONTEND_PID=$!

@@ -7,6 +7,7 @@ use App\Http\Requests\StoreListingRequest;
 use App\Http\Requests\UpdateListingRequest;
 use App\Models\Listing;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ListingController extends Controller
 {
@@ -14,72 +15,88 @@ class ListingController extends Controller
     {
         $query = Listing::with(['shop.user']);
 
-        if ($request->has('search')) {
+        if ($request->filled('search')) {
             $search = $request->query('search');
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'ilike', "%{$search}%")
-                  ->orWhere('description', 'ilike', "%{$search}%");
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
-        return response()->json($query->paginate(12));
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        return response()->json($query->latest()->paginate(12));
     }
 
-    public function shopListings()
+    public function shopListings(Request $request)
     {
-        $shop = auth()->user()->shop;
+        $shop = $request->user()->shop;
         if (!$shop) {
             return response()->json(['message' => 'Shop not found.'], 404);
         }
 
-        return response()->json($shop->listings()->paginate(12));
+        return response()->json($shop->listings()->latest()->paginate(12));
     }
 
     public function store(StoreListingRequest $request)
     {
-        $shop = auth()->user()->shop;
+        $shop = $request->user()->shop;
+        if (!$shop) {
+            return response()->json(['message' => 'You must create a shop first.'], 400);
+        }
 
         $data = $request->validated();
         $data['shop_id'] = $shop->id;
 
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $data['image_data'] = '\\x' . bin2hex(file_get_contents($file->getRealPath()));
-            $data['image_mime_type'] = $file->getMimeType();
-            unset($data['image']);
+            $path = $request->file('image')->store('listings', 'public');
+            $data['image_path'] = $path;
         }
 
         $listing = Listing::create($data);
 
-        return response()->json(['message' => 'Listing created successfully', 'data' => $listing], 201);
+        return response()->json([
+            'message' => 'Listing created successfully',
+            'data' => $listing->load('shop.user')
+        ], 201);
     }
 
-    public function show(Listing $listing)
+        public function show(Listing $listing)
     {
         return response()->json([
-            'data' => $listing->load(['shop.user', 'reviews.user'])
+            'data' => $listing->load(['shop.user', 'comments.user'])
         ]);
     }
 
     public function image(Listing $listing)
     {
-        if (!$listing->image_data) {
-            return response()->json(['message' => 'Image not found'], 404);
+        // 1. Check local/public storage disk
+        if (isset($listing->image_path) && Storage::disk('public')->exists($listing->image_path)) {
+            return Storage::disk('public')->response($listing->image_path);
         }
 
-        $imageData = $listing->image_data;
-        
-        if (is_resource($imageData)) {
-            $imageData = stream_get_contents($imageData);
+        // 2. Fallback to database binary stream / hex bytea
+        if (!empty($listing->image_data)) {
+            $imageData = $listing->image_data;
+
+            if (is_resource($imageData)) {
+                $imageData = stream_get_contents($imageData);
+            }
+
+            if (str_starts_with($imageData, '\\x')) {
+                $imageData = hex2bin(substr($imageData, 2));
+            } elseif (str_starts_with($imageData, 'data:image')) {
+                $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $imageData));
+            }
+
+            return response($imageData, 200)
+                ->header('Content-Type', $listing->image_mime_type ?? 'image/jpeg')
+                ->header('Cache-Control', 'public, max-age=86400');
         }
 
-        if (str_starts_with($imageData, '\\x')) {
-            $imageData = hex2bin(substr($imageData, 2));
-        }
-
-        return response($imageData, 200)
-            ->header('Content-Type', $listing->image_mime_type ?? 'image/jpeg')
-            ->header('Cache-Control', 'public, max-age=86400');
+        return response()->json(['message' => 'Image not found'], 404);
     }
 
     public function update(UpdateListingRequest $request, Listing $listing)
@@ -87,21 +104,30 @@ class ListingController extends Controller
         $data = $request->validated();
 
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $data['image_data'] = '\\x' . bin2hex(file_get_contents($file->getRealPath()));
-            $data['image_mime_type'] = $file->getMimeType();
-            unset($data['image']);
+            if (isset($listing->image_path) && Storage::disk('public')->exists($listing->image_path)) {
+                Storage::disk('public')->delete($listing->image_path);
+            }
+
+            $path = $request->file('image')->store('listings', 'public');
+            $data['image_path'] = $path;
         }
 
         $listing->update($data);
 
-        return response()->json(['message' => 'Listing updated successfully', 'data' => $listing]);
+        return response()->json([
+            'message' => 'Listing updated successfully',
+            'data' => $listing->load('shop.user')
+        ]);
     }
 
     public function destroy(Listing $listing)
     {
-        if (auth()->id() !== $listing->shop->shopkeeper_id) {
+        if (auth()->id() !== $listing->shop->user_id && auth()->id() !== $listing->shop->shopkeeper_id) {
             return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        if (isset($listing->image_path) && Storage::disk('public')->exists($listing->image_path)) {
+            Storage::disk('public')->delete($listing->image_path);
         }
 
         $listing->delete();
