@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import Header from '../components/common/Header';
 import ProductCard from '../components/common/ProductCard';
 import ShopCard from '../components/market/ShopCard';
-import TrustedShopsAndStats from '../components/TrustedShopsAndStats';
 
 export default function LandingPage() {
   const [products, setProducts] = useState([]);
@@ -863,73 +862,73 @@ export default function LandingPage() {
       </section>
 
       {/* Categories Section */}
-      <section className="relative overflow-hidden bg-[#070b1c] py-24 sm:py-28">
+<section className="relative overflow-hidden bg-[#070b1c] py-24 sm:py-28">
 
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-          {/* Header */}
-          <div className="mb-12 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+    {/* Header */}
+    <div className="mb-12 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
 
-            <div>
+      <div>
 
-              <div className="mb-4 flex items-center gap-2">
-                <span className="h-px w-8 bg-cyan-400" />
+        <div className="mb-4 flex items-center gap-2">
+          <span className="h-px w-8 bg-cyan-400" />
 
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
-                  Explore Marketplace
-                </span>
-              </div>
+          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
+            Explore Marketplace
+          </span>
+        </div>
 
-              <h2 className="text-3xl font-bold text-white sm:text-4xl">
-                Shop by{' '}
-                <span className="bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
-                  Category
-                </span>
-              </h2>
+        <h2 className="text-3xl font-bold text-white sm:text-4xl">
+          Shop by{' '}
+          <span className="bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
+            Category
+          </span>
+        </h2>
 
-              <p className="mt-3 text-slate-400">
-                Find the technology you need.
-              </p>
+        <p className="mt-3 text-slate-400">
+          Find the technology you need.
+        </p>
 
-            </div>
+      </div>
 
-            <Link
-              to="/marketplace"
-              className="
+      <Link
+        to="/marketplace"
+        className="
           group inline-flex items-center gap-2
           text-sm font-semibold text-cyan-300
           transition hover:text-white
         "
-            >
-              View all categories
+      >
+        View all categories
 
-              <svg
-                className="h-4 w-4 transition-transform group-hover:translate-x-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
+        <svg
+          className="h-4 w-4 transition-transform group-hover:translate-x-1"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 5l7 7-7 7"
+          />
+        </svg>
 
-            </Link>
+      </Link>
 
-          </div>
+    </div>
 
-          {/* Categories */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+    {/* Categories */}
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
 
-            {featuredCategories.map((cat, i) => (
+      {featuredCategories.map((cat, i) => (
 
-              <Link
-                key={i}
-                to={`/marketplace?category=${cat.name}`}
-                className="
+        <Link
+          key={i}
+          to={`/marketplace?category=${cat.name}`}
+          className="
             group relative overflow-hidden
             rounded-2xl
             border border-white/[0.07]
@@ -941,20 +940,20 @@ export default function LandingPage() {
             hover:bg-[#111a35]
             hover:shadow-xl hover:shadow-blue-950/30
           "
-              >
+        >
 
-                {/* Number */}
-                <div className="
+          {/* Number */}
+          <div className="
             absolute right-4 top-4
             text-[10px] font-mono
             text-slate-600
             group-hover:text-cyan-400/50
           ">
-                  0{i + 1}
-                </div>
+            0{i + 1}
+          </div>
 
-                {/* Icon */}
-                <div className="
+          {/* Icon */}
+          <div className="
             mb-6 flex h-14 w-14
             items-center justify-center
             rounded-xl
@@ -966,163 +965,163 @@ export default function LandingPage() {
             group-hover:bg-cyan-400/10
             group-hover:scale-105
           ">
-                  {cat.icon}
-                </div>
+            {cat.icon}
+          </div>
 
-                <h3 className="font-semibold text-white">
-                  {cat.name}
-                </h3>
+          <h3 className="font-semibold text-white">
+            {cat.name}
+          </h3>
 
-                <p className="mt-2 text-xs text-slate-500">
-                  {cat.count} products
-                </p>
+          <p className="mt-2 text-xs text-slate-500">
+            {cat.count} products
+          </p>
 
-                <div className="
+          <div className="
             mt-5 h-px w-0
             bg-gradient-to-r from-blue-500 to-cyan-400
             transition-all duration-500
             group-hover:w-full
           " />
 
-              </Link>
+        </Link>
 
-            ))}
+      ))}
 
-          </div>
+    </div>
 
-        </div>
-      </section>
+  </div>
+</section>
 
       {/* Trusted Shops */}
-      <section className="relative overflow-hidden bg-[#080d20] py-24 sm:py-28">
+<section className="relative overflow-hidden bg-[#080d20] py-24 sm:py-28">
 
-        {/* Background grid */}
-        <div
-          className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `
+  {/* Background grid */}
+  <div
+    className="absolute inset-0 opacity-[0.02]"
+    style={{
+      backgroundImage: `
         linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px)
       `,
-            backgroundSize: '48px 48px',
-          }}
-        />
+      backgroundSize: '48px 48px',
+    }}
+  />
 
-        {/* Background glow */}
-        <div className="absolute -right-40 top-20 h-96 w-96 rounded-full bg-cyan-500/10 blur-[130px]" />
-        <div className="absolute -left-40 bottom-0 h-96 w-96 rounded-full bg-blue-600/10 blur-[130px]" />
+  {/* Background glow */}
+  <div className="absolute -right-40 top-20 h-96 w-96 rounded-full bg-cyan-500/10 blur-[130px]" />
+  <div className="absolute -left-40 bottom-0 h-96 w-96 rounded-full bg-blue-600/10 blur-[130px]" />
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-          {/* Section Header */}
-          <div className="mb-12 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+    {/* Section Header */}
+    <div className="mb-12 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
 
-            <div>
+      <div>
 
-              {/* Small label */}
-              <div className="mb-4 flex items-center gap-2">
+        {/* Small label */}
+        <div className="mb-4 flex items-center gap-2">
 
-                <span className="h-px w-8 bg-cyan-400" />
+          <span className="h-px w-8 bg-cyan-400" />
 
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
-                  Trusted Network
-                </span>
+          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
+            Trusted Network
+          </span>
 
-              </div>
+        </div>
 
-              {/* Heading */}
-              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+        {/* Heading */}
+        <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
 
-                Trusted{' '}
+          Trusted{' '}
 
-                <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
-                  Shops
-                </span>
+          <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
+            Shops
+          </span>
 
-              </h2>
+        </h2>
 
-              {/* Description */}
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-                Discover verified sellers and trusted technology stores on the
-                TrustRoute marketplace.
-              </p>
+        {/* Description */}
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
+          Discover verified sellers and trusted technology stores on the
+          TrustRoute marketplace.
+        </p>
 
-            </div>
+      </div>
 
-            {/* View all */}
-            <Link
-              to="/marketplace"
-              className="
+      {/* View all */}
+      <Link
+        to="/marketplace"
+        className="
           group inline-flex items-center gap-2
           text-sm font-semibold
           text-cyan-300
           transition-colors
           hover:text-white
         "
-            >
-              View All Shops
+      >
+        View All Shops
 
-              <svg
-                className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
+        <svg
+          className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 5l7 7-7 7"
+          />
+        </svg>
 
-            </Link>
+      </Link>
 
-          </div>
+    </div>
 
-          {/* Loading */}
-          {loading ? (
+    {/* Loading */}
+    {loading ? (
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
-              {[1, 2, 3].map((i) => (
+        {[1, 2, 3].map((i) => (
 
-                <div
-                  key={i}
-                  className="
+          <div
+            key={i}
+            className="
               h-80
               animate-pulse
               rounded-2xl
               border border-white/[0.06]
               bg-white/[0.03]
             "
-                />
+          />
 
-              ))}
+        ))}
 
-            </div>
+      </div>
 
-          ) : shops.length > 0 ? (
+    ) : shops.length > 0 ? (
 
-            /* Shop Cards */
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      /* Shop Cards */
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
-              {shops.slice(0, 3).map((shop) => (
+        {shops.slice(0, 3).map((shop) => (
 
-                <ShopCard
-                  key={shop.id}
-                  shop={shop}
-                />
+          <ShopCard
+            key={shop.id}
+            shop={shop}
+          />
 
-              ))}
+        ))}
 
-            </div>
+      </div>
 
-          ) : (
+    ) : (
 
-            /* Empty State */
-            <div
-              className="
+      /* Empty State */
+      <div
+        className="
           rounded-2xl
           border border-white/[0.07]
           bg-white/[0.025]
@@ -1130,10 +1129,10 @@ export default function LandingPage() {
           text-center
           backdrop-blur-xl
         "
-            >
+      >
 
-              <div
-                className="
+        <div
+          className="
             mx-auto mb-6
             flex h-16 w-16
             items-center justify-center
@@ -1141,35 +1140,35 @@ export default function LandingPage() {
             border border-cyan-400/20
             bg-cyan-400/5
           "
-              >
+        >
 
-                <svg
-                  className="h-7 w-7 text-cyan-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"
-                  />
-                </svg>
+          <svg
+            className="h-7 w-7 text-cyan-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"
+            />
+          </svg>
 
-              </div>
+        </div>
 
-              <h3 className="text-xl font-semibold text-white">
-                No shops yet
-              </h3>
+        <h3 className="text-xl font-semibold text-white">
+          No shops yet
+        </h3>
 
-              <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
-                Be the first seller to open a trusted shop on TrustRoute.
-              </p>
+        <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
+          Be the first seller to open a trusted shop on TrustRoute.
+        </p>
 
-              <Link
-                to="/signup"
-                className="
+        <Link
+          to="/signup"
+          className="
             mt-6 inline-flex items-center
             rounded-xl
             border border-cyan-400/20
@@ -1181,111 +1180,111 @@ export default function LandingPage() {
             hover:border-cyan-400/40
             hover:bg-cyan-400/15
           "
-              >
-                Start Selling
-              </Link>
+        >
+          Start Selling
+        </Link>
 
-            </div>
+      </div>
 
-          )}
+    )}
 
-        </div>
+  </div>
 
-      </section>
-      {/* Stats Section */}
-      <section className="relative overflow-hidden bg-[#050816] py-24 text-white sm:py-28">
+</section>
+{/* Stats Section */}
+<section className="relative overflow-hidden bg-[#050816] py-24 text-white sm:py-28">
 
-        {/* Background Grid */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.025]"
-          style={{
-            backgroundImage: `
+  {/* Background Grid */}
+  <div
+    className="pointer-events-none absolute inset-0 opacity-[0.025]"
+    style={{
+      backgroundImage: `
         linear-gradient(rgba(148,163,184,.8) 1px, transparent 1px),
         linear-gradient(90deg, rgba(148,163,184,.8) 1px, transparent 1px)
       `,
-            backgroundSize: '64px 64px',
-          }}
-        />
+      backgroundSize: '64px 64px',
+    }}
+  />
 
-        {/* Ambient Glows */}
-        <div className="pointer-events-none absolute left-1/4 top-0 h-[400px] w-[400px] rounded-full bg-indigo-600/10 blur-[140px]" />
-        <div className="pointer-events-none absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-cyan-500/10 blur-[140px]" />
+  {/* Ambient Glows */}
+  <div className="pointer-events-none absolute left-1/4 top-0 h-[400px] w-[400px] rounded-full bg-indigo-600/10 blur-[140px]" />
+  <div className="pointer-events-none absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-cyan-500/10 blur-[140px]" />
 
-        {/* Main Container */}
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  {/* Main Container */}
+  <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-          {/* Section Header */}
-          <div className="mb-16 flex flex-col items-center text-center">
+    {/* Section Header */}
+    <div className="mb-16 flex flex-col items-center text-center">
 
-            {/* Status Badge */}
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-700/80 bg-slate-900/70 px-4 py-2 shadow-lg shadow-black/20 backdrop-blur-xl">
+      {/* Status Badge */}
+      <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-700/80 bg-slate-900/70 px-4 py-2 shadow-lg shadow-black/20 backdrop-blur-xl">
 
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-60" />
-                <span className="relative h-2 w-2 rounded-full bg-cyan-400" />
-              </span>
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-60" />
+          <span className="relative h-2 w-2 rounded-full bg-cyan-400" />
+        </span>
 
-              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-300">
-                Live Platform Data
-              </span>
+        <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-300">
+          Live Platform Data
+        </span>
 
-            </div>
+      </div>
 
-            {/* Heading */}
-            <h2 className="max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-              The Numbers Behind{' '}
-              <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-500 bg-clip-text text-transparent">
-                TrustRoute
-              </span>
-            </h2>
+      {/* Heading */}
+      <h2 className="max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+        The Numbers Behind{' '}
+        <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-500 bg-clip-text text-transparent">
+          TrustRoute
+        </span>
+      </h2>
 
-            {/* Description */}
-            <p className="mt-5 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
-              A growing technology marketplace connecting trusted sellers
-              with buyers through secure and transparent transactions.
-            </p>
+      {/* Description */}
+      <p className="mt-5 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
+        A growing technology marketplace connecting trusted sellers
+        with buyers through secure and transparent transactions.
+      </p>
 
-          </div>
+    </div>
 
-          {/* Statistics Panel */}
-          <div className="relative overflow-hidden rounded-[2rem] border border-slate-800/80 bg-slate-900/50 shadow-2xl shadow-black/30 backdrop-blur-xl">
+    {/* Statistics Panel */}
+    <div className="relative overflow-hidden rounded-[2rem] border border-slate-800/80 bg-slate-900/50 shadow-2xl shadow-black/30 backdrop-blur-xl">
 
-            {/* Top Accent */}
-            <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
+      {/* Top Accent */}
+      <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
 
-            {/* Statistics Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4">
+      {/* Statistics Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4">
 
-              {[
-                {
-                  number: '500+',
-                  label: 'Verified Shops',
-                  description: 'Trusted technology sellers',
-                  type: 'shops',
-                },
-                {
-                  number: '10K+',
-                  label: 'Technology Products',
-                  description: 'Laptops & accessories',
-                  type: 'products',
-                },
-                {
-                  number: '99.9%',
-                  label: 'Secure Transactions',
-                  description: 'Protected by escrow',
-                  type: 'security',
-                },
-                {
-                  number: '24/7',
-                  label: 'Customer Support',
-                  description: 'Always available',
-                  type: 'support',
-                },
-              ].map((stat, index) => (
+        {[
+          {
+            number: '500+',
+            label: 'Verified Shops',
+            description: 'Trusted technology sellers',
+            type: 'shops',
+          },
+          {
+            number: '10K+',
+            label: 'Technology Products',
+            description: 'Laptops & accessories',
+            type: 'products',
+          },
+          {
+            number: '99.9%',
+            label: 'Secure Transactions',
+            description: 'Protected by escrow',
+            type: 'security',
+          },
+          {
+            number: '24/7',
+            label: 'Customer Support',
+            description: 'Always available',
+            type: 'support',
+          },
+        ].map((stat, index) => (
 
-                <div
-                  key={index}
-                  className={`
+          <div
+            key={index}
+            className={`
               group relative p-6 sm:p-8 lg:p-10
               transition-all duration-500
               hover:bg-white/[0.025]
@@ -1295,197 +1294,193 @@ export default function LandingPage() {
               ${index === 1 ? 'lg:border-r' : ''}
               ${index === 2 ? 'lg:border-r' : ''}
             `}
-                >
+          >
 
-                  {/* Hover Glow */}
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-500/[0.03] via-transparent to-indigo-500/[0.04] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+            {/* Hover Glow */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-500/[0.03] via-transparent to-indigo-500/[0.04] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
-                  {/* Icon */}
-                  <div className="relative mb-7">
+            {/* Icon */}
+            <div className="relative mb-7">
 
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-700 bg-slate-800/70 text-cyan-400 shadow-lg shadow-black/20 transition-all duration-500 group-hover:border-cyan-400/40 group-hover:bg-cyan-400/10 group-hover:shadow-cyan-500/10">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-700 bg-slate-800/70 text-cyan-400 shadow-lg shadow-black/20 transition-all duration-500 group-hover:border-cyan-400/40 group-hover:bg-cyan-400/10 group-hover:shadow-cyan-500/10">
 
-                      {/* Shop Icon */}
-                      {stat.type === 'shops' && (
-                        <svg
-                          className="h-6 w-6"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={1.7}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M3 10h18M5 10v10h14V10M4 10l1.5-6h13L20 10M9 20v-5h6v5"
-                          />
-                        </svg>
-                      )}
-
-                      {/* Products Icon */}
-                      {stat.type === 'products' && (
-                        <svg
-                          className="h-6 w-6"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={1.7}
-                        >
-                          <rect
-                            x="3"
-                            y="4"
-                            width="18"
-                            height="13"
-                            rx="2"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            d="M8 21h8M12 17v4"
-                          />
-                        </svg>
-                      )}
-
-                      {/* Security Icon */}
-                      {stat.type === 'security' && (
-                        <svg
-                          className="h-6 w-6"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={1.7}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M9 12l2 2 4-4"
-                          />
-                        </svg>
-                      )}
-
-                      {/* Support Icon */}
-                      {stat.type === 'support' && (
-                        <svg
-                          className="h-6 w-6"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={1.7}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M4 13a8 8 0 0116 0v4a2 2 0 01-2 2h-2v-6h4M4 13v4a2 2 0 002 2h2v-6H4"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            d="M9 19h2"
-                          />
-                        </svg>
-                      )}
-
-                    </div>
-
-                    {/* Connection Dot */}
-                    <div className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 border-slate-900 bg-cyan-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-                  </div>
-
-                  {/* Number */}
-                  <div className="relative">
-
-                    <div className="bg-gradient-to-r from-white via-cyan-100 to-blue-400 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl">
-                      {stat.number}
-                    </div>
-
-                    {/* Label */}
-                    <h3 className="mt-3 text-sm font-semibold text-white sm:text-base">
-                      {stat.label}
-                    </h3>
-
-                    {/* Description */}
-                    <p className="mt-2 max-w-[190px] text-xs leading-relaxed text-slate-500 sm:text-sm">
-                      {stat.description}
-                    </p>
-
-                  </div>
-
-                  {/* Bottom Status */}
-                  <div className="mt-7 flex items-center gap-2">
-
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
-
-                    <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-600">
-                      Active
-                    </span>
-
-                  </div>
-
-                  {/* Hover Line */}
-                  <div className="absolute bottom-0 left-1/2 h-px w-0 -translate-x-1/2 bg-gradient-to-r from-transparent via-cyan-400 to-transparent transition-all duration-500 group-hover:w-2/3" />
-
-                </div>
-              ))}
-
-            </div>
-
-            {/* Bottom Platform Status */}
-            <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-800/70 bg-slate-950/30 px-6 py-5 sm:flex-row sm:px-8">
-
-              <div className="flex items-center gap-3">
-
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10">
+                {/* Shop Icon */}
+                {stat.type === 'shops' && (
                   <svg
-                    className="h-4 w-4 text-emerald-400"
+                    className="h-6 w-6"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
-                    strokeWidth={2}
+                    strokeWidth={1.7}
                   >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      d="M5 13l4 4L19 7"
+                      d="M3 10h18M5 10v10h14V10M4 10l1.5-6h13L20 10M9 20v-5h6v5"
                     />
                   </svg>
-                </div>
+                )}
 
-                <div>
-                  <p className="text-xs font-semibold text-slate-300">
-                    Platform Status
-                  </p>
+                {/* Products Icon */}
+                {stat.type === 'products' && (
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.7}
+                  >
+                    <rect
+                      x="3"
+                      y="4"
+                      width="18"
+                      height="13"
+                      rx="2"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      d="M8 21h8M12 17v4"
+                    />
+                  </svg>
+                )}
 
-                  <p className="text-[11px] text-slate-600">
-                    All systems operational
-                  </p>
-                </div>
+                {/* Security Icon */}
+                {stat.type === 'security' && (
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.7}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 12l2 2 4-4"
+                    />
+                  </svg>
+                )}
+
+                {/* Support Icon */}
+                {stat.type === 'support' && (
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.7}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4 13a8 8 0 0116 0v4a2 2 0 01-2 2h-2v-6h4M4 13v4a2 2 0 002 2h2v-6H4"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      d="M9 19h2"
+                    />
+                  </svg>
+                )}
 
               </div>
 
-              <div className="flex items-center gap-2">
-
-                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-
-                <span className="text-[11px] font-medium uppercase tracking-wider text-emerald-400">
-                  Operational
-                </span>
-
-              </div>
+              {/* Connection Dot */}
+              <div className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 border-slate-900 bg-cyan-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
             </div>
 
+            {/* Number */}
+            <div className="relative">
+
+              <div className="bg-gradient-to-r from-white via-cyan-100 to-blue-400 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl">
+                {stat.number}
+              </div>
+
+              {/* Label */}
+              <h3 className="mt-3 text-sm font-semibold text-white sm:text-base">
+                {stat.label}
+              </h3>
+
+              {/* Description */}
+              <p className="mt-2 max-w-[190px] text-xs leading-relaxed text-slate-500 sm:text-sm">
+                {stat.description}
+              </p>
+
+            </div>
+
+            {/* Bottom Status */}
+            <div className="mt-7 flex items-center gap-2">
+
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
+
+              <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-600">
+                Active
+              </span>
+
+            </div>
+
+            {/* Hover Line */}
+            <div className="absolute bottom-0 left-1/2 h-px w-0 -translate-x-1/2 bg-gradient-to-r from-transparent via-cyan-400 to-transparent transition-all duration-500 group-hover:w-2/3" />
+
+          </div>
+        ))}
+
+      </div>
+
+      {/* Bottom Platform Status */}
+      <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-800/70 bg-slate-950/30 px-6 py-5 sm:flex-row sm:px-8">
+
+        <div className="flex items-center gap-3">
+
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10">
+            <svg
+              className="h-4 w-4 text-emerald-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold text-slate-300">
+              Platform Status
+            </p>
+
+            <p className="text-[11px] text-slate-600">
+              All systems operational
+            </p>
           </div>
 
         </div>
-      </section>
 
+        <div className="flex items-center gap-2">
 
+          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
 
+          <span className="text-[11px] font-medium uppercase tracking-wider text-emerald-400">
+            Operational
+          </span>
 
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</section>
     </div>
   );
 }

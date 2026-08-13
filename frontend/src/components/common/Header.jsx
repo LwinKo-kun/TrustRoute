@@ -1,27 +1,62 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import ThemeToggle from './ThemeToggle';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState('');
+  
 
   const handleSearch = (e) => {
     e.preventDefault();
 
     if (!search.trim()) return;
 
-    window.location.href =
-      `/marketplace?search=${encodeURIComponent(search.trim())}`;
+    window.location.href = `/marketplace?search=${encodeURIComponent(
+      search.trim()
+    )}`;
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#070b1c]/95 backdrop-blur-xl">
+    <header
+      className="
+        sticky top-0 z-50 w-full
+        border-b border-gray-200/80
+        bg-white/90
+        backdrop-blur-xl
+        transition-colors duration-300
 
-      {/* subtle top glow */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/70 to-transparent" />
+        dark:border-white/10
+        dark:bg-[#070b1c]/95
+      "
+    >
+      {/* Top Accent Line */}
+      <div
+        className="
+          pointer-events-none absolute inset-x-0 top-0 h-px
+          bg-gradient-to-r
+          from-transparent
+          via-blue-500
+          to-transparent
+          opacity-70
+          dark:via-cyan-400
+        "
+      />
+
+      {/* Subtle Bottom Glow */}
+      <div
+        className="
+          pointer-events-none absolute inset-x-0 bottom-0 h-px
+          bg-gradient-to-r
+          from-transparent
+          via-blue-500/10
+          to-transparent
+          dark:via-cyan-400/20
+        "
+      />
 
       <div className="mx-auto w-full max-w-[1500px] px-3 sm:px-5 lg:px-7">
-
         {/* =========================================================
             MAIN HEADER
         ========================================================= */}
@@ -36,24 +71,68 @@ export default function Header() {
           >
             <div className="relative">
 
-              {/* glow */}
-              <div className="absolute inset-0 rounded-xl bg-blue-500/40 blur-lg opacity-60 transition group-hover:opacity-100" />
+              {/* Logo Glow */}
+              <div
+                className="
+                  absolute inset-0
+                  rounded-xl
+                  bg-blue-500/30
+                  blur-lg
+                  opacity-60
+                  transition
+                  group-hover:opacity-100
+                  dark:bg-cyan-500/30
+                "
+              />
 
-              {/* logo */}
-              <div className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-blue-400/30 bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-400 shadow-lg shadow-blue-600/20">
+              {/* Logo */}
+              <div
+                className="
+                  relative flex h-11 w-11
+                  items-center justify-center
+                  rounded-xl
+                  border border-blue-500/30
+                  bg-gradient-to-br
+                  from-blue-600
+                  via-blue-500
+                  to-cyan-400
+                  shadow-lg
+                  shadow-blue-600/20
+                  transition-transform duration-300
+                  group-hover:scale-105
+                  dark:border-cyan-400/30
+                "
+              >
                 <span className="text-sm font-black tracking-tight text-white">
                   TN
                 </span>
               </div>
-
             </div>
 
             <div className="hidden xl:block leading-none">
-              <div className="text-[17px] font-extrabold tracking-tight text-white">
-                Trust<span className="text-blue-400">Node</span>
+              <div
+                className="
+                  text-[17px]
+                  font-extrabold
+                  tracking-tight
+                  text-gray-900
+                  dark:text-white
+                "
+              >
+                Trust<span className="text-blue-600 dark:text-blue-400">Node</span>
               </div>
 
-              <div className="mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              <div
+                className="
+                  mt-1
+                  text-[8px]
+                  font-semibold
+                  uppercase
+                  tracking-[0.18em]
+                  text-gray-500
+                  dark:text-slate-500
+                "
+              >
                 Technology Marketplace
               </div>
             </div>
@@ -66,30 +145,108 @@ export default function Header() {
 
             <Link
               to="/marketplace"
-              className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white xl:px-3.5"
+              className="
+                group relative rounded-lg
+                px-3 py-2
+                text-[13px]
+                font-semibold
+                text-gray-600
+                transition
+
+                hover:bg-gray-100
+                hover:text-gray-900
+
+                dark:text-slate-300
+                dark:hover:bg-white/5
+                dark:hover:text-white
+
+                xl:px-3.5
+              "
             >
               Marketplace
 
-              <span className="absolute bottom-0 left-3 right-3 h-[2px] scale-x-0 rounded-full bg-blue-500 transition group-hover:scale-x-100" />
+              <span
+                className="
+                  absolute bottom-0 left-3 right-3
+                  h-[2px]
+                  scale-x-0
+                  rounded-full
+                  bg-blue-500
+                  transition
+                  group-hover:scale-x-100
+                  dark:bg-cyan-400
+                "
+              />
             </Link>
 
             <Link
               to="/shops"
-              className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white xl:px-3.5"
+              className="
+                group relative rounded-lg
+                px-3 py-2
+                text-[13px]
+                font-semibold
+                text-gray-600
+                transition
+
+                hover:bg-gray-100
+                hover:text-gray-900
+
+                dark:text-slate-300
+                dark:hover:bg-white/5
+                dark:hover:text-white
+
+                xl:px-3.5
+              "
             >
               Shops
 
-              <span className="absolute bottom-0 left-3 right-3 h-[2px] scale-x-0 rounded-full bg-cyan-400 transition group-hover:scale-x-100" />
+              <span
+                className="
+                  absolute bottom-0 left-3 right-3
+                  h-[2px]
+                  scale-x-0
+                  rounded-full
+                  bg-cyan-500
+                  transition
+                  group-hover:scale-x-100
+                  dark:bg-cyan-400
+                "
+              />
             </Link>
 
             <button
               type="button"
-              className="group flex items-center gap-1 rounded-lg px-3 py-2 text-[13px] font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white xl:px-3.5"
+              className="
+                group flex items-center gap-1
+                rounded-lg
+                px-3 py-2
+                text-[13px]
+                font-semibold
+                text-gray-600
+                transition
+
+                hover:bg-gray-100
+                hover:text-gray-900
+
+                dark:text-slate-300
+                dark:hover:bg-white/5
+                dark:hover:text-white
+
+                xl:px-3.5
+              "
             >
               Categories
 
               <svg
-                className="h-3.5 w-3.5 text-slate-500 transition group-hover:text-blue-400"
+                className="
+                  h-3.5 w-3.5
+                  text-gray-400
+                  transition
+                  group-hover:text-blue-500
+                  dark:text-slate-500
+                  dark:group-hover:text-blue-400
+                "
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -102,33 +259,64 @@ export default function Header() {
                 />
               </svg>
             </button>
-
-            <a
-              href="#about"
-              className="rounded-lg px-3 py-2 text-[13px] font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white xl:px-3.5"
-            >
-              About
-            </a>
-
           </nav>
 
           {/* =======================================================
-              MODERN SEARCH
+              SEARCH
           ======================================================= */}
           <form
             onSubmit={handleSearch}
             className="group relative min-w-0 flex-1"
           >
+            {/* Search Glow */}
+            <div
+              className="
+                absolute -inset-[1px]
+                rounded-xl
+                bg-gradient-to-r
+                from-blue-500/0
+                via-blue-500/20
+                to-cyan-400/0
+                opacity-0
+                blur-md
+                transition
+                duration-300
+                group-focus-within:opacity-100
+              "
+            />
 
-            {/* glow */}
-            <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-r from-blue-500/0 via-blue-500/30 to-cyan-400/0 opacity-0 blur-md transition duration-300 group-focus-within:opacity-100" />
+            <div
+              className="
+                relative flex h-11 min-w-0
+                items-center overflow-hidden
+                rounded-xl
+                border border-gray-200
+                bg-gray-50
+                transition-all duration-300
 
-            <div className="relative flex h-11 min-w-0 items-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.045] transition-all duration-300 group-hover:border-white/20 group-focus-within:border-blue-400/40 group-focus-within:bg-white/[0.07]">
+                group-hover:border-gray-300
+                group-focus-within:border-blue-400/50
+                group-focus-within:bg-white
 
-              {/* Search icon */}
+                dark:border-white/10
+                dark:bg-white/[0.045]
+                dark:group-hover:border-white/20
+                dark:group-focus-within:border-blue-400/40
+                dark:group-focus-within:bg-white/[0.07]
+              "
+            >
+              {/* Search Icon */}
               <div className="flex h-full w-10 shrink-0 items-center justify-center">
                 <svg
-                  className="h-[18px] w-[18px] text-slate-500 transition group-focus-within:text-blue-400"
+                  className="
+                    h-[18px] w-[18px]
+                    text-gray-400
+                    transition
+                    group-focus-within:text-blue-500
+
+                    dark:text-slate-500
+                    dark:group-focus-within:text-blue-400
+                  "
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -142,14 +330,56 @@ export default function Header() {
                 </svg>
               </div>
 
-              
+              {/* Search Input */}
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search products, shops..."
+                className="
+                  min-w-0 flex-1
+                  bg-transparent
+                  px-1
+                  text-sm
+                  text-gray-900
+                  outline-none
+                  placeholder:text-gray-400
+
+                  dark:text-white
+                  dark:placeholder:text-slate-500
+                "
+              />
 
               {/* Category */}
               <button
                 type="button"
-                className="hidden shrink-0 items-center gap-1.5 border-l border-white/10 px-3 text-[11px] font-semibold text-slate-400 transition hover:text-white xl:flex"
+                className="
+                  hidden shrink-0
+                  items-center gap-1.5
+                  border-l border-gray-200
+                  px-3
+                  text-[11px]
+                  font-semibold
+                  text-gray-500
+                  transition
+                  hover:text-gray-900
+
+                  dark:border-white/10
+                  dark:text-slate-400
+                  dark:hover:text-white
+
+                  xl:flex
+                "
               >
-                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400" />
+                <span
+                  className="
+                    h-1.5 w-1.5
+                    rounded-full
+                    bg-cyan-500
+                    shadow-sm shadow-cyan-400
+                    dark:bg-cyan-400
+                  "
+                />
 
                 <span>All Categories</span>
 
@@ -168,11 +398,27 @@ export default function Header() {
                 </svg>
               </button>
 
-              {/* Search button */}
+              {/* Search Button */}
               <button
                 type="submit"
                 aria-label="Search"
-                className="mr-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20 transition hover:scale-105 hover:shadow-blue-500/40"
+                className="
+                  mr-1
+                  flex h-9 w-9
+                  shrink-0
+                  items-center justify-center
+                  rounded-lg
+                  bg-gradient-to-br
+                  from-blue-600
+                  to-cyan-500
+                  text-white
+                  shadow-lg
+                  shadow-blue-500/20
+                  transition
+
+                  hover:scale-105
+                  hover:shadow-blue-500/40
+                "
               >
                 <svg
                   className="h-4 w-4"
@@ -188,7 +434,6 @@ export default function Header() {
                   />
                 </svg>
               </button>
-
             </div>
           </form>
 
@@ -197,11 +442,29 @@ export default function Header() {
           ======================================================= */}
           <div className="flex shrink-0 items-center gap-1">
 
+            {/* Theme Toggle */}
+            <ThemeToggle />
+
             {/* Cart */}
             <button
               type="button"
               aria-label="Shopping cart"
-              className="relative hidden h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white/5 hover:text-white sm:flex"
+              className="
+                relative hidden h-10 w-10
+                items-center justify-center
+                rounded-lg
+                text-gray-500
+                transition
+
+                hover:bg-gray-100
+                hover:text-gray-900
+
+                dark:text-slate-400
+                dark:hover:bg-white/5
+                dark:hover:text-white
+
+                sm:flex
+              "
             >
               <svg
                 className="h-[19px] w-[19px]"
@@ -219,18 +482,43 @@ export default function Header() {
                 <circle cx="18" cy="20" r="1" />
               </svg>
 
-              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[8px] font-bold text-white">
+              <span
+                className="
+                  absolute right-1 top-1
+                  flex h-4 min-w-4
+                  items-center justify-center
+                  rounded-full
+                  bg-blue-600
+                  px-1
+                  text-[8px]
+                  font-bold
+                  text-white
+                "
+              >
                 0
               </span>
             </button>
-
-            
 
             {/* Notification */}
             <button
               type="button"
               aria-label="Notifications"
-              className="hidden h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white/5 hover:text-white xl:flex"
+              className="
+                hidden h-10 w-10
+                items-center justify-center
+                rounded-lg
+                text-gray-500
+                transition
+
+                hover:bg-gray-100
+                hover:text-gray-900
+
+                dark:text-slate-400
+                dark:hover:bg-white/5
+                dark:hover:text-white
+
+                xl:flex
+              "
             >
               <svg
                 className="h-[19px] w-[19px]"
@@ -245,16 +533,24 @@ export default function Header() {
                   d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"
                 />
               </svg>
-
-              <span className="absolute" />
             </button>
-
-            
 
             {/* Login */}
             <Link
               to="/login"
-              className="hidden px-2 text-[12px] font-semibold text-slate-300 transition hover:text-white xl:block"
+              className="
+                hidden px-2
+                text-[12px]
+                font-semibold
+                text-gray-600
+                transition
+                hover:text-gray-900
+
+                dark:text-slate-300
+                dark:hover:text-white
+
+                xl:block
+              "
             >
               Login
             </Link>
@@ -262,16 +558,52 @@ export default function Header() {
             {/* Sign Up */}
             <Link
               to="/signup"
-              className="hidden h-10 items-center rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 px-3.5 text-[12px] font-bold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:shadow-blue-500/30 md:flex"
+              className="
+                hidden h-10
+                items-center
+                rounded-lg
+                bg-gradient-to-r
+                from-blue-600
+                to-cyan-500
+                px-3.5
+                text-[12px]
+                font-bold
+                text-white
+                shadow-lg
+                shadow-blue-600/20
+                transition
+
+                hover:-translate-y-0.5
+                hover:shadow-blue-500/30
+
+                md:flex
+              "
             >
               Sign Up
             </Link>
 
-            {/* Mobile */}
+            {/* Mobile Menu */}
             <button
               type="button"
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 lg:hidden"
+              className="
+                flex h-10 w-10
+                items-center justify-center
+                rounded-lg
+                border border-gray-200
+                bg-gray-50
+                text-gray-600
+                transition
+
+                hover:bg-gray-100
+
+                dark:border-white/10
+                dark:bg-white/5
+                dark:text-slate-300
+                dark:hover:bg-white/10
+
+                lg:hidden
+              "
               aria-label="Toggle menu"
             >
               {mobileOpen ? (
@@ -304,23 +636,41 @@ export default function Header() {
                 </svg>
               )}
             </button>
-
           </div>
-
         </div>
 
         {/* =========================================================
             MOBILE MENU
         ========================================================= */}
         {mobileOpen && (
-          <div className="border-t border-white/10 py-4 lg:hidden">
-
+          <div
+            className="
+              border-t border-gray-200
+              py-4
+              dark:border-white/10
+              lg:hidden
+            "
+          >
             <nav className="grid gap-1">
 
               <Link
                 to="/marketplace"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-lg px-4 py-3 text-sm font-semibold text-slate-300 hover:bg-white/5 hover:text-white"
+                className="
+                  rounded-lg
+                  px-4 py-3
+                  text-sm
+                  font-semibold
+                  text-gray-600
+                  transition
+
+                  hover:bg-gray-100
+                  hover:text-gray-900
+
+                  dark:text-slate-300
+                  dark:hover:bg-white/5
+                  dark:hover:text-white
+                "
               >
                 Marketplace
               </Link>
@@ -328,7 +678,21 @@ export default function Header() {
               <Link
                 to="/shops"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-lg px-4 py-3 text-sm font-semibold text-slate-300 hover:bg-white/5 hover:text-white"
+                className="
+                  rounded-lg
+                  px-4 py-3
+                  text-sm
+                  font-semibold
+                  text-gray-600
+                  transition
+
+                  hover:bg-gray-100
+                  hover:text-gray-900
+
+                  dark:text-slate-300
+                  dark:hover:bg-white/5
+                  dark:hover:text-white
+                "
               >
                 Shops
               </Link>
@@ -336,19 +700,51 @@ export default function Header() {
               <a
                 href="#about"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-lg px-4 py-3 text-sm font-semibold text-slate-300 hover:bg-white/5 hover:text-white"
+                className="
+                  rounded-lg
+                  px-4 py-3
+                  text-sm
+                  font-semibold
+                  text-gray-600
+                  transition
+
+                  hover:bg-gray-100
+                  hover:text-gray-900
+
+                  dark:text-slate-300
+                  dark:hover:bg-white/5
+                  dark:hover:text-white
+                "
               >
                 About
               </a>
-
             </nav>
 
-            <div className="mt-3 grid grid-cols-2 gap-1">
+            {/* Mobile Authentication */}
+            <div className="mt-3 grid grid-cols-2 gap-2">
 
               <Link
                 to="/login"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-center rounded-lg border border-white/10 bg-white/5 py-2.5 text-sm font-semibold text-slate-300"
+                className="
+                  flex items-center
+                  justify-center
+                  rounded-lg
+                  border border-gray-200
+                  bg-gray-50
+                  py-2.5
+                  text-sm
+                  font-semibold
+                  text-gray-600
+                  transition
+
+                  hover:bg-gray-100
+
+                  dark:border-white/10
+                  dark:bg-white/5
+                  dark:text-slate-300
+                  dark:hover:bg-white/10
+                "
               >
                 Login
               </Link>
@@ -356,16 +752,51 @@ export default function Header() {
               <Link
                 to="/signup"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 py-2.5 text-sm font-bold text-white"
+                className="
+                  flex items-center
+                  justify-center
+                  rounded-lg
+                  bg-gradient-to-r
+                  from-blue-600
+                  to-cyan-500
+                  py-2.5
+                  text-sm
+                  font-bold
+                  text-white
+                "
               >
                 Sign Up
               </Link>
-
             </div>
 
+            {/* Mobile Theme */}
+            <div
+              className="
+                mt-3 flex items-center
+                justify-between
+                rounded-lg
+                border border-gray-200
+                bg-gray-50
+                px-4 py-3
+
+                dark:border-white/10
+                dark:bg-white/[0.04]
+              "
+            >
+              <div>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Appearance
+                </p>
+
+                <p className="text-xs text-gray-500 dark:text-slate-500">
+                  Switch between light and dark mode
+                </p>
+              </div>
+
+              <ThemeToggle />
+            </div>
           </div>
         )}
-
       </div>
     </header>
   );
