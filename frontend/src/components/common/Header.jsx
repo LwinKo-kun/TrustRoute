@@ -1,802 +1,282 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { getCart } from '../utils/cartStorage';
 import ThemeToggle from './ThemeToggle';
 
-
 export default function Header() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState('');
-  
+  const [cartCount, setCartCount] = useState(0);
+
+  // Sync cart badge count for customers
+  const updateCartBadge = () => {
+    if (user?.role === 'customer') {
+      const cart = getCart(user);
+      const count = cart.reduce((total, item) => total + (item.quantity || 1), 0);
+      setCartCount(count);
+    }
+  };
+
+  useEffect(() => {
+    updateCartBadge();
+    window.addEventListener('cartUpdated', updateCartBadge);
+    window.addEventListener('storage', updateCartBadge);
+    return () => {
+      window.removeEventListener('cartUpdated', updateCartBadge);
+      window.removeEventListener('storage', updateCartBadge);
+    };
+  }, [user]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-
     if (!search.trim()) return;
+    navigate(`/marketplace?search=${encodeURIComponent(search.trim())}`);
+  };
 
-    window.location.href = `/marketplace?search=${encodeURIComponent(
-      search.trim()
-    )}`;
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (err) {
+      console.error('Failed to logout', err);
+    }
   };
 
   return (
-    <header
-      className="
-        sticky top-0 z-50 w-full
-        border-b border-gray-200/80
-        bg-white/90
-        backdrop-blur-xl
-        transition-colors duration-300
-
-        dark:border-white/10
-        dark:bg-[#070b1c]/95
-      "
-    >
-      {/* Top Accent Line */}
-      <div
-        className="
-          pointer-events-none absolute inset-x-0 top-0 h-px
-          bg-gradient-to-r
-          from-transparent
-          via-blue-500
-          to-transparent
-          opacity-70
-          dark:via-cyan-400
-        "
-      />
-
-      {/* Subtle Bottom Glow */}
-      <div
-        className="
-          pointer-events-none absolute inset-x-0 bottom-0 h-px
-          bg-gradient-to-r
-          from-transparent
-          via-blue-500/10
-          to-transparent
-          dark:via-cyan-400/20
-        "
-      />
+    <header className="sticky top-0 z-50 w-full border-b border-gray-200/80 bg-white/90 backdrop-blur-xl transition-colors duration-300 dark:border-white/10 dark:bg-[#070b1c]/95">
+      {/* Top Accent Glow */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-70 dark:via-cyan-400" />
 
       <div className="mx-auto w-full max-w-[1500px] px-3 sm:px-5 lg:px-7">
-        {/* =========================================================
-            MAIN HEADER
-        ========================================================= */}
-        <div className="flex h-[72px] min-w-0 items-center gap-2 lg:gap-3">
+        <div className="flex h-[72px] min-w-0 items-center justify-between gap-2 lg:gap-3">
 
-          {/* =======================================================
-              LOGO
-          ======================================================= */}
-          <Link
-            to="/"
-            className="group flex shrink-0 items-center gap-2.5"
-          >
+          {/* LOGO */}
+          <Link to="/" className="group flex shrink-0 items-center gap-2.5">
             <div className="relative">
-
-              {/* Logo Glow */}
-              <div
-                className="
-                  absolute inset-0
-                  rounded-xl
-                  bg-blue-500/30
-                  blur-lg
-                  opacity-60
-                  transition
-                  group-hover:opacity-100
-                  dark:bg-cyan-500/30
-                "
-              />
-
-              {/* Logo */}
-              <div
-                className="
-                  relative flex h-11 w-11
-                  items-center justify-center
-                  rounded-xl
-                  border border-blue-500/30
-                  bg-gradient-to-br
-                  from-blue-600
-                  via-blue-500
-                  to-cyan-400
-                  shadow-lg
-                  shadow-blue-600/20
-                  transition-transform duration-300
-                  group-hover:scale-105
-                  dark:border-cyan-400/30
-                "
-              >
-                <span className="text-sm font-black tracking-tight text-white">
-                  TN
-                </span>
+              <div className="absolute inset-0 rounded-xl bg-blue-500/30 blur-lg opacity-60 transition group-hover:opacity-100 dark:bg-cyan-500/30" />
+              <div className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-400 shadow-lg shadow-blue-600/20 transition-transform duration-300 group-hover:scale-105 dark:border-cyan-400/30">
+                <span className="text-sm font-black tracking-tight text-white">TR</span>
               </div>
             </div>
 
             <div className="hidden xl:block leading-none">
-              <div
-                className="
-                  text-[17px]
-                  font-extrabold
-                  tracking-tight
-                  text-gray-900
-                  dark:text-white
-                "
-              >
-                Trust<span className="text-blue-600 dark:text-blue-400">Node</span>
+              <div className="text-[17px] font-extrabold tracking-tight text-gray-900 dark:text-white">
+                Trust<span className="text-blue-600 dark:text-blue-400">Route</span>
               </div>
-
-              <div
-                className="
-                  mt-1
-                  text-[8px]
-                  font-semibold
-                  uppercase
-                  tracking-[0.18em]
-                  text-gray-500
-                  dark:text-slate-500
-                "
-              >
+              <div className="mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] text-gray-500 dark:text-slate-500">
                 Technology Marketplace
               </div>
             </div>
           </Link>
 
-          {/* =======================================================
-              DESKTOP NAVIGATION
-          ======================================================= */}
+          {/* DESKTOP NAVIGATION */}
           <nav className="hidden shrink-0 items-center gap-0.5 lg:flex">
-
             <Link
               to="/marketplace"
-              className="
-                group relative rounded-lg
-                px-3 py-2
-                text-[13px]
-                font-semibold
-                text-gray-600
-                transition
-
-                hover:bg-gray-100
-                hover:text-gray-900
-
-                dark:text-slate-300
-                dark:hover:bg-white/5
-                dark:hover:text-white
-
-                xl:px-3.5
-              "
+              className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white xl:px-3.5"
             >
               Marketplace
-
-              <span
-                className="
-                  absolute bottom-0 left-3 right-3
-                  h-[2px]
-                  scale-x-0
-                  rounded-full
-                  bg-blue-500
-                  transition
-                  group-hover:scale-x-100
-                  dark:bg-cyan-400
-                "
-              />
+              <span className="absolute bottom-0 left-3 right-3 h-[2px] scale-x-0 rounded-full bg-blue-500 transition group-hover:scale-x-100 dark:bg-cyan-400" />
             </Link>
 
             <Link
               to="/shops"
-              className="
-                group relative rounded-lg
-                px-3 py-2
-                text-[13px]
-                font-semibold
-                text-gray-600
-                transition
-
-                hover:bg-gray-100
-                hover:text-gray-900
-
-                dark:text-slate-300
-                dark:hover:bg-white/5
-                dark:hover:text-white
-
-                xl:px-3.5
-              "
+              className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white xl:px-3.5"
             >
               Shops
-
-              <span
-                className="
-                  absolute bottom-0 left-3 right-3
-                  h-[2px]
-                  scale-x-0
-                  rounded-full
-                  bg-cyan-500
-                  transition
-                  group-hover:scale-x-100
-                  dark:bg-cyan-400
-                "
-              />
+              <span className="absolute bottom-0 left-3 right-3 h-[2px] scale-x-0 rounded-full bg-cyan-500 transition group-hover:scale-x-100 dark:bg-cyan-400" />
             </Link>
 
-            <button
-              type="button"
-              className="
-                group flex items-center gap-1
-                rounded-lg
-                px-3 py-2
-                text-[13px]
-                font-semibold
-                text-gray-600
-                transition
-
-                hover:bg-gray-100
-                hover:text-gray-900
-
-                dark:text-slate-300
-                dark:hover:bg-white/5
-                dark:hover:text-white
-
-                xl:px-3.5
-              "
-            >
-              Categories
-
-              <svg
-                className="
-                  h-3.5 w-3.5
-                  text-gray-400
-                  transition
-                  group-hover:text-blue-500
-                  dark:text-slate-500
-                  dark:group-hover:text-blue-400
-                "
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            {user && (
+              <Link
+                to="/dashboard"
+                className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white xl:px-3.5"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="m6 9 6 6 6-6"
-                />
-              </svg>
-            </button>
+                Dashboard
+                <span className="absolute bottom-0 left-3 right-3 h-[2px] scale-x-0 rounded-full bg-blue-500 transition group-hover:scale-x-100 dark:bg-cyan-400" />
+              </Link>
+            )}
           </nav>
 
-          {/* =======================================================
-              SEARCH
-          ======================================================= */}
-          <form
-            onSubmit={handleSearch}
-            className="group relative min-w-0 flex-1"
-          >
-            {/* Search Glow */}
-            <div
-              className="
-                absolute -inset-[1px]
-                rounded-xl
-                bg-gradient-to-r
-                from-blue-500/0
-                via-blue-500/20
-                to-cyan-400/0
-                opacity-0
-                blur-md
-                transition
-                duration-300
-                group-focus-within:opacity-100
-              "
-            />
-
-            <div
-              className="
-                relative flex h-11 min-w-0
-                items-center overflow-hidden
-                rounded-xl
-                border border-gray-200
-                bg-gray-50
-                transition-all duration-300
-
-                group-hover:border-gray-300
-                group-focus-within:border-blue-400/50
-                group-focus-within:bg-white
-
-                dark:border-white/10
-                dark:bg-white/[0.045]
-                dark:group-hover:border-white/20
-                dark:group-focus-within:border-blue-400/40
-                dark:group-focus-within:bg-white/[0.07]
-              "
-            >
-              {/* Search Icon */}
+          {/* SEARCH */}
+          <form onSubmit={handleSearch} className="group relative min-w-0 flex-1 max-w-md mx-2 hidden sm:block">
+            <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-r from-blue-500/0 via-blue-500/20 to-cyan-400/0 opacity-0 blur-md transition duration-300 group-focus-within:opacity-100" />
+            <div className="relative flex h-11 min-w-0 items-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50 transition-all duration-300 group-hover:border-gray-300 group-focus-within:border-blue-400/50 group-focus-within:bg-white dark:border-white/10 dark:bg-white/[0.045] dark:group-hover:border-white/20 dark:group-focus-within:border-blue-400/40 dark:group-focus-within:bg-white/[0.07]">
               <div className="flex h-full w-10 shrink-0 items-center justify-center">
-                <svg
-                  className="
-                    h-[18px] w-[18px]
-                    text-gray-400
-                    transition
-                    group-focus-within:text-blue-500
-
-                    dark:text-slate-500
-                    dark:group-focus-within:text-blue-400
-                  "
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.8"
-                    d="m21 21-4.35-4.35m2.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"
-                  />
+                <svg className="h-[18px] w-[18px] text-gray-400 transition group-focus-within:text-blue-500 dark:text-slate-500 dark:group-focus-within:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="m21 21-4.35-4.35m2.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
                 </svg>
               </div>
 
-              {/* Search Input */}
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search products, shops..."
-                className="
-                  min-w-0 flex-1
-                  bg-transparent
-                  px-1
-                  text-sm
-                  text-gray-900
-                  outline-none
-                  placeholder:text-gray-400
-
-                  dark:text-white
-                  dark:placeholder:text-slate-500
-                "
+                className="min-w-0 flex-1 bg-transparent px-1 text-sm text-gray-900 outline-none placeholder:text-gray-400 dark:text-white dark:placeholder:text-slate-500"
               />
 
-              {/* Category */}
-              <button
-                type="button"
-                className="
-                  hidden shrink-0
-                  items-center gap-1.5
-                  border-l border-gray-200
-                  px-3
-                  text-[11px]
-                  font-semibold
-                  text-gray-500
-                  transition
-                  hover:text-gray-900
-
-                  dark:border-white/10
-                  dark:text-slate-400
-                  dark:hover:text-white
-
-                  xl:flex
-                "
-              >
-                <span
-                  className="
-                    h-1.5 w-1.5
-                    rounded-full
-                    bg-cyan-500
-                    shadow-sm shadow-cyan-400
-                    dark:bg-cyan-400
-                  "
-                />
-
-                <span>All Categories</span>
-
-                <svg
-                  className="h-3 w-3"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="m6 9 6 6 6-6"
-                  />
-                </svg>
-              </button>
-
-              {/* Search Button */}
               <button
                 type="submit"
                 aria-label="Search"
-                className="
-                  mr-1
-                  flex h-9 w-9
-                  shrink-0
-                  items-center justify-center
-                  rounded-lg
-                  bg-gradient-to-br
-                  from-blue-600
-                  to-cyan-500
-                  text-white
-                  shadow-lg
-                  shadow-blue-500/20
-                  transition
-
-                  hover:scale-105
-                  hover:shadow-blue-500/40
-                "
+                className="mr-1 flex h-9 px-3 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 text-xs font-bold text-white shadow-lg shadow-blue-500/20 transition hover:scale-105"
               >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="m21 21-4.35-4.35m2.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"
-                  />
-                </svg>
+                Search
               </button>
             </div>
           </form>
 
-          {/* =======================================================
-              ACTIONS
-          ======================================================= */}
-          <div className="flex shrink-0 items-center gap-1">
-
-            {/* Theme Toggle */}
+          {/* ACTIONS & CONTROLS */}
+          <div className="flex shrink-0 items-center gap-2">
             <ThemeToggle />
 
-            {/* Cart */}
-            <button
-              type="button"
-              aria-label="Shopping cart"
-              className="
-                relative hidden h-10 w-10
-                items-center justify-center
-                rounded-lg
-                text-gray-500
-                transition
-
-                hover:bg-gray-100
-                hover:text-gray-900
-
-                dark:text-slate-400
-                dark:hover:bg-white/5
-                dark:hover:text-white
-
-                sm:flex
-              "
-            >
-              <svg
-                className="h-[19px] w-[19px]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            {/* CHAT BUTTON (Visible for logged-in users) */}
+            {user && (
+              <Link
+                to="/chat"
+                className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
+                title="Messages & Chat"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="1.7"
-                  d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H6"
-                />
-                <circle cx="10" cy="20" r="1" />
-                <circle cx="18" cy="20" r="1" />
-              </svg>
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </Link>
+            )}
 
-              <span
-                className="
-                  absolute right-1 top-1
-                  flex h-4 min-w-4
-                  items-center justify-center
-                  rounded-full
-                  bg-blue-600
-                  px-1
-                  text-[8px]
-                  font-bold
-                  text-white
-                "
+            {/* CART (Visible strictly for Customer role) */}
+            {user?.role === 'customer' && (
+              <Link
+                to="/cart"
+                className="relative flex h-10 w-10 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
+                title="Shopping Cart"
               >
-                0
-              </span>
-            </button>
+                <svg className="h-[19px] w-[19px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H6" />
+                  <circle cx="10" cy="20" r="1" />
+                  <circle cx="18" cy="20" r="1" />
+                </svg>
+                {cartCount > 0 && (
+                  <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[8px] font-bold text-white">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
-            {/* Notification */}
-            <button
-              type="button"
-              aria-label="Notifications"
-              className="
-                hidden h-10 w-10
-                items-center justify-center
-                rounded-lg
-                text-gray-500
-                transition
+            {/* AUTH STATES */}
+            {!user ? (
+              <div className="flex items-center gap-1.5">
+                <Link
+                  to="/login"
+                  className="hidden px-3 text-[12px] font-semibold text-gray-600 transition hover:text-gray-900 dark:text-slate-300 dark:hover:text-white sm:block"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="hidden h-10 items-center rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 px-3.5 text-[12px] font-bold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 sm:flex"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="hidden md:inline-flex text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                  {user.role}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="h-9 px-3 text-xs font-semibold text-slate-600 border border-gray-200 dark:border-white/10 rounded-lg hover:bg-red-50 hover:text-red-600 transition"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
 
-                hover:bg-gray-100
-                hover:text-gray-900
-
-                dark:text-slate-400
-                dark:hover:bg-white/5
-                dark:hover:text-white
-
-                xl:flex
-              "
-            >
-              <svg
-                className="h-[19px] w-[19px]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="1.7"
-                  d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"
-                />
-              </svg>
-            </button>
-
-            {/* Login */}
-            <Link
-              to="/login"
-              className="
-                hidden px-2
-                text-[12px]
-                font-semibold
-                text-gray-600
-                transition
-                hover:text-gray-900
-
-                dark:text-slate-300
-                dark:hover:text-white
-
-                xl:block
-              "
-            >
-              Login
-            </Link>
-
-            {/* Sign Up */}
-            <Link
-              to="/signup"
-              className="
-                hidden h-10
-                items-center
-                rounded-lg
-                bg-gradient-to-r
-                from-blue-600
-                to-cyan-500
-                px-3.5
-                text-[12px]
-                font-bold
-                text-white
-                shadow-lg
-                shadow-blue-600/20
-                transition
-
-                hover:-translate-y-0.5
-                hover:shadow-blue-500/30
-
-                md:flex
-              "
-            >
-              Sign Up
-            </Link>
-
-            {/* Mobile Menu */}
+            {/* MOBILE MENU TOGGLE */}
             <button
               type="button"
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="
-                flex h-10 w-10
-                items-center justify-center
-                rounded-lg
-                border border-gray-200
-                bg-gray-50
-                text-gray-600
-                transition
-
-                hover:bg-gray-100
-
-                dark:border-white/10
-                dark:bg-white/5
-                dark:text-slate-300
-                dark:hover:bg-white/10
-
-                lg:hidden
-              "
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-600 transition hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 lg:hidden"
               aria-label="Toggle menu"
             >
               {mobileOpen ? (
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 6l12 12M18 6 6 18"
-                  />
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 6l12 12M18 6 6 18" />
                 </svg>
               ) : (
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               )}
             </button>
           </div>
+
         </div>
 
-        {/* =========================================================
-            MOBILE MENU
-        ========================================================= */}
+        {/* MOBILE MENU */}
         {mobileOpen && (
-          <div
-            className="
-              border-t border-gray-200
-              py-4
-              dark:border-white/10
-              lg:hidden
-            "
-          >
+          <div className="border-t border-gray-200 py-4 dark:border-white/10 lg:hidden">
             <nav className="grid gap-1">
-
               <Link
                 to="/marketplace"
                 onClick={() => setMobileOpen(false)}
-                className="
-                  rounded-lg
-                  px-4 py-3
-                  text-sm
-                  font-semibold
-                  text-gray-600
-                  transition
-
-                  hover:bg-gray-100
-                  hover:text-gray-900
-
-                  dark:text-slate-300
-                  dark:hover:bg-white/5
-                  dark:hover:text-white
-                "
+                className="rounded-lg px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-white/5"
               >
                 Marketplace
               </Link>
-
               <Link
                 to="/shops"
                 onClick={() => setMobileOpen(false)}
-                className="
-                  rounded-lg
-                  px-4 py-3
-                  text-sm
-                  font-semibold
-                  text-gray-600
-                  transition
-
-                  hover:bg-gray-100
-                  hover:text-gray-900
-
-                  dark:text-slate-300
-                  dark:hover:bg-white/5
-                  dark:hover:text-white
-                "
+                className="rounded-lg px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-white/5"
               >
                 Shops
               </Link>
-
-              <a
-                href="#about"
-                onClick={() => setMobileOpen(false)}
-                className="
-                  rounded-lg
-                  px-4 py-3
-                  text-sm
-                  font-semibold
-                  text-gray-600
-                  transition
-
-                  hover:bg-gray-100
-                  hover:text-gray-900
-
-                  dark:text-slate-300
-                  dark:hover:bg-white/5
-                  dark:hover:text-white
-                "
-              >
-                About
-              </a>
+              {user && (
+                <Link
+                  to="/dashboard"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-lg px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-white/5"
+                >
+                  Dashboard
+                </Link>
+              )}
             </nav>
 
-            {/* Mobile Authentication */}
-            <div className="mt-3 grid grid-cols-2 gap-2">
-
-              <Link
-                to="/login"
-                onClick={() => setMobileOpen(false)}
-                className="
-                  flex items-center
-                  justify-center
-                  rounded-lg
-                  border border-gray-200
-                  bg-gray-50
-                  py-2.5
-                  text-sm
-                  font-semibold
-                  text-gray-600
-                  transition
-
-                  hover:bg-gray-100
-
-                  dark:border-white/10
-                  dark:bg-white/5
-                  dark:text-slate-300
-                  dark:hover:bg-white/10
-                "
-              >
-                Login
-              </Link>
-
-              <Link
-                to="/signup"
-                onClick={() => setMobileOpen(false)}
-                className="
-                  flex items-center
-                  justify-center
-                  rounded-lg
-                  bg-gradient-to-r
-                  from-blue-600
-                  to-cyan-500
-                  py-2.5
-                  text-sm
-                  font-bold
-                  text-white
-                "
-              >
-                Sign Up
-              </Link>
-            </div>
-
-            {/* Mobile Theme */}
-            <div
-              className="
-                mt-3 flex items-center
-                justify-between
-                rounded-lg
-                border border-gray-200
-                bg-gray-50
-                px-4 py-3
-
-                dark:border-white/10
-                dark:bg-white/[0.04]
-              "
-            >
-              <div>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Appearance
-                </p>
-
-                <p className="text-xs text-gray-500 dark:text-slate-500">
-                  Switch between light and dark mode
-                </p>
+            {!user ? (
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 py-2 text-sm font-semibold text-gray-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 py-2 text-sm font-bold text-white"
+                >
+                  Sign Up
+                </Link>
               </div>
-
-              <ThemeToggle />
-            </div>
+            ) : (
+              <div className="mt-3 flex items-center justify-between px-2">
+                <span className="text-xs font-semibold text-slate-500">Logged in as {user.name} ({user.role})</span>
+                <button
+                  onClick={handleLogout}
+                  className="px-3 py-1 text-xs font-semibold text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         )}
+
       </div>
     </header>
   );
