@@ -17,6 +17,7 @@ class Shop extends Model
         'slug',
         'status',
         'description',
+        'kpay_number',
     ];
 
     public function user(): BelongsTo
