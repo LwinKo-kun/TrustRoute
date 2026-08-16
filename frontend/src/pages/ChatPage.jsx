@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// src/pages/ChatPage.jsx
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../services/api';
 import Layout from '../components/layout/Layout';
@@ -11,6 +12,10 @@ export default function ChatPage() {
     const [activeUserId, setActiveUserId] = useState(userId || null);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
+    
+    // Ref for hidden file input (for uploading payment proofs)
+    const fileInputRef = useRef(null);
+    const [selectedOrderId, setSelectedOrderId] = useState(null);
 
     // Sync URL param
     useEffect(() => {
@@ -20,35 +25,37 @@ export default function ChatPage() {
     }, [userId]);
 
     // Load conversations
+    const fetchConversations = async () => {
+        try {
+            const res = await api.get('/conversations');
+            const data = res.data.data || res.data;
+            setConversations(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error('Failed to load conversations', err);
+        }
+    };
+
     useEffect(() => {
-        const fetchConversations = async () => {
-            try {
-                const res = await api.get('/conversations');
-                const data = res.data.data || res.data;
-                setConversations(Array.isArray(data) ? data : []);
-            } catch (err) {
-                console.error('Failed to load conversations', err);
-            }
-        };
         fetchConversations();
     }, []);
 
     // Load messages when active user changes
-    useEffect(() => {
+    const fetchMessages = async () => {
         if (!activeUserId || activeUserId === 'undefined') return;
-        const fetchMessages = async () => {
-            try {
-                const res = await api.get(`/messages/${activeUserId}`);
-                const data = res.data.data || res.data;
-                setMessages(Array.isArray(data) ? data : []);
-            } catch (err) {
-                console.error('Failed to load messages', err);
-            }
-        };
+        try {
+            const res = await api.get(`/messages/${activeUserId}`);
+            const data = res.data.data || res.data;
+            setMessages(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error('Failed to load messages', err);
+        }
+    };
+
+    useEffect(() => {
         fetchMessages();
     }, [activeUserId]);
 
-    // Send message
+    // Send standard text message
     const handleSendMessage = async (e) => {
         e.preventDefault();
         if (!newMessage.trim() || !activeUserId) return;
@@ -56,145 +63,306 @@ export default function ChatPage() {
             const res = await api.post('/messages', {
                 receiver_id: activeUserId,
                 message: newMessage,
+                type: 'text'
             });
             const sentMsg = res.data.message || res.data;
             setMessages((prev) => [...prev, sentMsg]);
             setNewMessage('');
-            // Refresh conversations list
-            const resConv = await api.get('/conversations');
-            const convData = resConv.data.data || resConv.data;
-            setConversations(Array.isArray(convData) ? convData : []);
+            fetchConversations();
         } catch (err) {
             console.error('Failed to send message', err);
+        }
+    };
+
+    // Dynamic handler for ALL order status updates (Accept, Verify, Decline) - Auto-refreshes messages
+    const handleUpdateOrderStatus = async (orderId, newStatus) => {
+        if (newStatus === 'cancelled') {
+            if (!window.confirm("Are you sure you want to decline this order? The items will be returned to your stock.")) return;
+        }
+
+        try {
+            await api.patch(`/orders/${orderId}/status`, { status: newStatus });
+            // Immediately fetch messages so the status badge and auto-system messages appear instantly without manual refresh
+            await fetchMessages(); 
+        } catch (err) {
+            console.error(`Failed to update order status to ${newStatus}`, err);
+        }
+    };
+
+    const handleUploadProofClick = (orderId) => {
+        setSelectedOrderId(orderId);
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file || !selectedOrderId) return;
+
+        const formData = new FormData();
+        formData.append('receiver_id', activeUserId);
+        formData.append('type', 'payment_proof');
+        formData.append('order_id', selectedOrderId);
+        formData.append('message', 'Here is my payment proof.');
+        formData.append('attachment', file);
+
+        try {
+            const res = await api.post('/messages', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            const sentMsg = res.data.message || res.data;
+            setMessages((prev) => [...prev, sentMsg]);
+            setSelectedOrderId(null);
+            // Re-fetch to ensure sync
+            await fetchMessages();
+        } catch (err) {
+            console.error('Failed to upload proof', err);
         }
     };
 
     const activeUser = conversations.find((c) => Number(c.id) === Number(activeUserId));
 
     return (
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 transition-colors duration-300">
-                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                    💬 <span>Messages</span>
-                </h1>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-80px)] flex flex-col transition-colors duration-300">
+            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-4 flex items-center gap-2 shrink-0">
+                💬 <span>Messages</span>
+            </h1>
 
-                <div className="flex border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden bg-white dark:bg-[#0d1326] shadow-sm h-[650px] transition-colors duration-300">
+            {/* Main Chat Box Filling the Available Screen Space */}
+            <div className="flex flex-1 border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden bg-white dark:bg-[#0d1326] shadow-sm min-h-0 transition-colors duration-300">
 
-                    {/* Left Sidebar — Conversations */}
-                    <div className="w-1/3 border-r border-slate-200 dark:border-white/10 flex flex-col">
-                        <div className="p-4 border-b border-slate-100 dark:border-white/5">
-                            <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm uppercase tracking-wider">Inbox</h3>
-                        </div>
-                        <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1">
-                            {conversations.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-500 text-xs gap-2">
-                                    <span className="text-2xl">📭</span>
-                                    <p>No active chats yet.</p>
-                                    <p className="text-center opacity-70">Go to a product and click "Chat with Seller".</p>
-                                </div>
-                            ) : (
-                                conversations.map((conv) => {
-                                    const isActive = Number(activeUserId) === Number(conv.id);
-                                    return (
-                                        <button
-                                            key={conv.id}
-                                            onClick={() => setActiveUserId(conv.id)}
-                                            className={`w-full p-3 rounded-xl transition flex items-center gap-3 text-left ${
-                                                isActive
-                                                    ? 'bg-blue-50 dark:bg-cyan-950/50 border border-blue-200 dark:border-cyan-500/30'
-                                                    : 'hover:bg-slate-50 dark:hover:bg-white/5 border border-transparent'
-                                            }`}
-                                        >
-                                            <div className="w-10 h-10 rounded-full bg-blue-600 dark:bg-cyan-500 text-white dark:text-slate-950 font-bold flex items-center justify-center shrink-0 text-sm shadow-sm">
-                                                {conv.name ? conv.name.charAt(0).toUpperCase() : 'U'}
-                                            </div>
-                                            <div className="overflow-hidden">
-                                                <h4 className={`font-semibold text-sm truncate ${isActive ? 'text-blue-700 dark:text-cyan-300' : 'text-slate-900 dark:text-white'}`}>
-                                                    {conv.name || `User #${conv.id}`}
-                                                </h4>
-                                                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Click to view chat</p>
-                                            </div>
-                                        </button>
-                                    );
-                                })
-                            )}
-                        </div>
+                {/* Left Sidebar — Conversations */}
+                <div className="w-1/3 border-r border-slate-200 dark:border-white/10 flex flex-col">
+                    <div className="p-4 border-b border-slate-100 dark:border-white/5 shrink-0">
+                        <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm uppercase tracking-wider">Inbox</h3>
                     </div>
-
-                    {/* Right — Chat Area */}
-                    <div className="w-2/3 flex flex-col bg-slate-50/50 dark:bg-[#070b1c]/50">
-                        {activeUserId && activeUserId !== 'undefined' ? (
-                            <>
-                                {/* Chat Header */}
-                                <div className="p-4 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-[#0d1326] flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-full bg-blue-600 dark:bg-cyan-500 text-white dark:text-slate-950 font-bold flex items-center justify-center text-sm shadow-sm">
-                                        {activeUser?.name ? activeUser.name.charAt(0).toUpperCase() : 'S'}
-                                    </div>
-                                    <div>
-                                        <h2 className="font-bold text-sm text-slate-900 dark:text-white">
-                                            {activeUser ? activeUser.name : `Seller (#${activeUserId})`}
-                                        </h2>
-                                        <p className="text-xs text-slate-400 dark:text-slate-500">Active conversation</p>
-                                    </div>
-                                </div>
-
-                                {/* Messages */}
-                                <div className="p-4 flex-grow overflow-y-auto flex flex-col gap-3">
-                                    {messages.length === 0 ? (
-                                        <div className="m-auto text-center text-slate-400 dark:text-slate-500 text-sm flex flex-col items-center gap-2">
-                                            <span className="text-3xl">👋</span>
-                                            <p>Start the conversation by sending a message!</p>
-                                        </div>
-                                    ) : (
-                                        messages.map((msg, index) => {
-                                            const isMe = Number(msg.sender_id) !== Number(activeUserId);
-                                            return (
-                                                <div
-                                                    key={msg.id || index}
-                                                    className={`max-w-[70%] p-3.5 rounded-2xl text-sm ${
-                                                        isMe
-                                                            ? 'bg-blue-600 dark:bg-gradient-to-r dark:from-blue-600 dark:to-cyan-500 text-white self-end ml-auto rounded-br-none shadow-sm'
-                                                            : 'bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white self-start rounded-bl-none shadow-sm'
-                                                    }`}
-                                                >
-                                                    <p className="leading-relaxed">{msg.message}</p>
-                                                    <span className={`text-[10px] mt-1 block opacity-70 ${isMe ? 'text-right text-blue-100 dark:text-cyan-100' : 'text-left text-slate-400 dark:text-slate-500'}`}>
-                                                        {msg.created_at
-                                                            ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                                            : ''}
-                                                    </span>
-                                                </div>
-                                            );
-                                        })
-                                    )}
-                                </div>
-
-                                {/* Input */}
-                                <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200 dark:border-white/10 bg-white dark:bg-[#0d1326] flex gap-2">
-                                    <input
-                                        type="text"
-                                        value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
-                                        placeholder="Type your message..."
-                                        className="flex-grow p-3 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:outline-none focus:border-blue-500 dark:focus:border-cyan-400 bg-slate-50 dark:bg-[#070b1c] text-slate-900 dark:text-white"
-                                    />
-                                    <button
-                                        type="submit"
-                                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-gradient-to-r dark:from-blue-600 dark:to-cyan-500 text-white font-semibold rounded-xl text-sm transition shadow-sm"
-                                    >
-                                        Send
-                                    </button>
-                                </form>
-                            </>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-500 gap-3">
-                                <span className="text-4xl">💬</span>
-                                <p className="text-sm text-center max-w-xs">
-                                    Select a conversation from the left, or click <strong className="text-slate-700 dark:text-slate-300">"Chat with Seller"</strong> from any product page.
-                                </p>
+                    <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1">
+                        {conversations.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-500 text-xs gap-2">
+                                <span className="text-2xl">📭</span>
+                                <p>No active chats yet.</p>
+                                <p className="text-center opacity-70">Go to a product and click "Chat with Seller".</p>
                             </div>
+                        ) : (
+                            conversations.map((conv) => {
+                                const isActive = Number(activeUserId) === Number(conv.id);
+                                return (
+                                    <button
+                                        key={conv.id}
+                                        onClick={() => setActiveUserId(conv.id)}
+                                        className={`w-full p-3 rounded-xl transition flex items-center gap-3 text-left ${
+                                            isActive
+                                                ? 'bg-blue-50 dark:bg-cyan-950/50 border border-blue-200 dark:border-cyan-500/30'
+                                                : 'hover:bg-slate-50 dark:hover:bg-white/5 border border-transparent'
+                                        }`}
+                                    >
+                                        <div className="w-10 h-10 rounded-full bg-blue-600 dark:bg-cyan-500 text-white dark:text-slate-950 font-bold flex items-center justify-center shrink-0 text-sm shadow-sm">
+                                            {conv.name ? conv.name.charAt(0).toUpperCase() : 'U'}
+                                        </div>
+                                        <div className="overflow-hidden">
+                                            <h4 className={`font-semibold text-sm truncate ${isActive ? 'text-blue-700 dark:text-cyan-300' : 'text-slate-900 dark:text-white'}`}>
+                                                {conv.name || `User #${conv.id}`}
+                                            </h4>
+                                            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Click to view chat</p>
+                                        </div>
+                                    </button>
+                                );
+                            })
                         )}
                     </div>
                 </div>
+
+                {/* Right — Chat Area */}
+                <div className="w-2/3 flex flex-col bg-slate-50/50 dark:bg-[#070b1c]/50 min-h-0">
+                    {activeUserId && activeUserId !== 'undefined' ? (
+                        <>
+                            {/* Chat Header */}
+                            <div className="p-4 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-[#0d1326] flex items-center gap-3 shrink-0">
+                                <div className="w-9 h-9 rounded-full bg-blue-600 dark:bg-cyan-500 text-white dark:text-slate-950 font-bold flex items-center justify-center text-sm shadow-sm">
+                                    {activeUser?.name ? activeUser.name.charAt(0).toUpperCase() : 'S'}
+                                </div>
+                                <div>
+                                    <h2 className="font-bold text-sm text-slate-900 dark:text-white">
+                                        {activeUser ? activeUser.name : `Seller (#${activeUserId})`}
+                                    </h2>
+                                    <p className="text-xs text-slate-400 dark:text-slate-500">Active conversation</p>
+                                </div>
+                            </div>
+
+                            {/* Messages Scrollable Area */}
+                            <div className="p-4 flex-1 overflow-y-auto flex flex-col gap-3 min-h-0">
+                                {messages.length === 0 ? (
+                                    <div className="m-auto text-center text-slate-400 dark:text-slate-500 text-sm flex flex-col items-center gap-2">
+                                        <span className="text-3xl">👋</span>
+                                        <p>Start the conversation by sending a message!</p>
+                                    </div>
+                                ) : (
+                                    messages.map((msg, index) => {
+                                        const isMe = Number(msg.sender_id) !== Number(activeUserId);
+                                        const isOrderRequest = msg.type === 'order_request';
+                                        const isPaymentProof = msg.type === 'payment_proof';
+
+                                        return (
+                                            <div
+                                                key={msg.id || index}
+                                                className={`max-w-[75%] p-3.5 rounded-2xl text-sm shadow-sm ${
+                                                    isMe
+                                                        ? 'bg-blue-600 dark:bg-gradient-to-r dark:from-blue-600 dark:to-cyan-500 text-white self-end ml-auto rounded-br-none'
+                                                        : 'bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white self-start rounded-bl-none'
+                                                }`}
+                                            >
+                                                {/* STANDARD TEXT OR SYSTEM ALERT */}
+                                                {(msg.type === 'text' || msg.type === 'system_alert') && (
+                                                    <p className="leading-relaxed">{msg.message}</p>
+                                                )}
+
+                                                {/* ORDER REQUEST CARD */}
+                                                {isOrderRequest && msg.order && (
+                                                    <div className="flex flex-col gap-2 min-w-[250px] max-w-[300px]">
+                                                        <div className="bg-white/20 dark:bg-black/20 p-3 rounded-xl border border-white/30 dark:border-white/10 shadow-sm">
+                                                            
+                                                            {/* Header: Order ID & Status */}
+                                                            <div className="flex justify-between items-center mb-2 border-b border-slate-300/30 dark:border-white/20 pb-2">
+                                                                <p className="font-bold text-sm">🛒 Order #{msg.order.id}</p>
+                                                                <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 text-[10px] rounded uppercase font-bold tracking-wider">
+                                                                    {msg.order.status}
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Itemized List (Visible to Both Customer and Shopkeeper) */}
+                                                            <div className="mb-3 space-y-1 max-h-32 overflow-y-auto pr-1">
+                                                                {msg.order.items && msg.order.items.length > 0 ? (
+                                                                    msg.order.items.map((item, i) => (
+                                                                        <div key={i} className="flex justify-between text-xs opacity-90">
+                                                                            <span className="truncate pr-3 font-medium">
+                                                                                {item.quantity}x {item.listing?.title || 'Product'}
+                                                                            </span>
+                                                                            <span>${Number(item.quantity * item.price_at_purchase).toFixed(2)}</span>
+                                                                        </div>
+                                                                    ))
+                                                                ) : (
+                                                                    <p className="text-xs opacity-90 truncate">{msg.listing?.title || 'Product'}</p>
+                                                                )}
+                                                            </div>
+
+                                                            {/* Total Footer */}
+                                                            <div className="flex justify-between items-end border-t border-slate-300/30 dark:border-white/20 pt-2">
+                                                                <span className="text-[10px] font-bold uppercase opacity-70 tracking-widest">Total</span>
+                                                                <p className="text-lg font-extrabold text-blue-700 dark:text-cyan-300">${msg.order.total_amount}</p>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <p className="text-xs opacity-90 italic px-1">{msg.message}</p>
+                                                        
+                                                        {/* Action for Shopkeeper: Accept or Decline (Pending) */}
+                                                        {!isMe && msg.order.status === 'pending' && currentUser.role === 'shopkeeper' && (
+                                                            <div className="flex gap-2 mt-1">
+                                                                <button 
+                                                                    onClick={() => handleUpdateOrderStatus(msg.order.id, 'processing')}
+                                                                    className="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition-colors shadow-sm"
+                                                                >
+                                                                    Accept
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => handleUpdateOrderStatus(msg.order.id, 'cancelled')}
+                                                                    className="flex-1 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold transition-colors shadow-sm"
+                                                                >
+                                                                    Decline
+                                                                </button>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Action for Customer: Upload Proof */}
+                                                        {isMe && msg.order.status === 'processing' && currentUser.role === 'customer' && (
+                                                            <>
+                                                                <button 
+                                                                    onClick={() => handleUploadProofClick(msg.order.id)}
+                                                                    className="mt-1 w-full py-2 bg-blue-800 hover:bg-blue-900 text-white border border-blue-400 rounded-lg font-bold transition-colors shadow-sm"
+                                                                >
+                                                                    Upload Payment Proof
+                                                                </button>
+                                                                <input 
+                                                                    type="file" 
+                                                                    ref={fileInputRef} 
+                                                                    className="hidden" 
+                                                                    accept="image/*"
+                                                                    onChange={handleFileChange}
+                                                                />
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {/* PAYMENT PROOF CARD */}
+                                                {isPaymentProof && (
+                                                    <div className="flex flex-col gap-2">
+                                                        <p className="font-bold">🧾 Payment Proof</p>
+                                                        {msg.attachment_path && (
+                                                            <img 
+                                                                src={`http://localhost:8000/storage/${msg.attachment_path}`} 
+                                                                alt="Payment screenshot" 
+                                                                className="rounded-lg border border-white/20 mt-1 max-h-48 object-cover"
+                                                            />
+                                                        )}
+                                                        <p className="text-xs opacity-90 italic">{msg.message}</p>
+                                                        
+                                                        {/* Action for Shopkeeper: Verify Payment or Decline */}
+                                                        {!isMe && currentUser.role === 'shopkeeper' && msg.order?.status === 'processing' && (
+                                                            <div className="flex gap-2 mt-2">
+                                                                <button 
+                                                                    onClick={() => handleUpdateOrderStatus(msg.order.id, 'paid')}
+                                                                    className="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition-colors shadow-sm"
+                                                                >
+                                                                    Verify
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => handleUpdateOrderStatus(msg.order.id, 'cancelled')}
+                                                                    className="flex-1 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold transition-colors shadow-sm"
+                                                                >
+                                                                    Decline
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                <span className={`text-[10px] mt-1 block opacity-70 ${isMe ? 'text-right text-blue-100 dark:text-cyan-100' : 'text-left text-slate-400 dark:text-slate-500'}`}>
+                                                    {msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                </span>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+
+                            {/* Input Form */}
+                            <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200 dark:border-white/10 bg-white dark:bg-[#0d1326] flex gap-2 shrink-0">
+                                <input
+                                    type="text"
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    placeholder="Type your message..."
+                                    className="flex-grow p-3 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:outline-none focus:border-blue-500 dark:focus:border-cyan-400 bg-slate-50 dark:bg-[#070b1c] text-slate-900 dark:text-white"
+                                />
+                                <button
+                                    type="submit"
+                                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-gradient-to-r dark:from-blue-600 dark:to-cyan-500 text-white font-semibold rounded-xl text-sm transition shadow-sm"
+                                >
+                                    Send
+                                </button>
+                            </form>
+                        </>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-500 gap-3">
+                            <span className="text-4xl">💬</span>
+                            <p className="text-sm text-center max-w-xs">
+                                Select a conversation from the left, or click <strong className="text-slate-700 dark:text-slate-300">"Chat with Seller"</strong> from any product page.
+                            </p>
+                        </div>
+                    )}
+                </div>
             </div>
+        </div>
     );
 }
