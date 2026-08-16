@@ -1,8 +1,10 @@
+// src/pages/views/ListingDetailView.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import RatingStars from '../../components/common/RatingStars';
+import { addToCartSecure } from '../../utils/cartStorage';
 
 export default function ListingDetailView() {
     const params = useParams();
@@ -15,6 +17,9 @@ export default function ListingDetailView() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [quantity, setQuantity] = useState(1);
+
+    // Wishlist State
+    const [isWishlisted, setIsWishlisted] = useState(false);
 
     // Reviews state
     const [commentText, setCommentText] = useState('');
@@ -64,25 +69,19 @@ export default function ListingDetailView() {
         fetchData();
     }, [id]);
 
-    const addToCart = () => {
+    const handleAddToCart = () => {
         if (!listing) return;
-        const cartKey = `cart_user_${user?.id || 'guest'}`;
-        const cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
-        const existingIndex = cart.findIndex((item) => item.id === listing.id);
-
-        if (existingIndex > -1) {
-            cart[existingIndex].quantity += quantity;
-        } else {
-            cart.push({
-                ...listing,
-                price: Number(listing.price) || 0,
-                quantity: quantity,
-            });
-        }
-
-        localStorage.setItem(cartKey, JSON.stringify({ timestamp: Date.now(), items: cart }));
-        window.dispatchEvent(new Event('cartUpdated'));
+        addToCartSecure(user, listing, quantity);
         alert(`Added ${quantity} "${listing.title}" to cart!`);
+    };
+
+    const toggleWishlist = async () => {
+        if (!user) {
+            alert('Please sign in to save items to your wishlist.');
+            return;
+        }
+        setIsWishlisted(!isWishlisted);
+        // TODO: Wire this to POST /api/wishlists in the next step
     };
 
     const handleReviewSubmit = async (e) => {
@@ -158,6 +157,16 @@ export default function ListingDetailView() {
                         className="w-full h-full object-cover"
                         onError={(e) => { e.target.style.display = 'none'; }}
                     />
+                    
+                    {/* Floating Wishlist Button */}
+                    <button 
+                        onClick={toggleWishlist}
+                        className={`absolute top-4 right-4 p-3 rounded-full backdrop-blur-md shadow-lg transition ${isWishlisted ? 'bg-red-500/90 text-white' : 'bg-white/80 dark:bg-black/60 text-slate-400 hover:text-red-500'}`}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill={isWishlisted ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    </button>
                 </div>
 
                 {/* Product Info */}
@@ -242,7 +251,7 @@ export default function ListingDetailView() {
                         </div>
 
                         <button
-                            onClick={addToCart}
+                            onClick={handleAddToCart}
                             className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-gradient-to-r dark:from-blue-600 dark:to-cyan-500 text-white text-sm font-semibold rounded-xl shadow-md transition"
                         >
                             Add to Cart

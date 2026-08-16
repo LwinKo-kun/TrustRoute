@@ -28,6 +28,9 @@ class OrderService
                     throw new Exception("Insufficient stock for item: {$listing->title}");
                 }
 
+                // DEDUCT THE STOCK
+                $listing->decrement('stock', $item['quantity']);
+
                 $subtotal = $listing->price * $item['quantity'];
                 $totalAmount += $subtotal;
 
@@ -45,21 +48,14 @@ class OrderService
                 'delivery_id' => null, // Assigned later when delivery picks it up
                 'total_amount' => $totalAmount,
                 'status' => 'pending',
+                'escrow_tx_hash' => null, // Will be filled later during dispatch/payout
             ]);
 
             foreach ($validatedItems as $item) {
                 $order->items()->create($item);
             }
 
-            // TODO: Future Consensus Validator Cluster Hook Integration
-            // $this->dispatchConsensusVerification($order);
-
             return $order->load('items.listing', 'shop', 'customer');
         });
-    }
-
-    protected function dispatchConsensusVerification(Order $order)
-    {
-        // Future communication layer with Node validator network
     }
 }
