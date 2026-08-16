@@ -29,7 +29,7 @@ class OrderService
                     throw new Exception("Insufficient stock for item: {$listing->title}");
                 }
 
-                $listing->decrement('stock', $item['quantity']);
+
                 $subtotal = $listing->price * $item['quantity'];
                 $totalAmount += $subtotal;
 
@@ -46,26 +46,14 @@ class OrderService
                 'delivery_id' => null,
                 'total_amount' => $totalAmount,
                 'status' => 'pending',
-                'escrow_tx_hash' => null,
+
             ]);
 
             foreach ($validatedItems as $item) {
                 $order->items()->create($item);
             }
 
-            // AUTO-INJECT CHAT MESSAGE
-            Message::create([
-                'sender_id' => $customerId,
-                'receiver_id' => $shop->shopkeeper_id,
-                'message' => 'I would like to place an order.',
-                'type' => 'order_request',
-                'order_id' => $order->id,
-                'listing_id' => $validatedItems[0]['listing_id'] // Attach the primary product
-            ]);
-
-            // NOTE: Here you will later dispatch your Queue Job for the timeout
-            // CheckPendingOrderTimeout::dispatch($order->id)->delay(now()->addHours(2));
-
+main
             return $order->load('items.listing', 'shop', 'customer');
         });
     }
