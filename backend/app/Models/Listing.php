@@ -2,10 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Model;
 
 class Listing extends Model
 {
@@ -21,22 +19,23 @@ class Listing extends Model
         'image_mime_type',
     ];
 
+    // Hide raw binary from all JSON API responses
     protected $hidden = [
         'image_data',
     ];
 
-    public function shop(): BelongsTo
+    public function shop()
     {
         return $this->belongsTo(Shop::class);
     }
 
-    public function orderItems(): HasMany
+    public function comments()
     {
-        return $this->hasMany(OrderItem::class);
+        return $this->hasMany(ListingComment::class);
     }
 
-    public function comments(): HasMany
+    public function orderItems()
     {
-        return $this->hasMany(ListingComment::class, 'listing_id');
+        return $this->hasMany(OrderItem::class);
     }
 }

@@ -1,3 +1,8 @@
-// Re-export the canonical API client from src/api/axios.js
-// This file exists for backward compatibility — all new code should import from '../api/axios'
-export { default } from '../api/axios';
+import axiosInstance from '../api/axios';
+
+export const getListingImageUrl = (listingId) => {
+  const host = window.location.hostname;
+  return `http://${host}:8000/api/listings/${listingId}/image`;
+};
+
+export default axiosInstance;

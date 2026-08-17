@@ -1,7 +1,7 @@
-// src/pages/views/CustomerDashboardView.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from "../../context/AuthContext";
+import { getListingImageUrl } from '../../services/api';
 import { addToCartSecure } from '../../utils/cartStorage';
 
 export default function CustomerDashboardView({ data }) {
@@ -38,9 +38,14 @@ export default function CustomerDashboardView({ data }) {
           <div key={listing.id} className="border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden bg-white dark:bg-[#0d1326] flex flex-col shadow-sm hover:shadow-md transition group">
             <Link to={`/listings/${listing.id}`} className="flex flex-col flex-grow">
               <div className="w-full h-48 bg-slate-100 dark:bg-slate-800 relative overflow-hidden flex items-center justify-center">
-                <img src={`/api/listings/${listing.id}/image`} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition" onError={(e) => { e.target.style.display = 'none'; }} />
+                <img
+                  src={getListingImageUrl(listing.id)}
+                  alt={listing.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition"
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
                 
-                {/* NEW: Shop Name Floating Badge (Top Left) */}
+                {/* Shop Name Floating Badge */}
                 <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider shadow-sm">
                   {listing.shop?.shop_name || listing.shop?.name || 'Store'}
                 </div>
@@ -51,7 +56,6 @@ export default function CustomerDashboardView({ data }) {
               </div>
               
               <div className="p-5 flex flex-col flex-grow gap-1">
-                {/* NEW: Shop Name Text Above Title */}
                 <span className="text-[10px] font-bold text-blue-600 dark:text-cyan-400 uppercase tracking-wider mb-1">
                   {listing.shop?.shop_name || listing.shop?.name || 'Store'}
                 </span>

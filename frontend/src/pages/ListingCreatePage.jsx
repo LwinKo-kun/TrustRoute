@@ -9,8 +9,17 @@ export default function ListingCreatePage() {
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState('');
   const [image, setImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -94,9 +103,18 @@ export default function ListingCreatePage() {
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => setImage(e.target.files[0])}
+            onChange={handleImageChange}
             className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[var(--accent)] file:text-white hover:file:opacity-90"
           />
+
+          {previewUrl && (
+            <div className="mt-3 flex flex-col gap-1">
+              <span className="text-[11px] uppercase tracking-wider font-semibold opacity-60">Image Preview:</span>
+              <div className="w-40 h-40 rounded-xl overflow-hidden border border-[var(--border)] bg-black/5 dark:bg-white/5">
+                <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+              </div>
+            </div>
+          )}
         </div>
 
         <button

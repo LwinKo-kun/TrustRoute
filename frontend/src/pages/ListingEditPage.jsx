@@ -11,6 +11,7 @@ export default function ListingEditPage() {
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState('');
   const [image, setImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -22,10 +23,21 @@ export default function ListingEditPage() {
         setDescription(item.description || '');
         setPrice(item.price);
         setStock(item.stock);
+        // Display existing image from the backend image endpoint
+        setPreviewUrl(`http://localhost:8000/api/listings/${id}/image`);
       })
       .catch(() => setError('Failed to load listing details.'))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      // Switch preview to local blob URL immediately
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -33,7 +45,7 @@ export default function ListingEditPage() {
     setLoading(true);
 
     const formData = new FormData();
-    formData.append('_method', 'PUT'); // Laravel method spoofing for multipart updates
+    formData.append('_method', 'PUT');
     formData.append('title', title);
     formData.append('description', description);
     formData.append('price', price);
@@ -112,9 +124,23 @@ export default function ListingEditPage() {
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => setImage(e.target.files[0])}
+            onChange={handleImageChange}
             className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[var(--accent)] file:text-white hover:file:opacity-90"
           />
+
+          {previewUrl && (
+            <div className="mt-3 flex flex-col gap-1">
+              <span className="text-[11px] uppercase tracking-wider font-semibold opacity-60">Current / New Preview:</span>
+              <div className="w-40 h-40 rounded-xl overflow-hidden border border-[var(--border)] bg-black/5 dark:bg-white/5">
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <button

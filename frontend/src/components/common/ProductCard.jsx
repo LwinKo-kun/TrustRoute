@@ -1,15 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import RatingStars from './RatingStars';
+import { getListingImageUrl } from '../../services/api';
 
 export default function ProductCard({ product }) {
   if (!product) return null;
-
-  const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTdlNmU3Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJzZXNlIiBmb250LXNpemU9IjIwIiBmaWxsPSIjOWM5NmFjIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeD0iMCIgZHk9Ii4zZW0iPllpbGQgdW5hdmFpbGFibGU8L3RleHQ+PC9zdmc+';
-
-  // Always attempt to fetch the image via the listing endpoint; fallback handles errors gracefully
-  const imageUrl =
-  `/api/listings/${product.id}/image`;
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-US', {
@@ -24,11 +19,11 @@ export default function ProductCard({ product }) {
       <div className="relative w-full h-48 overflow-hidden bg-gray-100 dark:bg-gray-700 cursor-pointer">
         <Link to={`/products/${product.id}`}>
           <img
-            src={imageUrl}
+            src={getListingImageUrl(product.id)}
             alt={product.title}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             onError={(e) => {
-              e.target.src = fallbackImage;
+              e.target.style.display = 'none';
             }}
           />
         </Link>
@@ -37,16 +32,16 @@ export default function ProductCard({ product }) {
         <div className="absolute top-3 right-3">
           <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
             product.stock > 0 
-              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' 
+              ? 'bg-black/60 backdrop-blur-md text-white' 
               : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
           }`}>
-            {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+            {product.stock > 0 ? `Stock: ${product.stock}` : 'Out of stock'}
           </span>
         </div>
 
         {/* Shop Badge */}
         <div className="absolute top-3 left-3">
-          <span className="px-2.5 py-1 text-xs font-semibold bg-white/90 dark:bg-gray-900/90 text-gray-900 dark:text-white rounded-full shadow-sm">
+          <span className="px-2.5 py-1 text-xs font-semibold bg-black/60 backdrop-blur-md text-white rounded-full shadow-sm uppercase tracking-wider text-[10px]">
             {product.shop?.shop_name || 'Store'}
           </span>
         </div>
@@ -76,12 +71,6 @@ export default function ProductCard({ product }) {
           <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
             {formatPrice(product.price)}
           </span>
-          <Link
-            to={`/products/${product.id}`}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm hover:shadow transition"
-          >
-            View Details
-          </Link>
           <button
             onClick={() => {
               const cart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -99,7 +88,7 @@ export default function ProductCard({ product }) {
               }
               localStorage.setItem('cart', JSON.stringify(cart));
             }}
-            className="ml-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg shadow-sm hover:shadow transition"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm transition"
           >
             Add to Cart
           </button>
