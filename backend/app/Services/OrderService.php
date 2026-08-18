@@ -6,16 +6,25 @@ use App\Models\Order;
 use App\Models\Listing;
 use App\Models\Shop;
 use App\Models\Message;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
 class OrderService
 {
+    protected $walletService;
+
+    public function __construct(WalletService $walletService)
+    {
+        $this->walletService = $walletService;
+    }
+
     public function createOrder(int $customerId, array $data): Order
     {
         return DB::transaction(function () use ($customerId, $data) {
+            $customer = User::findOrFail($customerId);
             $shopId = $data['shop_id'];
-            $shop = Shop::findOrFail($shopId); // Get shop to find the shopkeeper_id
+            $shop = Shop::findOrFail($shopId);
             $totalAmount = 0;
             $validatedItems = [];
 
@@ -53,18 +62,20 @@ class OrderService
                 $order->items()->create($item);
             }
 
+            // 2PC PHASE 1: Lock the funds in Escrow
+            // If the user doesn't have enough balance, this will throw an exception 
+            // and roll back the entire transaction (stock deductions, order creation).
+            $this->walletService->lockForOrder($customer, $totalAmount, $order);
+
             // AUTO-INJECT CHAT MESSAGE
             Message::create([
                 'sender_id' => $customerId,
                 'receiver_id' => $shop->shopkeeper_id,
-                'message' => 'I would like to place an order.',
+                'message' => 'I would like to place an order. My wallet funds have been locked in Escrow.',
                 'type' => 'order_request',
                 'order_id' => $order->id,
-                'listing_id' => $validatedItems[0]['listing_id'] // Attach the primary product
+                'listing_id' => $validatedItems[0]['listing_id']
             ]);
-
-            // NOTE: Here you will later dispatch your Queue Job for the timeout
-            // CheckPendingOrderTimeout::dispatch($order->id)->delay(now()->addHours(2));
 
             return $order->load('items.listing', 'shop', 'customer');
         });

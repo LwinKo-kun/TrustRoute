@@ -14,6 +14,8 @@ import ListingDetailView from '../pages/views/ListingDetailView';
 import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import ChatPage from '../pages/ChatPage';
+import WalletPage from '../pages/WalletPage';
+import OrderDetailsPage from '../pages/OrderDetailsPage'; // <-- ORDER DETAILS PAGE IMPORT
 import ProtectedRoute from './ProtectedRoute';
 
 export default function AppRoutes() {
@@ -24,10 +26,11 @@ export default function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/cart" element={<CartPage />} />
+      
+      {/* Consolidated Marketplace Route */}
       <Route path="/marketplace" element={<MarketplacePage />} />
-      <Route path="/shops" element={<MarketplacePage />} />
 
-      {/* Protected Dashboard & Marketplace Routes */}
+      {/* Protected Routes */}
       <Route
         element={
           <ProtectedRoute>
@@ -37,17 +40,21 @@ export default function AppRoutes() {
       >
         <Route path="/dashboard" element={<DashboardPage />} />
         
+        {/* Wallet Route */}
+        <Route path="/wallet" element={<WalletPage />} />
+        
         {/* Shop Routes */}
         <Route path="/shop/create" element={<ShopCreatePage />} />
         <Route path="/shop/edit" element={<ShopEditPage />} />
 
-        {/* Listing Routes - Note the explicit ordering */}
+        {/* Listing Routes */}
         <Route path="/listings/create" element={<ListingCreatePage />} />
         <Route path="/listings/:id" element={<ListingDetailView />} />
         <Route path="/listings/:id/edit" element={<ListingEditPage />} />
 
-        {/* Checkout & Chat Routes */}
+        {/* Checkout, Orders & Chat Routes */}
         <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/orders/:orderId" element={<OrderDetailsPage />} /> {/* <-- ORDER DETAILS ROUTE */}
         <Route path="/chat/:userId" element={<ChatPage />} />
         <Route path="/chat" element={<ChatPage />} />
       </Route>

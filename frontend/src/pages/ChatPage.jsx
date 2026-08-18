@@ -1,6 +1,6 @@
 // src/pages/ChatPage.jsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -15,25 +15,12 @@ export default function ChatPage() {
     const [isSending, setIsSending] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     
-    // File upload ref & tracking state
-    const fileInputRef = useRef(null);
-    const [selectedOrderId, setSelectedOrderId] = useState(null);
-    
-    // Auto-scroll ref
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = (behavior = 'smooth') => {
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior });
         }
-    };
-
-    // Helper for resolving LAN-friendly attachment URL
-    const getAttachmentUrl = (path) => {
-        if (!path) return '';
-        if (path.startsWith('http://') || path.startsWith('https://')) return path;
-        const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-        return `http://${host}:8000/storage/${path}`;
     };
 
     // Sync URL param
@@ -54,14 +41,13 @@ export default function ChatPage() {
         }
     }, []);
 
-    // Initial conversation load + background polling
     useEffect(() => {
         fetchConversations();
-        const convInterval = setInterval(fetchConversations, 6000);
+        const convInterval = setInterval(fetchConversations, 4000); 
         return () => clearInterval(convInterval);
     }, [fetchConversations]);
 
-    // 2. Fetch Messages for Active User
+    // 2. Fetch Messages and force auto-refresh state updates for statuses
     const fetchMessages = useCallback(async (isInitial = false) => {
         if (!activeUserId || activeUserId === 'undefined') return;
         try {
@@ -70,22 +56,23 @@ export default function ChatPage() {
             const fetched = Array.isArray(data) ? data : [];
             
             setMessages((prev) => {
-                // Only update and scroll if the list length or last message ID changed
-                if (prev.length !== fetched.length || (prev.length > 0 && prev[prev.length - 1]?.id !== fetched[fetched.length - 1]?.id)) {
-                    setTimeout(() => scrollToBottom(isInitial ? 'auto' : 'smooth'), 50);
+                // Always sync to capture real-time order status changes inside chat bubbles
+                if (isInitial || prev.length !== fetched.length || JSON.stringify(prev) !== JSON.stringify(fetched)) {
+                    if (isInitial || prev.length < fetched.length) {
+                        setTimeout(() => scrollToBottom(isInitial ? 'auto' : 'smooth'), 50);
+                    }
                     return fetched;
                 }
-                return prev;
+                return prev; 
             });
         } catch (err) {
             console.error('Failed to load messages', err);
         }
     }, [activeUserId]);
 
-    // Message fetch and polling loop
     useEffect(() => {
         fetchMessages(true);
-        const msgInterval = setInterval(() => fetchMessages(false), 2500);
+        const msgInterval = setInterval(() => fetchMessages(false), 2000);
         return () => clearInterval(msgInterval);
     }, [fetchMessages]);
 
@@ -95,7 +82,7 @@ export default function ChatPage() {
         if (!newMessage.trim() || !activeUserId || isSending) return;
 
         const textToSend = newMessage.trim();
-        setNewMessage('');
+        setNewMessage(''); 
         setIsSending(true);
 
         try {
@@ -110,57 +97,33 @@ export default function ChatPage() {
             fetchConversations();
         } catch (err) {
             console.error('Failed to send message', err);
-            setNewMessage(textToSend); // Restore on error
+            setNewMessage(textToSend); 
         } finally {
             setIsSending(false);
         }
     };
 
-    // 4. Update Order Status
+    // 4. Handle 2PC Escrow/Order Status Transitions with Immediate Refresh
     const handleUpdateOrderStatus = async (orderId, newStatus) => {
+        let confirmationMessage = "Are you sure you want to update this order?";
+        
         if (newStatus === 'cancelled') {
-            if (!window.confirm("Are you sure you want to decline this order? The items will be returned to your stock.")) return;
+            confirmationMessage = "WARNING: This will mark the order as FAILED. The locked Escrow funds will be immediately refunded to the buyer's wallet. Proceed?";
+        } else if (newStatus === 'completed') {
+            confirmationMessage = "SUCCESS: Have you received the items in good condition? Confirming will permanently release the Escrow funds to the shopkeeper. Proceed?";
+        } else if (newStatus === 'processing') {
+            confirmationMessage = "Accept this order and prepare it for dispatch?";
         }
+
+        if (!window.confirm(confirmationMessage)) return;
 
         try {
             await api.patch(`/orders/${orderId}/status`, { status: newStatus });
-            await fetchMessages(false); 
+            await fetchMessages(true); // Force immediate refresh
+            await fetchConversations();
         } catch (err) {
             console.error(`Failed to update order status to ${newStatus}`, err);
-        }
-    };
-
-    // 5. Payment Proof Upload
-    const handleUploadProofClick = (orderId) => {
-        setSelectedOrderId(orderId);
-        if (fileInputRef.current) {
-            fileInputRef.current.click();
-        }
-    };
-
-    const handleFileChange = async (e) => {
-        const file = e.target.files[0];
-        if (!file || !selectedOrderId) return;
-
-        const formData = new FormData();
-        formData.append('receiver_id', activeUserId);
-        formData.append('type', 'payment_proof');
-        formData.append('order_id', selectedOrderId);
-        formData.append('message', 'Here is my payment proof.');
-        formData.append('attachment', file);
-
-        try {
-            const res = await api.post('/messages', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            const sentMsg = res.data.message || res.data;
-            setMessages((prev) => [...prev, sentMsg]);
-            setSelectedOrderId(null);
-            if (fileInputRef.current) fileInputRef.current.value = '';
-            scrollToBottom('smooth');
-            await fetchMessages(false);
-        } catch (err) {
-            console.error('Failed to upload proof', err);
+            alert("Failed to update status. Please try again.");
         }
     };
 
@@ -169,18 +132,19 @@ export default function ChatPage() {
         (c.name || `User #${c.id}`).toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const getStatusConfig = (status) => {
+        switch(status) {
+            case 'pending': return { label: 'Awaiting Seller', color: 'bg-amber-500/20 text-amber-500' };
+            case 'processing': return { label: 'Preparing Dispatch', color: 'bg-blue-500/20 text-blue-400' };
+            case 'dispatched': return { label: 'In Transit', color: 'bg-purple-500/20 text-purple-400' };
+            case 'completed': return { label: 'Delivered (Funds Released)', color: 'bg-emerald-500/20 text-emerald-400' };
+            case 'cancelled': return { label: 'Failed (Refunded)', color: 'bg-rose-500/20 text-rose-400' };
+            default: return { label: status, color: 'bg-slate-500/20 text-slate-400' };
+        }
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-80px)] flex flex-col transition-colors duration-300">
-            {/* Hidden Proof Uploader */}
-            <input 
-                type="file" 
-                ref={fileInputRef} 
-                className="hidden" 
-                accept="image/*"
-                onChange={handleFileChange}
-            />
-
-            {/* Main Chat Window */}
             <div className="flex flex-1 border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden bg-white dark:bg-[#0d1326] shadow-sm min-h-0 transition-colors duration-300">
 
                 {/* Sidebar: Conversation List */}
@@ -206,7 +170,6 @@ export default function ChatPage() {
                             <div className="flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-500 text-xs gap-2 p-4 text-center">
                                 <span className="text-3xl">📭</span>
                                 <p className="font-medium">No conversations found.</p>
-                                <p className="opacity-70 text-[11px]">Start a conversation from a shop or product details page.</p>
                             </div>
                         ) : (
                             filteredConversations.map((conv) => {
@@ -261,7 +224,7 @@ export default function ChatPage() {
                                         </h2>
                                         <div className="flex items-center gap-1.5 mt-0.5">
                                             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Active now</span>
+                                            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Active Secure Chat</span>
                                         </div>
                                     </div>
                                 </div>
@@ -273,13 +236,11 @@ export default function ChatPage() {
                                     <div className="m-auto text-center text-slate-400 dark:text-slate-500 text-sm flex flex-col items-center gap-2">
                                         <span className="text-4xl">💬</span>
                                         <p className="font-medium">No messages in this chat yet.</p>
-                                        <p className="text-xs opacity-70">Say hello to get things started!</p>
                                     </div>
                                 ) : (
                                     messages.map((msg, index) => {
                                         const isMe = Number(msg.sender_id) !== Number(activeUserId);
                                         const isOrderRequest = msg.type === 'order_request';
-                                        const isPaymentProof = msg.type === 'payment_proof';
 
                                         return (
                                             <div
@@ -295,30 +256,39 @@ export default function ChatPage() {
                                                             : 'bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white rounded-bl-none'
                                                     }`}
                                                 >
-                                                    {/* Plain Text or Alerts */}
+                                                    {/* Plain Text or System Alerts */}
                                                     {(msg.type === 'text' || msg.type === 'system_alert') && (
                                                         <p className="leading-relaxed whitespace-pre-wrap select-text">{msg.message}</p>
                                                     )}
 
-                                                    {/* Interactive Order Card */}
+                                                    {/* Escrow/Order Status Card */}
                                                     {isOrderRequest && msg.order && (
-                                                        <div className="flex flex-col gap-2.5 min-w-[260px]">
-                                                            <div className="bg-black/10 dark:bg-black/30 p-3 rounded-xl border border-white/20 dark:border-white/10 shadow-inner">
-                                                                <div className="flex justify-between items-center mb-2 pb-2 border-b border-white/15">
-                                                                    <p className="font-bold text-sm">🛒 Order #{msg.order.id}</p>
-                                                                    <span className="px-2 py-0.5 bg-amber-500/20 text-amber-600 dark:text-amber-300 text-[10px] rounded uppercase font-extrabold tracking-wider">
-                                                                        {msg.order.status}
+                                                        <div className="flex flex-col gap-2.5 min-w-[280px]">
+                                                            <div className="bg-black/10 dark:bg-black/40 p-4 rounded-xl border border-white/20 dark:border-white/10 shadow-inner">
+                                                                <div className="flex justify-between items-center mb-3 pb-3 border-b border-white/15">
+                                                                    
+                                                                    {/* CLICKABLE ORDER LINK */}
+                                                                    <Link 
+                                                                        to={`/orders/${msg.order.id}`} 
+                                                                        className="font-extrabold text-sm tracking-wide hover:text-blue-300 dark:hover:text-cyan-300 transition underline decoration-dashed underline-offset-4 cursor-pointer"
+                                                                        title="View Full Order Details"
+                                                                    >
+                                                                        🛒 Order #{msg.order.id} ↗
+                                                                    </Link>
+
+                                                                    <span className={`px-2.5 py-1 text-[10px] rounded flex items-center gap-1 uppercase font-extrabold tracking-wider ${getStatusConfig(msg.order.status).color}`}>
+                                                                        {getStatusConfig(msg.order.status).label}
                                                                     </span>
                                                                 </div>
 
-                                                                <div className="mb-2 space-y-1 max-h-32 overflow-y-auto pr-1">
+                                                                <div className="mb-3 space-y-2 max-h-32 overflow-y-auto pr-1">
                                                                     {msg.order.items && msg.order.items.length > 0 ? (
                                                                         msg.order.items.map((item, i) => (
-                                                                            <div key={i} className="flex justify-between text-xs opacity-90">
+                                                                            <div key={i} className="flex justify-between text-xs opacity-95">
                                                                                 <span className="truncate pr-3 font-medium">
-                                                                                    {item.quantity}x {item.listing?.title || 'Product'}
+                                                                                    <span className="opacity-70 mr-1">{item.quantity}x</span> {item.listing?.title || 'Product'}
                                                                                 </span>
-                                                                                <span>${Number(item.quantity * item.price_at_purchase).toFixed(2)}</span>
+                                                                                <span className="font-semibold">${Number(item.quantity * item.price_at_purchase).toFixed(2)}</span>
                                                                             </div>
                                                                         ))
                                                                     ) : (
@@ -326,88 +296,52 @@ export default function ChatPage() {
                                                                     )}
                                                                 </div>
 
-                                                                <div className="flex justify-between items-end border-t border-white/15 pt-2">
-                                                                    <span className="text-[10px] font-bold uppercase opacity-70 tracking-widest">Total</span>
-                                                                    <p className="text-base font-extrabold text-white">${msg.order.total_amount}</p>
+                                                                <div className="flex justify-between items-end border-t border-white/15 pt-3">
+                                                                    <div className="flex flex-col">
+                                                                        <span className="text-[10px] font-bold uppercase opacity-70 tracking-widest">Escrow Locked</span>
+                                                                    </div>
+                                                                    <p className="text-lg font-black text-white">${msg.order.total_amount}</p>
                                                                 </div>
                                                             </div>
                                                             
-                                                            <p className="text-xs opacity-90 italic px-0.5">{msg.message}</p>
+                                                            <p className="text-xs opacity-90 italic px-1 mt-1">{msg.message}</p>
                                                             
-                                                            {/* Shopkeeper Status Actions */}
-                                                            {!isMe && msg.order.status === 'pending' && currentUser?.role === 'shopkeeper' && (
-                                                                <div className="flex gap-2 mt-1">
-                                                                    <button 
-                                                                        onClick={() => handleUpdateOrderStatus(msg.order.id, 'processing')}
-                                                                        className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs rounded-lg font-bold transition shadow-sm"
-                                                                    >
-                                                                        Accept
-                                                                    </button>
-                                                                    <button 
-                                                                        onClick={() => handleUpdateOrderStatus(msg.order.id, 'cancelled')}
-                                                                        className="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs rounded-lg font-bold transition shadow-sm"
-                                                                    >
-                                                                        Decline
-                                                                    </button>
+                                                            {/* --- ACTIONS FOR SHOPKEEPER --- */}
+                                                            {!isMe && currentUser?.role === 'shopkeeper' && (
+                                                                <div className="flex flex-col gap-2 mt-2">
+                                                                    {msg.order.status === 'pending' && (
+                                                                        <div className="flex gap-2">
+                                                                            <button onClick={() => handleUpdateOrderStatus(msg.order.id, 'processing')} className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs rounded-lg font-bold transition shadow-sm">Accept Order</button>
+                                                                            <button onClick={() => handleUpdateOrderStatus(msg.order.id, 'cancelled')} className="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs rounded-lg font-bold transition shadow-sm">Decline & Refund</button>
+                                                                        </div>
+                                                                    )}
+                                                                    {msg.order.status === 'processing' && (
+                                                                        <button onClick={() => handleUpdateOrderStatus(msg.order.id, 'dispatched')} className="w-full py-2 bg-blue-600 hover:bg-blue-700 border border-blue-400 text-white text-xs rounded-lg font-bold transition shadow-sm">Mark as Dispatched (Shipped)</button>
+                                                                    )}
+                                                                    {msg.order.status === 'dispatched' && (
+                                                                        <button onClick={() => handleUpdateOrderStatus(msg.order.id, 'cancelled')} className="w-full py-2 bg-rose-800 hover:bg-rose-900 border border-rose-400 text-white text-xs rounded-lg font-bold transition shadow-sm">Report Failed Delivery (Refund Buyer)</button>
+                                                                    )}
                                                                 </div>
                                                             )}
 
-                                                            {/* Customer Upload Proof Action */}
-                                                            {isMe && msg.order.status === 'processing' && currentUser?.role === 'customer' && (
-                                                                <button 
-                                                                    onClick={() => handleUploadProofClick(msg.order.id)}
-                                                                    className="mt-1 w-full py-2 bg-white/20 hover:bg-white/30 text-white border border-white/40 rounded-lg text-xs font-bold transition shadow-sm"
-                                                                >
-                                                                    Upload Payment Proof
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    )}
-
-                                                    {/* Payment Proof Card */}
-                                                    {isPaymentProof && (
-                                                        <div className="flex flex-col gap-2 min-w-[240px]">
-                                                            <p className="font-bold text-xs flex items-center gap-1">
-                                                                <span>🧾</span> Payment Proof Uploaded
-                                                            </p>
-                                                            {msg.attachment_path && (
-                                                                <a 
-                                                                    href={getAttachmentUrl(msg.attachment_path)} 
-                                                                    target="_blank" 
-                                                                    rel="noreferrer"
-                                                                    className="block overflow-hidden rounded-xl border border-white/20 mt-1 hover:opacity-95 transition group"
-                                                                >
-                                                                    <img 
-                                                                        src={getAttachmentUrl(msg.attachment_path)} 
-                                                                        alt="Payment proof screenshot" 
-                                                                        className="w-full max-h-52 object-cover group-hover:scale-105 transition duration-300"
-                                                                    />
-                                                                </a>
-                                                            )}
-                                                            <p className="text-xs opacity-90 italic">{msg.message}</p>
-                                                            
-                                                            {/* Shopkeeper Verify Proof Action */}
-                                                            {!isMe && currentUser?.role === 'shopkeeper' && msg.order?.status === 'processing' && (
-                                                                <div className="flex gap-2 mt-2">
-                                                                    <button 
-                                                                        onClick={() => handleUpdateOrderStatus(msg.order.id, 'paid')}
-                                                                        className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs rounded-lg font-bold transition shadow-sm"
-                                                                    >
-                                                                        Verify
-                                                                    </button>
-                                                                    <button 
-                                                                        onClick={() => handleUpdateOrderStatus(msg.order.id, 'cancelled')}
-                                                                        className="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs rounded-lg font-bold transition shadow-sm"
-                                                                    >
-                                                                        Decline
-                                                                    </button>
+                                                            {/* --- ACTIONS FOR CUSTOMER --- */}
+                                                            {isMe && currentUser?.role === 'customer' && (
+                                                                <div className="flex flex-col gap-2 mt-2">
+                                                                    {msg.order.status === 'pending' && (
+                                                                        <button onClick={() => handleUpdateOrderStatus(msg.order.id, 'cancelled')} className="w-full py-2 bg-rose-600 hover:bg-rose-700 border border-rose-400 text-white text-xs rounded-lg font-bold transition shadow-sm">Cancel Order (Refund Escrow)</button>
+                                                                    )}
+                                                                    {msg.order.status === 'dispatched' && (
+                                                                        <div className="flex gap-2">
+                                                                            <button onClick={() => handleUpdateOrderStatus(msg.order.id, 'completed')} className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 border border-emerald-400 text-white text-xs rounded-lg font-bold transition shadow-sm">Confirm Delivery</button>
+                                                                            <button onClick={() => handleUpdateOrderStatus(msg.order.id, 'cancelled')} className="flex-1 py-2.5 bg-rose-700 hover:bg-rose-800 border border-rose-500 text-white text-xs rounded-lg font-bold transition shadow-sm">Report Failure</button>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             )}
                                                         </div>
                                                     )}
                                                 </div>
 
-                                                {/* Timestamp */}
                                                 <span className={`text-[10px] mt-1 px-1 opacity-60 ${isMe ? 'text-right text-slate-500 dark:text-slate-400' : 'text-left text-slate-400 dark:text-slate-500'}`}>
                                                     {msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                                                 </span>

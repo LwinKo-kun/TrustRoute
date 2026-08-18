@@ -6,16 +6,21 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderRequest;
 use App\Models\Order;
 use App\Models\Shop;
+use App\Models\User;
 use App\Services\OrderService;
+use App\Services\WalletService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
     protected $orderService;
+    protected $walletService;
 
-    public function __construct(OrderService $orderService)
+    public function __construct(OrderService $orderService, WalletService $walletService)
     {
         $this->orderService = $orderService;
+        $this->walletService = $walletService;
     }
 
     public function store(StoreOrderRequest $request)
@@ -23,7 +28,7 @@ class OrderController extends Controller
         try {
             $order = $this->orderService->createOrder(auth()->id(), $request->validated());
             return response()->json([
-                'message' => 'Order created successfully.',
+                'message' => 'Order created successfully. Funds locked in Escrow.',
                 'data' => $order
             ], 201);
         } catch (\Exception $e) {
@@ -38,26 +43,22 @@ class OrderController extends Controller
 
         switch ($user->role) {
             case 'admin':
-                // Admins see everything
                 break;
                 
             case 'shopkeeper':
-                // Shopkeepers only see orders placed at their specific shops
                 $shopIds = Shop::where('shopkeeper_id', $user->id)->pluck('id');
                 $query->whereIn('shop_id', $shopIds);
                 break;
 
             case 'delivery':
-                // Delivery agents see orders assigned to them, OR orders waiting for a driver
                 $query->where(function ($q) use ($user) {
                     $q->where('delivery_id', $user->id)
-                      ->orWhere('status', 'pending'); // Packages ready to be picked up
+                      ->orWhere('status', 'pending');
                 });
                 break;
 
             case 'customer':
             default:
-                // Customers only see their own purchases
                 $query->where('customer_id', $user->id);
                 break;
         }
@@ -70,7 +71,6 @@ class OrderController extends Controller
         $user = auth()->user();
         $isAuthorized = false;
 
-        // Check if the user has permission to view this specific order
         if ($user->role === 'admin') {
             $isAuthorized = true;
         } elseif ($user->role === 'customer' && $order->customer_id === $user->id) {
@@ -99,57 +99,80 @@ class OrderController extends Controller
 
         $user = auth()->user();
 
-        // 1. Update the order status
-        $order->update([
-            'status' => $request->status
-        ]);
-
-        // 2. Auto-send KPay instructions if order is accepted (processing)
-        if ($request->status === 'processing') {
-            $shop = Shop::find($order->shop_id);
-            $kpayNumber = $shop->kpay_number ?? 'Not provided. Please ask the seller for their KPay number.';
-
-            \App\Models\Message::create([
-                'sender_id' => $user->id, 
-                'receiver_id' => $order->customer_id, 
-                'message' => "Order accepted! Please transfer the total amount to my KPay number: {$kpayNumber}. After transferring, please upload a screenshot of the transaction here.",
-                'type' => 'system_alert', 
-                'order_id' => $order->id,
+        return DB::transaction(function () use ($request, $order, $user) {
+            $originalStatus = $order->status;
+            
+            // 1. Update the order status
+            $order->update([
+                'status' => $request->status
             ]);
-        }
 
-        // 3. Auto-send Verification confirmation (paid)
-        if ($request->status === 'paid') {
-            \App\Models\Message::create([
-                'sender_id' => $user->id, 
-                'receiver_id' => $order->customer_id, 
-                'message' => 'Payment verified successfully! We are now preparing your order for dispatch.',
-                'type' => 'system_alert', 
-                'order_id' => $order->id,
-            ]);
-        }
-
-        // 4. Handle Cancellation / Declining (restore stock)
-        if ($request->status === 'cancelled') {
-            $order->load('items.listing');
-            foreach ($order->items as $item) {
-                if ($item->listing) {
-                    $item->listing->increment('stock', $item->quantity);
+            // 2PC PHASE 2: ROLLBACK (Order Cancelled/Declined)
+            if ($request->status === 'cancelled' && $originalStatus !== 'cancelled') {
+                // Restore Stock
+                $order->load('items.listing');
+                foreach ($order->items as $item) {
+                    if ($item->listing) {
+                        $item->listing->increment('stock', $item->quantity);
+                    }
                 }
+
+                // Refund the customer's wallet
+                $customer = User::findOrFail($order->customer_id);
+                $this->walletService->rollbackOrderFunds($customer, $order->total_amount, $order);
+
+                \App\Models\Message::create([
+                    'sender_id' => $user->id, 
+                    'receiver_id' => $order->customer_id, 
+                    'message' => 'This order has been declined/cancelled. Your Escrow funds have been successfully refunded to your wallet.',
+                    'type' => 'system_alert', 
+                    'order_id' => $order->id,
+                ]);
             }
 
-            \App\Models\Message::create([
-                'sender_id' => $user->id, 
-                'receiver_id' => $order->customer_id, 
-                'message' => 'This order has been declined and cancelled by the shopkeeper.',
-                'type' => 'system_alert', 
-                'order_id' => $order->id,
-            ]);
-        }
+            // 2PC PHASE 2: COMMIT (Order Completed)
+            if ($request->status === 'completed' && $originalStatus !== 'completed') {
+                $customer = User::findOrFail($order->customer_id);
+                $shopkeeper = User::findOrFail($order->shop->shopkeeper_id);
 
-        return response()->json([
-            'message' => 'Order status updated successfully.',
-            'data' => $order
-        ]);
+                // Transfer locked funds from Customer to Shopkeeper
+                $this->walletService->commitOrderFunds($customer, $shopkeeper, $order->total_amount, $order);
+
+                \App\Models\Message::create([
+                    'sender_id' => $user->id, 
+                    'receiver_id' => $order->customer_id, 
+                    'message' => 'Order completed! The Escrow funds have been officially released to the shopkeeper.',
+                    'type' => 'system_alert', 
+                    'order_id' => $order->id,
+                ]);
+            }
+
+            // Status: Processing (Accepted)
+            if ($request->status === 'processing' && $originalStatus !== 'processing') {
+                \App\Models\Message::create([
+                    'sender_id' => $user->id, 
+                    'receiver_id' => $order->customer_id, 
+                    'message' => "Order accepted! Your payment is securely held in our in-app Escrow. We are preparing your items for dispatch.",
+                    'type' => 'system_alert', 
+                    'order_id' => $order->id,
+                ]);
+            }
+
+            // Status: Dispatched
+            if ($request->status === 'dispatched' && $originalStatus !== 'dispatched') {
+                \App\Models\Message::create([
+                    'sender_id' => $user->id, 
+                    'receiver_id' => $order->customer_id, 
+                    'message' => 'Your order has been dispatched and is on its way to you!',
+                    'type' => 'system_alert', 
+                    'order_id' => $order->id,
+                ]);
+            }
+
+            return response()->json([
+                'message' => 'Order status updated successfully.',
+                'data' => $order
+            ]);
+        });
     }
 }

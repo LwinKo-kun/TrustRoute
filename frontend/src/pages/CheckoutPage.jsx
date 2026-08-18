@@ -1,6 +1,6 @@
 // src/pages/CheckoutPage.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { getCart, clearCart } from '../utils/cartStorage';
@@ -12,16 +12,21 @@ export default function CheckoutPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [cartItems, setCartItems] = useState([]);
+    const [walletBalance, setWalletBalance] = useState(0);
 
     useEffect(() => {
         setCartItems(getCart(user));
+        // Fetch wallet balance
+        api.get('/wallet').then(res => {
+            setWalletBalance(Number(res.data.data.balance));
+        }).catch(err => console.error("Failed to fetch wallet", err));
     }, [user]);
 
+    const orderTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const hasEnoughBalance = walletBalance >= orderTotal;
+
     const handlePlaceOrder = async () => {
-        if (cartItems.length === 0) {
-            setError("Your cart is empty.");
-            return;
-        }
+        if (cartItems.length === 0) return;
 
         const shopId = cartItems[0].shop_id; 
         const items = cartItems.map(item => ({
@@ -37,7 +42,6 @@ export default function CheckoutPage() {
             
             clearCart(user);
             
-            // Extract the shopkeeper's ID from the new order response and route to chat
             const shopkeeperId = response.data.data.shop.shopkeeper_id;
             navigate(`/chat/${shopkeeperId}`); 
             
@@ -49,32 +53,56 @@ export default function CheckoutPage() {
     };
 
     return (
-        <div className="max-w-xl mx-auto p-6 flex flex-col gap-6">
-            <h1 className="text-2xl font-extrabold text-[var(--text-main)]">Checkout Order</h1>
+        <div className="max-w-xl mx-auto py-10 px-4 flex flex-col gap-6 w-full">
+            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">Checkout</h1>
             
-            {error && <p className="p-3 bg-red-500/10 text-red-500 rounded-lg text-sm font-medium">{error}</p>}
+            {error && <p className="p-4 bg-red-500/10 text-red-500 rounded-xl text-sm font-semibold">{error}</p>}
             
             {cartItems.length > 0 ? (
                 <>
-                    <div className="bg-[var(--bg-secondary)] p-4 rounded-xl shadow-sm border border-[var(--border-color)]">
-                        <p className="text-sm font-medium mb-2">Order Summary ({cartItems.length} items)</p>
-                        <ul className="text-sm opacity-80 space-y-1">
+                    <div className="bg-white dark:bg-[#0d1326] p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-white/10">
+                        <p className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">Order Summary</p>
+                        <ul className="text-sm space-y-3 mb-6">
                             {cartItems.map((item, idx) => (
-                                <li key={idx} className="flex justify-between">
+                                <li key={idx} className="flex justify-between items-center text-slate-800 dark:text-slate-200">
                                     <span>{item.quantity}x {item.title || 'Product'}</span>
+                                    <span className="font-semibold">${(item.price * item.quantity).toFixed(2)}</span>
                                 </li>
                             ))}
                         </ul>
+                        <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex justify-between items-center">
+                            <span className="font-bold text-slate-900 dark:text-white">Total Amount</span>
+                            <span className="text-2xl font-extrabold text-blue-600 dark:text-cyan-400">${orderTotal.toFixed(2)}</span>
+                        </div>
                     </div>
 
-                    <p className="text-sm opacity-70">Confirm your details to dispatch the order to the shop.</p>
+                    {/* Wallet Integration Section */}
+                    <div className={`p-6 rounded-2xl border ${hasEnoughBalance ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-500/20' : 'bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-500/20'}`}>
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="font-bold text-sm">Wallet Balance</span>
+                            <span className="font-extrabold text-lg">${walletBalance.toFixed(2)}</span>
+                        </div>
+                        
+                        {!hasEnoughBalance ? (
+                            <div className="mt-4 text-rose-600 dark:text-rose-400 text-sm font-medium">
+                                <p>Insufficient funds. You need ${(orderTotal - walletBalance).toFixed(2)} more.</p>
+                                <Link to="/wallet" className="mt-3 block w-full text-center py-2.5 bg-rose-600 text-white rounded-xl font-bold shadow-md hover:bg-rose-700 transition">
+                                    Top Up Wallet Now
+                                </Link>
+                            </div>
+                        ) : (
+                            <p className="text-emerald-600 dark:text-emerald-400 text-sm font-medium mt-1">
+                                Funds available. They will be locked securely in Escrow upon ordering.
+                            </p>
+                        )}
+                    </div>
                     
                     <button 
                         onClick={handlePlaceOrder}
-                        disabled={loading}
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md disabled:opacity-50 transition-colors"
+                        disabled={loading || !hasEnoughBalance}
+                        className="w-full py-4 bg-blue-600 hover:bg-blue-700 dark:bg-gradient-to-r dark:from-blue-600 dark:to-cyan-500 text-white font-bold rounded-2xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
-                        {loading ? 'Processing Transaction...' : 'Confirm & Place Order'}
+                        {loading ? 'Processing Escrow Lock...' : 'Confirm & Place Order'}
                     </button>
                 </>
             ) : (

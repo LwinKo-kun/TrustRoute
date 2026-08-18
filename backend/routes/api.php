@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ShopController;
+use App\Http\Controllers\Api\WalletController; // <-- ADD THIS IMPORT
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -23,7 +24,7 @@ Route::get('/listings', [ListingController::class, 'index']);
 Route::get('/listings/{listing}', [ListingController::class, 'show']);
 Route::get('/listings/{listing}/image', [ListingController::class, 'image']);
 
-// Public review routes (FIXED: Route pointing to standard index or fallback)
+// Public review routes
 Route::get('/reviews', [ReviewController::class, 'index']);
 Route::get('/listings/{listing}/reviews', [ReviewController::class, 'index']);
 
@@ -32,13 +33,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
-    // Retrieve authenticated user
     Route::get('/user', function (Request $request) {
         return response()->json([
             'status' => 'success',
             'user' => $request->user(),
         ]);
     });
+
+    // --- NEW WALLET ROUTES ---
+    Route::get('/wallet', [WalletController::class, 'getBalance']);
+    Route::post('/wallet/deposit', [WalletController::class, 'deposit']);
+    Route::get('/wallet/transactions', [WalletController::class, 'transactions']);
 
     // Shop Management Routes
     Route::get('/my-shop', [ShopController::class, 'myShop']);
@@ -56,7 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
-    Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus']); // <-- NEW ROUTE ADDED HERE
+    Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus']);
 
     // Review Management Routes
     Route::post('/reviews', [ReviewController::class, 'store']);

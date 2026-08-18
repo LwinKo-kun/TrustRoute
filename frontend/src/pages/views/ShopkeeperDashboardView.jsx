@@ -48,6 +48,65 @@ export default function ShopkeeperDashboardView({ data }) {
 
   if (loading) return <p className="p-8 text-sm text-slate-500 dark:text-slate-400">Loading control center...</p>;
 
+  const activeOrders = orders.filter(o => !['completed', 'cancelled'].includes(o.status));
+  const pastOrders = orders.filter(o => ['completed', 'cancelled'].includes(o.status));
+
+  const OrderTable = ({ orderList, emptyMessage }) => (
+    orderList.length === 0 ? (
+      <p className="text-sm text-slate-500 dark:text-slate-400 py-6 text-center">{emptyMessage}</p>
+    ) : (
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+          <thead className="bg-slate-50 dark:bg-white/5 uppercase text-[10px] tracking-wider text-slate-400 border-b border-slate-200 dark:border-white/10">
+            <tr>
+              <th className="p-3">Order ID</th>
+              <th className="p-3">Customer</th>
+              <th className="p-3">Total Amount</th>
+              <th className="p-3">Status</th>
+              <th className="p-3">Date</th>
+              <th className="p-3 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-200 dark:divide-white/5">
+            {orderList.map((order) => (
+              <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                <td className="p-3 font-bold">
+                  <Link to={`/orders/${order.id}`} className="text-blue-600 dark:text-cyan-400 hover:underline">
+                    #{order.id}
+                  </Link>
+                </td>
+                <td className="p-3">{order.customer?.name || `User #${order.customer_id}`}</td>
+                <td className="p-3 font-semibold text-slate-900 dark:text-white">${order.total_amount}</td>
+                <td className="p-3">
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    order.status === 'completed' ? 'bg-green-500/20 text-green-500' :
+                    order.status === 'paid' || order.status === 'dispatched' ? 'bg-purple-500/20 text-purple-500' :
+                    order.status === 'processing' ? 'bg-yellow-500/20 text-yellow-500' :
+                    order.status === 'cancelled' ? 'bg-red-500/20 text-red-500' :
+                    'bg-slate-500/20 text-slate-400'
+                  }`}>
+                    {order.status}
+                  </span>
+                </td>
+                <td className="p-3 text-xs opacity-70">
+                  {new Date(order.created_at).toLocaleDateString()}
+                </td>
+                <td className="p-3 text-right">
+                  <Link
+                    to={`/orders/${order.id}`}
+                    className="px-4 py-2 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-cyan-400 rounded-lg text-xs font-semibold hover:bg-blue-100 dark:hover:bg-blue-900 transition shadow-sm inline-block"
+                  >
+                    View Details
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-8 transition-colors duration-300">
 
@@ -113,61 +172,22 @@ export default function ShopkeeperDashboardView({ data }) {
       ) : (
         <div className="flex flex-col gap-10">
           
-          {/* Orders & Transactions Section */}
+          {/* Active Orders Section */}
           <div className="bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Store Transactions & Orders</h2>
-              <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">{orders.length} orders total</span>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Active Orders</h2>
+              <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">{activeOrders.length} pending processing</span>
             </div>
+            <OrderTable orderList={activeOrders} emptyMessage="No active orders currently." />
+          </div>
 
-            {orders.length === 0 ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400 py-6 text-center">No orders have been placed at your shop yet.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
-                  <thead className="bg-slate-50 dark:bg-white/5 uppercase text-[10px] tracking-wider text-slate-400 border-b border-slate-200 dark:border-white/10">
-                    <tr>
-                      <th className="p-3">Order ID</th>
-                      <th className="p-3">Customer</th>
-                      <th className="p-3">Total Amount</th>
-                      <th className="p-3">Status</th>
-                      <th className="p-3">Date</th>
-                      <th className="p-3 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-white/5">
-                    {orders.map((order) => (
-                      <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                        <td className="p-3 font-bold text-slate-900 dark:text-white">#{order.id}</td>
-                        <td className="p-3">{order.customer?.name || `User #${order.customer_id}`}</td>
-                        <td className="p-3 font-semibold text-blue-600 dark:text-cyan-400">${order.total_amount}</td>
-                        <td className="p-3">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            order.status === 'paid' ? 'bg-green-500/20 text-green-500' :
-                            order.status === 'processing' ? 'bg-yellow-500/20 text-yellow-500' :
-                            order.status === 'cancelled' ? 'bg-red-500/20 text-red-500' :
-                            'bg-slate-500/20 text-slate-400'
-                          }`}>
-                            {order.status}
-                          </span>
-                        </td>
-                        <td className="p-3 text-xs opacity-70">
-                          {new Date(order.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="p-3 text-right">
-                          <button
-                            onClick={() => navigate(`/chat/${order.customer_id}`)}
-                            className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-cyan-400 rounded-lg text-xs font-semibold hover:bg-blue-100 dark:hover:bg-blue-900 transition"
-                          >
-                            Open Chat & Manage
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+          {/* Past Orders History Section */}
+          <div className="bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm opacity-90">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Previous Orders History</h2>
+              <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">{pastOrders.length} past orders</span>
+            </div>
+            <OrderTable orderList={pastOrders} emptyMessage="No past orders recorded yet." />
           </div>
 
           {/* Product Catalog Section */}
@@ -193,6 +213,7 @@ export default function ShopkeeperDashboardView({ data }) {
                         src={getListingImageUrl(item.id)}
                         alt={item.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                        onError={(e) => { e.target.style.display = 'none'; }}
                       />
                       <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-full font-semibold">
                         Stock: {item.stock}
