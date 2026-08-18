@@ -3,7 +3,7 @@
 # Navigate to backend and start Laravel server
 echo "Starting Laravel backend..."
 cd backend
-php artisan serve &
+php artisan serve --host=0.0.0.0 --port=8000 &
 BACKEND_PID=$!
 
 # Navigate to frontend and start Vite server

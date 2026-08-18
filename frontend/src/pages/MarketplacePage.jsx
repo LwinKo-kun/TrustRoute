@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import api, { getListingImageUrl } from '../services/api';
 import Layout from '../components/layout/Layout';
 import { useAuth } from '../context/AuthContext';
 
@@ -146,7 +146,7 @@ export default function MarketplacePage() {
                   {/* Image */}
                   <div className="w-full h-48 bg-slate-100 dark:bg-slate-800 relative overflow-hidden flex items-center justify-center">
                     <img
-                      src={`/api/listings/${listing.id}/image`}
+                      src={getListingImageUrl(listing.id)}
                       alt={listing.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                       onError={e => { e.target.style.display = 'none'; }}

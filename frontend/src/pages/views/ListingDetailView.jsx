@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import api from '../../services/api';
+import api, { getListingImageUrl } from '../../services/api';
 import RatingStars from '../../components/common/RatingStars';
 import { addToCartSecure } from '../../utils/cartStorage';
 
@@ -81,7 +81,6 @@ export default function ListingDetailView() {
             return;
         }
         setIsWishlisted(!isWishlisted);
-        // TODO: Wire this to POST /api/wishlists in the next step
     };
 
     const handleReviewSubmit = async (e) => {
@@ -137,7 +136,6 @@ export default function ListingDetailView() {
     }
 
     const sellerUserId = listing.user_id || listing.shop?.user_id || listing.shop?.user?.id || listing.shop?.shopkeeper_id;
-    const apiBaseUrl = api.defaults.baseURL || '/api';
     const averageRating = reviews.length > 0
         ? reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / reviews.length
         : 0;
@@ -152,7 +150,7 @@ export default function ListingDetailView() {
                 {/* Product Image */}
                 <div className="w-full h-96 bg-slate-100 dark:bg-[#0d1326] rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 flex items-center justify-center relative shadow-sm">
                     <img
-                        src={`${apiBaseUrl}/listings/${listing.id}/image`}
+                        src={getListingImageUrl(listing.id)}
                         alt={listing.title || 'Product'}
                         className="w-full h-full object-cover"
                         onError={(e) => { e.target.style.display = 'none'; }}

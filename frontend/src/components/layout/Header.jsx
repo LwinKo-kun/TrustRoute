@@ -1,3 +1,4 @@
+// src/components/layout/Header.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -11,7 +12,6 @@ export default function Header() {
   const [search, setSearch] = useState('');
   const [cartCount, setCartCount] = useState(0);
 
-  // Sync cart badge count for customers
   const updateCartBadge = () => {
     if (user?.role === 'customer') {
       const cart = getCart(user);
@@ -22,6 +22,7 @@ export default function Header() {
 
   useEffect(() => {
     updateCartBadge();
+    
     window.addEventListener('cartUpdated', updateCartBadge);
     window.addEventListener('storage', updateCartBadge);
     return () => {
@@ -47,7 +48,6 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200/80 bg-white/90 backdrop-blur-xl transition-colors duration-300 dark:border-white/10 dark:bg-[#070b1c]/95">
-      {/* Top Accent Glow */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-70 dark:via-cyan-400" />
 
       <div className="mx-auto w-full max-w-[1500px] px-3 sm:px-5 lg:px-7">
@@ -79,14 +79,6 @@ export default function Header() {
               className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white xl:px-3.5"
             >
               Marketplace
-              <span className="absolute bottom-0 left-3 right-3 h-[2px] scale-x-0 rounded-full bg-blue-500 transition group-hover:scale-x-100 dark:bg-cyan-400" />
-            </Link>
-
-            <Link
-              to="/shops"
-              className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white xl:px-3.5"
-            >
-              Shops
               <span className="absolute bottom-0 left-3 right-3 h-[2px] scale-x-0 rounded-full bg-blue-500 transition group-hover:scale-x-100 dark:bg-cyan-400" />
             </Link>
 
@@ -132,10 +124,22 @@ export default function Header() {
           {/* 4. ACTIONS & CONTROLS */}
           <div className="flex shrink-0 items-center gap-2">
             
-            {/* Theme Switcher Button */}
             <ThemeToggle />
 
-            {/* Chat Icon Button */}
+            {/* Hidden Wallet Balance - Just shows link to Wallet now */}
+            {user && (
+              <Link
+                to="/wallet"
+                className="flex h-10 items-center justify-center gap-1.5 rounded-lg border border-emerald-200/60 bg-emerald-50 px-3 text-[13px] font-extrabold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/60"
+                title="My Wallet"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                Wallet
+              </Link>
+            )}
+
             {user && (
               <Link
                 to="/chat"
@@ -148,7 +152,6 @@ export default function Header() {
               </Link>
             )}
 
-            {/* Cart Icon Button (Customers Only) */}
             {user?.role === 'customer' && (
               <Link
                 to="/cart"
@@ -168,21 +171,10 @@ export default function Header() {
               </Link>
             )}
 
-            {/* Auth Buttons / Logout */}
             {!user ? (
               <div className="flex items-center gap-1.5">
-                <Link
-                  to="/login"
-                  className="hidden px-3 py-2 text-[13px] font-semibold text-gray-700 transition hover:text-blue-600 dark:text-slate-300 dark:hover:text-white sm:block"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/signup"
-                  className="hidden h-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 px-4 text-[13px] font-bold text-white shadow-md shadow-blue-500/20 transition hover:-translate-y-0.5 active:scale-95 sm:flex"
-                >
-                  Sign Up
-                </Link>
+                <Link to="/login" className="hidden px-3 py-2 text-[13px] font-semibold text-gray-700 transition hover:text-blue-600 dark:text-slate-300 dark:hover:text-white sm:block">Login</Link>
+                <Link to="/signup" className="hidden h-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 px-4 text-[13px] font-bold text-white shadow-md shadow-blue-500/20 transition hover:-translate-y-0.5 active:scale-95 sm:flex">Sign Up</Link>
               </div>
             ) : (
               <div className="flex items-center gap-2">
@@ -198,89 +190,38 @@ export default function Header() {
               </div>
             )}
 
-            {/* Mobile Menu Toggle Button */}
             <button
               type="button"
               onClick={() => setMobileOpen(!mobileOpen)}
               className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-700 transition hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 lg:hidden"
-              aria-label="Toggle menu"
             >
-              {mobileOpen ? (
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 6l12 12M18 6 6 18" />
-                </svg>
-              ) : (
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              )}
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={mobileOpen ? "M6 6l12 12M18 6 6 18" : "M4 6h16M4 12h16M4 18h16"} />
+              </svg>
             </button>
           </div>
-
         </div>
 
         {/* 5. MOBILE MENU */}
         {mobileOpen && (
           <div className="border-t border-gray-200 py-4 dark:border-white/10 lg:hidden">
             <nav className="grid gap-1">
-              <Link
-                to="/marketplace"
-                onClick={() => setMobileOpen(false)}
-                className="rounded-lg px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
-              >
+              <Link to="/marketplace" onClick={() => setMobileOpen(false)} className="rounded-lg px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white">
                 Marketplace
               </Link>
-              <Link
-                to="/shops"
-                onClick={() => setMobileOpen(false)}
-                className="rounded-lg px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
-              >
-                Shops
-              </Link>
               {user && (
-                <Link
-                  to="/dashboard"
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded-lg px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
-                >
-                  Dashboard
-                </Link>
+                <>
+                  <Link to="/wallet" onClick={() => setMobileOpen(false)} className="rounded-lg px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white">
+                    Wallet
+                  </Link>
+                  <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="rounded-lg px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white">
+                    Dashboard
+                  </Link>
+                </>
               )}
             </nav>
-
-            {!user ? (
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <Link
-                  to="/login"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/signup"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-500/20"
-                >
-                  Sign Up
-                </Link>
-              </div>
-            ) : (
-              <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-3 dark:border-white/10 px-2">
-                <span className="text-xs font-semibold text-gray-600 dark:text-slate-400">
-                  Logged in as <strong className="text-gray-900 dark:text-white">{user.name}</strong> ({user.role})
-                </span>
-                <button
-                  onClick={handleLogout}
-                  className="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition dark:bg-red-950/60 dark:text-red-300 dark:hover:bg-red-900"
-                >
-                  Logout
-                </button>
-              </div>
-            )}
           </div>
         )}
-
       </div>
     </header>
   );
