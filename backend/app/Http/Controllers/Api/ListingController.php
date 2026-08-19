@@ -7,37 +7,41 @@ use App\Http\Requests\StoreListingRequest;
 use App\Http\Requests\UpdateListingRequest;
 use App\Models\Listing;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ListingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Listing::with(['shop.user']);
+        $query = Listing::with('shop');
 
-        if ($request->filled('search')) {
-            $search = $request->query('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = '%' . trim($request->search) . '%';
+            
+            // Use ILIKE for case-insensitive search in PostgreSQL
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('title', 'ILIKE', $searchTerm)
+                ->orWhere('description', 'ILIKE', $searchTerm);
             });
         }
 
-        if ($request->filled('category')) {
-            $query->where('category', $request->category);
-        }
+        $listings = $query->latest()->paginate(12);
 
-        return response()->json($query->latest()->paginate(12));
+        return response()->json([
+            'status' => 'success',
+            'data' => $listings,
+        ]);
     }
 
    public function shopListings(Request $request)
-{
-    $shop = $request->user()->shop;
-    if (!$shop) {
-        return response()->json(['message' => 'Shop not found.'], 404);
-    }
+    {
+        $shop = $request->user()->shop;
+        if (!$shop) {
+            return response()->json(['message' => 'Shop not found.'], 404);
+        }
 
-    return response()->json($shop->listings()->latest()->paginate(12));
-}
+        return response()->json($shop->listings()->latest()->paginate(12));
+    }
 
     public function store(StoreListingRequest $request)
     {
@@ -52,7 +56,7 @@ class ListingController extends Controller
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $rawBinary = file_get_contents($file->getRealPath());
-            $data['image_data'] = '\x' . bin2hex($rawBinary);
+            $data['image_data'] = DB::raw("'" . '\x' . bin2hex($rawBinary) . "'");
             $data['image_mime_type'] = $file->getMimeType();
         }
 
@@ -75,7 +79,7 @@ class ListingController extends Controller
     {
         $listingId = $listing instanceof Listing ? $listing->id : (int) $listing;
 
-        $pdo = \Illuminate\Support\Facades\DB::connection()->getPdo();
+        $pdo = DB::connection()->getPdo();
         $stmt = $pdo->prepare('SELECT image_data, image_mime_type FROM listings WHERE id = :id LIMIT 1');
         $stmt->bindValue(':id', $listingId, \PDO::PARAM_INT);
         $stmt->execute();
@@ -115,7 +119,7 @@ class ListingController extends Controller
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $rawBinary = file_get_contents($file->getRealPath());
-            $data['image_data'] = '\x' . bin2hex($rawBinary);
+            $data['image_data'] = DB::raw("'" . '\x' . bin2hex($rawBinary) . "'");
             $data['image_mime_type'] = $file->getMimeType();
         }
 
@@ -129,7 +133,7 @@ class ListingController extends Controller
 
     public function destroy(Listing $listing)
     {
-        if (auth()->id() !== $listing->shop->user_id && auth()->id() !== $listing->shop->shopkeeper_id) {
+        if (auth()->id() !== $listing->shop->shopkeeper_id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

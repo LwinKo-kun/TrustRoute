@@ -27,15 +27,56 @@ export default function OrderDetailsPage() {
         fetchOrder();
     }, [orderId]);
 
+    // --- 1. ROLE-BASED LOGIC EVALUATION ---
+    const isCustomer = user?.role === 'customer';
+    const isShopkeeper = user?.role === 'shopkeeper';
+    const isAdmin = user?.role === 'admin';
+
+    // Determine who the user should chat with (Admins don't chat in this context)
+    let chatTargetId = null;
+    let chatLabel = "Secure Chat";
+    if (isCustomer) {
+        chatTargetId = order?.shop?.shopkeeper_id;
+        chatLabel = "Chat with Seller";
+    } else if (isShopkeeper) {
+        chatTargetId = order?.customer_id;
+        chatLabel = "Chat with Buyer";
+    }
+
+    // --- 2. 2PC ESCROW STATE TRANSITIONS ---
+    const handleUpdateOrderStatus = async (newStatus) => {
+        let confirmationMessage = "Are you sure you want to update this order?";
+        
+        if (newStatus === 'cancelled') {
+            confirmationMessage = isAdmin 
+                ? "ADMIN ACTION: Force cancel this order and refund escrow?" 
+                : "WARNING: This marks the order as FAILED. Escrow funds will be refunded. Proceed?";
+        } else if (newStatus === 'completed') {
+            confirmationMessage = "SUCCESS: Confirm you received the items in good condition? Funds will be permanently released to the seller.";
+        } else if (newStatus === 'processing') {
+            confirmationMessage = "Accept this order and prepare it for dispatch?";
+        } else if (newStatus === 'dispatched') {
+            confirmationMessage = "Mark this order as dispatched (shipped)?";
+        }
+
+        if (!window.confirm(confirmationMessage)) return;
+
+        try {
+            await api.patch(`/orders/${orderId}/status`, { status: newStatus });
+            // Refresh order data dynamically
+            const res = await api.get(`/orders/${orderId}`);
+            setOrder(res.data.data);
+        } catch (err) {
+            console.error(`Failed to update order status to ${newStatus}`, err);
+            alert(err.response?.data?.message || "Failed to update status. Please try again.");
+        }
+    };
+
     if (loading) return <div className="p-10 text-center font-medium text-slate-500">Loading order details...</div>;
     if (error) return <div className="p-10 text-center font-bold text-rose-500">{error}</div>;
     if (!order) return null;
 
-    // Determine who the user should chat with based on their role
-    const isCustomer = user?.role === 'customer';
-    const otherUserId = isCustomer ? order.shop?.shopkeeper_id : order.customer_id;
-
-    // Status UI Configuration Mapper
+    // Status UI Mapper
     const getStatusConfig = (status) => {
         switch(status) {
             case 'pending': return { label: 'Awaiting Seller', color: 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' };
@@ -46,13 +87,12 @@ export default function OrderDetailsPage() {
             default: return { label: status, color: 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/20' };
         }
     };
-
     const statusConfig = getStatusConfig(order.status);
 
     return (
         <div className="max-w-4xl mx-auto py-10 px-4 flex flex-col gap-6 w-full transition-colors duration-300">
             
-            {/* Header & Actions */}
+            {/* Header & Inter-User Actions */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <Link to="/dashboard" className="text-sm font-semibold text-blue-600 dark:text-cyan-400 hover:underline mb-2 inline-block">
@@ -64,12 +104,13 @@ export default function OrderDetailsPage() {
                     </p>
                 </div>
                 
-                {otherUserId && (
+                {/* Only render Chat if appropriate for the role */}
+                {chatTargetId && (
                     <button 
-                        onClick={() => navigate(`/chat/${otherUserId}`)}
-                        className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-gradient-to-r dark:from-blue-600 dark:to-cyan-500 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2"
+                        onClick={() => navigate(`/chat/${chatTargetId}`)}
+                        className="px-5 py-2.5 bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-cyan-400 border border-blue-200 dark:border-blue-700/50 font-bold rounded-xl shadow-sm hover:bg-blue-100 transition flex items-center gap-2"
                     >
-                        <span>💬</span> Manage in Secure Chat
+                        <span>💬</span> {chatLabel}
                     </button>
                 )}
             </div>
@@ -86,9 +127,49 @@ export default function OrderDetailsPage() {
                 </div>
             </div>
 
+            {/* --- 3. DYNAMIC ROLE-AWARE ACTION PANEL --- */}
+            {order.status !== 'completed' && order.status !== 'cancelled' && (
+                <div className="bg-white dark:bg-[#0d1326] p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-white/10 flex flex-col gap-3">
+                    <h3 className="font-bold text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Order Management Actions</h3>
+                    <div className="flex flex-wrap gap-3">
+                        
+                        {/* SHOPKEEPER ACTIONS */}
+                        {isShopkeeper && order.status === 'pending' && (
+                            <>
+                                <button onClick={() => handleUpdateOrderStatus('processing')} className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition">Accept Order</button>
+                                <button onClick={() => handleUpdateOrderStatus('cancelled')} className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-md transition">Decline & Refund</button>
+                            </>
+                        )}
+                        {isShopkeeper && order.status === 'processing' && (
+                            <button onClick={() => handleUpdateOrderStatus('dispatched')} className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition">Mark as Dispatched (Shipped)</button>
+                        )}
+                        {isShopkeeper && order.status === 'dispatched' && (
+                            <button onClick={() => handleUpdateOrderStatus('cancelled')} className="px-6 py-3 bg-rose-800 hover:bg-rose-900 border border-rose-500 text-white font-bold rounded-xl shadow-md transition">Report Failed Delivery (Refund Buyer)</button>
+                        )}
+
+                        {/* CUSTOMER ACTIONS */}
+                        {isCustomer && order.status === 'pending' && (
+                            <button onClick={() => handleUpdateOrderStatus('cancelled')} className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-md transition">Cancel Order (Refund Escrow)</button>
+                        )}
+                        {isCustomer && order.status === 'dispatched' && (
+                            <>
+                                <button onClick={() => handleUpdateOrderStatus('completed')} className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition">Confirm Delivery (Release Funds)</button>
+                                <button onClick={() => handleUpdateOrderStatus('cancelled')} className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-md transition">Report Failure (Request Refund)</button>
+                            </>
+                        )}
+
+                        {/* ADMIN ACTIONS */}
+                        {isAdmin && (
+                            <button onClick={() => handleUpdateOrderStatus('cancelled')} className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-md transition">
+                                ⚖️ Force Refund (Arbitration)
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {/* Details Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Customer Info */}
                 <div className="bg-white dark:bg-[#0d1326] p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-white/10">
                     <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-4 border-b border-slate-100 dark:border-white/5 pb-2">Customer Details</h3>
                     <div className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
@@ -97,7 +178,6 @@ export default function OrderDetailsPage() {
                     </div>
                 </div>
 
-                {/* Shop Info */}
                 <div className="bg-white dark:bg-[#0d1326] p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-white/10">
                     <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-4 border-b border-slate-100 dark:border-white/5 pb-2">Shop Details</h3>
                     <div className="space-y-2 text-sm text-slate-700 dark:text-slate-300">

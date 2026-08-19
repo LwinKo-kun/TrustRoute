@@ -1,4 +1,3 @@
-// src/pages/WalletPage.jsx
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -21,10 +20,12 @@ export default function WalletPage() {
                 api.get('/wallet'),
                 api.get('/wallet/transactions')
             ]);
-            setBalance(Number(balRes.data.data.balance));
-            setLockedBalance(Number(balRes.data.data.locked_balance));
-            setIncomingEscrow(Number(balRes.data.data.incoming_escrow || 0));
-            setTransactions(transRes.data.data || []);
+            setBalance(Number(balRes.data?.data?.balance || 0));
+            setLockedBalance(Number(balRes.data?.data?.locked_balance || 0));
+            setIncomingEscrow(Number(balRes.data?.data?.incoming_escrow || 0));
+            
+            const txData = transRes.data?.data || transRes.data || [];
+            setTransactions(txData);
         } catch (err) {
             console.error("Failed to load wallet data", err);
         } finally {
@@ -45,7 +46,7 @@ export default function WalletPage() {
         try {
             await api.post('/wallet/deposit', { amount });
             setTopUpAmount('');
-            await fetchWalletData(); // Refresh UI
+            await fetchWalletData(); 
             alert('Top up successful!');
         } catch (err) {
             alert(err.response?.data?.message || 'Top up failed');
@@ -60,10 +61,8 @@ export default function WalletPage() {
         <div className="max-w-6xl mx-auto py-10 px-4 flex flex-col gap-8 transition-colors duration-300 w-full">
             <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">My TrustRoute Wallet</h1>
 
-            {/* Balances Section - Dynamically sizes based on role */}
             <div className={`grid grid-cols-1 md:grid-cols-2 ${user?.role === 'shopkeeper' ? 'lg:grid-cols-3' : ''} gap-6`}>
                 
-                {/* 1. Available Balance (Everyone) */}
                 <div className="p-8 rounded-3xl bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-lg flex flex-col justify-between">
                     <div>
                         <p className="text-sm font-bold uppercase tracking-wider opacity-80 mb-1">Available Balance</p>
@@ -72,7 +71,6 @@ export default function WalletPage() {
                     <p className="text-sm opacity-90 mt-6">Ready to spend or withdraw.</p>
                 </div>
 
-                {/* 2. Customer's Locked Escrow */}
                 <div className="p-8 rounded-3xl bg-slate-800 dark:bg-[#0d1326] border border-slate-700 dark:border-white/10 text-white shadow-lg flex flex-col justify-between">
                     <div>
                         <p className="text-sm font-bold uppercase tracking-wider opacity-60 mb-1 text-amber-400">My Locked Escrow</p>
@@ -83,7 +81,6 @@ export default function WalletPage() {
                     </p>
                 </div>
 
-                {/* 3. Shopkeeper's Incoming Escrow */}
                 {user?.role === 'shopkeeper' && (
                     <div className="p-8 rounded-3xl bg-emerald-900/40 dark:bg-emerald-950/20 border border-emerald-700/50 dark:border-emerald-500/20 text-white shadow-lg flex flex-col justify-between">
                         <div>
@@ -98,7 +95,6 @@ export default function WalletPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                {/* Top Up Form */}
                 <div className="lg:col-span-1 p-6 rounded-2xl bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 shadow-sm">
                     <h3 className="font-bold text-lg mb-4 text-slate-900 dark:text-white">Top Up Balance</h3>
                     <form onSubmit={handleTopUp} className="flex flex-col gap-4">
@@ -125,7 +121,6 @@ export default function WalletPage() {
                     </form>
                 </div>
 
-                {/* Transaction History */}
                 <div className="lg:col-span-2 p-6 rounded-2xl bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 shadow-sm">
                     <h3 className="font-bold text-lg mb-4 text-slate-900 dark:text-white">Transaction Ledger</h3>
                     

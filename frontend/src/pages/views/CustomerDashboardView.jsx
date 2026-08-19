@@ -1,146 +1,102 @@
-// src/pages/views/CustomerDashboardView.jsx
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from "../../context/AuthContext";
-import api, { getListingImageUrl } from '../../services/api';
-import { addToCartSecure } from '../../utils/cartStorage';
+import api from '../../services/api';
+import OrderTable from '../../components/common/OrderTable';
 
-export default function CustomerDashboardView({ data }) {
+export default function CustomerDashboardView() {
   const { user } = useAuth();
-  const listings = data?.listings || [];
-
+  const navigate = useNavigate();
+  
   const [orders, setOrders] = useState([]);
-  const [loadingOrders, setLoadingOrders] = useState(true);
-  const [showAllOrders, setShowAllOrders] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchCustomerOrders = async () => {
       try {
         const res = await api.get('/orders');
-        const orderData = res.data?.data || res.data;
+        const orderData = res.data?.data || res.data || [];
         setOrders(Array.isArray(orderData) ? orderData : []);
       } catch (err) {
-        console.error("Failed to load customer orders", err);
+        console.error('Failed to load customer orders', err);
       } finally {
-        setLoadingOrders(false);
+        setLoading(false);
       }
     };
-    fetchOrders();
+    fetchCustomerOrders();
   }, []);
 
-  const handleAddToCart = (e, listing) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addToCartSecure(user, listing, 1);
-    alert(`Added "${listing.title}" to cart!`);
-  };
-
-  // Only show first 3 if not expanded
-  const displayedOrders = showAllOrders ? orders : orders.slice(0, 3);
+  const activeOrders = orders.filter(o => !['completed', 'cancelled'].includes(o.status));
+  const pastOrders = orders.filter(o => ['completed', 'cancelled'].includes(o.status));
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-8 transition-colors duration-300">
       
-      {/* Welcome Banner */}
-      <div className="relative overflow-hidden p-8 rounded-3xl border border-blue-500/20 bg-gradient-to-r from-blue-600 to-indigo-700 shadow-xl text-white">
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-                <h1 className="text-3xl font-extrabold">Hello, {user?.name}</h1>
-                <p className="text-blue-100 mt-1">Track your active orders or continue shopping the latest tech.</p>
-            </div>
-            <div className="flex gap-3">
-                <Link to="/wallet" className="px-5 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 text-sm font-semibold rounded-2xl transition">
-                    Wallet Balance
-                </Link>
-                <Link to="/cart" className="px-5 py-3 bg-white text-blue-700 hover:bg-blue-50 text-sm font-semibold rounded-2xl shadow-md transition">
-                    View Cart
-                </Link>
-            </div>
+      {/* Dashboard Welcome Banner */}
+      <div className="p-8 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0d1326] shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+            <span className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">Customer Account</span>
+          </div>
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">Welcome back, {user?.name}</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
+            Manage your purchases, track active deliveries, and review your order history.
+          </p>
+        </div>
+        
+        {/* Quick Actions */}
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <Link to="/marketplace" className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md transition flex items-center gap-2">
+            🛍️ Go to Marketplace
+          </Link>
+          <Link to="/cart" className="px-5 py-2.5 border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-700 dark:text-slate-300 text-sm font-semibold rounded-xl shadow-sm hover:bg-slate-100 dark:hover:bg-white/10 transition">
+            View Cart
+          </Link>
         </div>
       </div>
 
-      {/* Visual Order History */}
-      <section>
-        <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Recent Activity</h2>
-            {orders.length > 3 && (
-                <button 
-                    onClick={() => setShowAllOrders(!showAllOrders)}
-                    className="text-sm font-semibold text-blue-600 dark:text-cyan-400 hover:underline"
-                >
-                    {showAllOrders ? 'Show Less' : 'See More'}
-                </button>
-            )}
+      {/* Account Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="p-6 border border-slate-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#0d1326] shadow-sm">
+          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Active Deliveries</h3>
+          <p className="text-4xl font-extrabold text-blue-600 dark:text-cyan-400 mt-2">{activeOrders.length}</p>
         </div>
-        
-        {loadingOrders ? (
-            <p className="text-sm text-slate-400">Loading your history...</p>
-        ) : orders.length === 0 ? (
-            <div className="p-8 border border-dashed border-slate-300 dark:border-white/10 rounded-2xl text-center text-slate-500">
-                You haven't placed any orders yet.
-            </div>
-        ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {displayedOrders.map(order => (
-                    <Link 
-                        key={order.id} 
-                        to={`/orders/${order.id}`} 
-                        className="p-5 rounded-2xl bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 shadow-sm hover:border-blue-500 hover:shadow-md transition-all flex flex-col gap-3"
-                    >
-                        <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ORDER #{order.id}</span>
-                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
-                                order.status === 'completed' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-500/10 text-slate-500'
-                            }`}>
-                                {order.status}
-                            </span>
-                        </div>
-                        <h4 className="font-bold text-slate-900 dark:text-white">
-                            {order.shop?.shop_name || 'Store'}
-                        </h4>
-                        <div className="flex justify-between items-end mt-auto pt-2">
-                            <span className="text-xs opacity-60">{new Date(order.created_at).toLocaleDateString()}</span>
-                            <span className="font-black text-blue-600 dark:text-cyan-400">${order.total_amount}</span>
-                        </div>
-                    </Link>
-                ))}
-            </div>
-        )}
-      </section>
+        <div className="p-6 border border-slate-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#0d1326] shadow-sm">
+          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Total Purchases</h3>
+          <p className="text-4xl font-extrabold text-slate-900 dark:text-white mt-2">{orders.length}</p>
+        </div>
+        <div className="p-6 border border-slate-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#0d1326] shadow-sm flex flex-col justify-center">
+           <Link to="/profile" className="text-blue-600 dark:text-cyan-400 font-semibold hover:underline flex items-center gap-2">
+              ⚙️ Manage Profile & Addresses ↗
+           </Link>
+           <Link to="/wallet" className="text-blue-600 dark:text-cyan-400 font-semibold hover:underline flex items-center gap-2 mt-3">
+              💳 Manage Escrow Wallet ↗
+           </Link>
+        </div>
+      </div>
 
-      {/* Marketplace Listings */}
-      <section>
-        <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Marketplace</h2>
-            <Link to="/marketplace" className="text-sm font-semibold text-blue-600 dark:text-cyan-400 hover:underline">
-                View All Listings →
-            </Link>
+      {/* My Orders Section */}
+      <div className="flex flex-col gap-8">
+        <div className="bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Active Orders & Tracking</h2>
+          </div>
+          {loading ? <p className="text-sm py-4 text-center">Loading your orders...</p> : 
+            <OrderTable orders={activeOrders} emptyMessage="You have no active orders. Head to the marketplace to start shopping!" />
+          }
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {listings.map((listing) => (
-            <div key={listing.id} className="border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden bg-white dark:bg-[#0d1326] flex flex-col shadow-sm hover:shadow-lg transition">
-                <Link to={`/listings/${listing.id}`} className="flex flex-col flex-grow">
-                <div className="w-full h-48 bg-slate-100 dark:bg-slate-800 relative overflow-hidden flex items-center justify-center">
-                    <img src={getListingImageUrl(listing.id)} alt={listing.title} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
-                    <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-bold shadow-sm">
-                      {listing.stock > 0 ? `${listing.stock} IN STOCK` : 'OUT OF STOCK'}
-                    </div>
-                </div>
-                <div className="p-5 flex flex-col flex-grow gap-2">
-                    <h3 className="font-bold text-base text-slate-900 dark:text-white line-clamp-1">{listing.title}</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{listing.description}</p>
-                </div>
-                </Link>
-                <div className="px-5 pb-5 pt-2 flex items-center justify-between border-t border-slate-100 dark:border-white/5">
-                    <span className="font-black text-blue-600 dark:text-cyan-400">${listing.price}</span>
-                    <button onClick={(e) => handleAddToCart(e, listing)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition">
-                        Add to Cart
-                    </button>
-                </div>
-            </div>
-            ))}
+
+        <div className="bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm opacity-90">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Past Purchases</h2>
+          </div>
+          {loading ? <p className="text-sm py-4 text-center">Loading history...</p> : 
+            <OrderTable orders={pastOrders} emptyMessage="No past purchases recorded." />
+          }
         </div>
-      </section>
+      </div>
+
     </div>
   );
 }
