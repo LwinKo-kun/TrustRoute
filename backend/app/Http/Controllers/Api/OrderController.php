@@ -102,12 +102,10 @@ class OrderController extends Controller
         $isCustomer = $order->customer_id === $user->id;
         $isShopkeeper = $order->shop->shopkeeper_id === $user->id;
 
-        // SECURITY 1: Verify the user is authorized to update this specific order
         if (!$isCustomer && !$isShopkeeper && $user->role !== 'admin') {
             return response()->json(['message' => 'Unauthorized to update this order.'], 403);
         }
 
-        // SECURITY 2: Prevent state-machine manipulation (cannot modify finalized orders)
         if (in_array($order->status, ['completed', 'cancelled'])) {
             return response()->json(['message' => 'Order is already finalized and cannot be modified.'], 422);
         }
@@ -116,9 +114,10 @@ class OrderController extends Controller
             return DB::transaction(function () use ($request, $order, $user, $isCustomer) {
                 $originalStatus = $order->status;
                 
-                // 2PC PHASE 2: ROLLBACK (Order Cancelled/Declined)
+                // FIX: Ensure the system alert goes to the OTHER person in the transaction
+                $recipientId = $isCustomer ? $order->shop->shopkeeper_id : $order->customer_id;
+
                 if ($request->status === 'cancelled' && $originalStatus !== 'cancelled') {
-                    // Restore Stock
                     $order->load('items.listing');
                     foreach ($order->items as $item) {
                         if ($item->listing) {
@@ -126,22 +125,19 @@ class OrderController extends Controller
                         }
                     }
 
-                    // Refund the customer's wallet
                     $customer = User::findOrFail($order->customer_id);
                     $this->walletService->rollbackOrderFunds($customer, $order->total_amount, $order);
 
                     \App\Models\Message::create([
                         'sender_id' => $user->id, 
-                        'receiver_id' => $order->customer_id, 
+                        'receiver_id' => $recipientId, 
                         'message' => 'This order has been declined/cancelled. Your Escrow funds have been successfully refunded to your wallet.',
                         'type' => 'system_alert', 
                         'order_id' => $order->id,
                     ]);
                 }
 
-                // 2PC PHASE 2: COMMIT (Order Completed)
                 if ($request->status === 'completed' && $originalStatus !== 'completed') {
-                    // SECURITY 3: Only the buyer (or admin) can confirm delivery to release funds
                     if (!$isCustomer && $user->role !== 'admin') {
                         throw new Exception("Only the buyer can confirm delivery to release funds.");
                     }
@@ -149,41 +145,37 @@ class OrderController extends Controller
                     $customer = User::findOrFail($order->customer_id);
                     $shopkeeper = User::findOrFail($order->shop->shopkeeper_id);
 
-                    // Transfer locked funds from Customer to Shopkeeper
                     $this->walletService->commitOrderFunds($customer, $shopkeeper, $order->total_amount, $order);
 
                     \App\Models\Message::create([
                         'sender_id' => $user->id, 
-                        'receiver_id' => $order->customer_id, 
+                        'receiver_id' => $recipientId, 
                         'message' => 'Order completed! The Escrow funds have been officially released to the shopkeeper.',
                         'type' => 'system_alert', 
                         'order_id' => $order->id,
                     ]);
                 }
 
-                // Status: Processing (Accepted)
                 if ($request->status === 'processing' && $originalStatus !== 'processing') {
                     \App\Models\Message::create([
                         'sender_id' => $user->id, 
-                        'receiver_id' => $order->customer_id, 
+                        'receiver_id' => $recipientId, 
                         'message' => "Order accepted! Your payment is securely held in our in-app Escrow. We are preparing your items for dispatch.",
                         'type' => 'system_alert', 
                         'order_id' => $order->id,
                     ]);
                 }
 
-                // Status: Dispatched
                 if ($request->status === 'dispatched' && $originalStatus !== 'dispatched') {
                     \App\Models\Message::create([
                         'sender_id' => $user->id, 
-                        'receiver_id' => $order->customer_id, 
+                        'receiver_id' => $recipientId, 
                         'message' => 'Your order has been dispatched and is on its way to you!',
                         'type' => 'system_alert', 
                         'order_id' => $order->id,
                     ]);
                 }
 
-                // Finally, update the order status
                 $order->update([
                     'status' => $request->status
                 ]);

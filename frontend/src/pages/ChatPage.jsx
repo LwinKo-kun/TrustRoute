@@ -28,15 +28,29 @@ export default function ChatPage() {
         }
     }, [userId]);
 
+    // Instantly wipe the red dot from the sidebar when you click on a user
+    useEffect(() => {
+        if (activeUserId && activeUserId !== 'undefined') {
+            setConversations(prev => prev.map(c => 
+                Number(c.id) === Number(activeUserId) ? { ...c, unread_count: 0 } : c
+            ));
+        }
+    }, [activeUserId, messages]);
+
     const fetchConversations = useCallback(async () => {
         try {
-            const res = await api.get('/conversations');
+            const res = await api.get(`/conversations?t=${Date.now()}`);
             const data = res.data.data || res.data;
-            setConversations(Array.isArray(data) ? data : []);
+            
+            if (Array.isArray(data)) {
+                setConversations(data.map(c => 
+                    Number(c.id) === Number(activeUserId) ? { ...c, unread_count: 0 } : c
+                ));
+            }
         } catch (err) {
             console.error('Failed to load conversations', err);
         }
-    }, []);
+    }, [activeUserId]);
 
     useEffect(() => {
         fetchConversations();
@@ -47,7 +61,7 @@ export default function ChatPage() {
     const fetchMessages = useCallback(async (isInitial = false) => {
         if (!activeUserId || activeUserId === 'undefined') return;
         try {
-            const res = await api.get(`/messages/${activeUserId}`);
+            const res = await api.get(`/messages/${activeUserId}?t=${Date.now()}`);
             const data = res.data.data || res.data;
             const fetched = Array.isArray(data) ? data : [];
             
@@ -56,6 +70,9 @@ export default function ChatPage() {
                     if (isInitial || prev.length < fetched.length) {
                         setTimeout(() => scrollToBottom(isInitial ? 'auto' : 'smooth'), 50);
                     }
+                    
+                    // Fire event to tell Header.jsx to update the global count immediately
+                    window.dispatchEvent(new Event('messagesRead'));
                     return fetched;
                 }
                 return prev; 
@@ -170,7 +187,7 @@ export default function ChatPage() {
                                     <button
                                         key={conv.id}
                                         onClick={() => setActiveUserId(conv.id)}
-                                        className={`w-full p-3 rounded-xl transition-all duration-200 flex items-center gap-3 text-left ${
+                                        className={`w-full p-3 rounded-xl transition-all duration-200 flex items-center gap-3 text-left relative ${
                                             isActive
                                                 ? 'bg-blue-600 text-white shadow-md'
                                                 : 'hover:bg-slate-200/60 dark:hover:bg-white/5 border border-transparent'
@@ -185,9 +202,17 @@ export default function ChatPage() {
                                         </div>
                                         <div className="overflow-hidden flex-1">
                                             <div className="flex justify-between items-baseline mb-0.5">
-                                                <h4 className={`font-semibold text-sm truncate ${isActive ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+                                                <h4 className={`font-semibold text-sm truncate pr-2 ${isActive ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                                                     {conv.name || `User #${conv.id}`}
                                                 </h4>
+                                                
+                                                {/* SIDEBAR NOTIFICATION DOT */}
+                                                {!isActive && conv.unread_count > 0 && (
+                                                    <span className="shrink-0 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[9px] font-extrabold text-white shadow-sm">
+                                                        {conv.unread_count > 99 ? '99+' : conv.unread_count}
+                                                    </span>
+                                                )}
+
                                             </div>
                                             <p className={`text-xs truncate ${isActive ? 'text-blue-100' : 'text-slate-400 dark:text-slate-500'}`}>
                                                 {conv.last_message || 'Tap to open chat'}

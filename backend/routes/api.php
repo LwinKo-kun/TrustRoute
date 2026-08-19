@@ -7,7 +7,7 @@ use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ShopController;
-use App\Http\Controllers\Api\WalletController; // <-- ADD THIS IMPORT
+use App\Http\Controllers\Api\WalletController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -68,6 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Message Management Routes
     Route::get('/conversations', [MessageController::class, 'getConversations']);
+    Route::get('/messages/unread-count', [MessageController::class, 'unreadCount']); // MUST be above {receiverId}
     Route::get('/messages/{receiverId}', [MessageController::class, 'getMessages']);
     Route::post('/messages', [MessageController::class, 'sendMessage']);
 
