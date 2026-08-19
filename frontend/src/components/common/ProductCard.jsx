@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { getListingImageUrl } from '../../services/api';
 
 export default function ProductCard({ product, actionButton }) {
+  const shopName = product.shop?.shop_name || product.shop?.name || 'Store';
+  const shopId = product.shop?.id;
+
   return (
     <div className="group border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden bg-white dark:bg-[#0d1326] flex flex-col shadow-sm hover:shadow-md transition">
       <Link to={`/listings/${product.id}`} className="flex flex-col flex-grow">
@@ -17,9 +20,13 @@ export default function ProductCard({ product, actionButton }) {
             }}
           />
           
-          <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider z-20 shadow-sm">
-            {product.shop?.shop_name || product.shop?.name || 'Store'}
-          </div>
+          <Link 
+            to={shopId ? `/shops/${shopId}` : '/marketplace'}
+            onClick={(e) => e.stopPropagation()}
+            className="absolute top-3 left-3 bg-black/70 hover:bg-blue-600 backdrop-blur-md text-white text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider z-20 shadow transition"
+          >
+            🏪 {shopName}
+          </Link>
           
           {product.stock === 0 ? (
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-20">

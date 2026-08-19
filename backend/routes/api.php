@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\WalletController;
+use App\Http\Controllers\Api\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -76,4 +77,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/disputes', [App\Http\Controllers\Api\DisputeController::class, 'index']);
     Route::post('/orders/{order}/disputes', [App\Http\Controllers\Api\DisputeController::class, 'store']);
     Route::patch('/disputes/{dispute}/resolve', [App\Http\Controllers\Api\DisputeController::class, 'resolve']);
+
+    // Profile & Address Management Routes
+    Route::put('/profile', [ProfileController::class, 'updateProfile']);
+    Route::get('/addresses', [ProfileController::class, 'getAddresses']);
+    Route::post('/addresses', [ProfileController::class, 'storeAddress']);
+    Route::delete('/addresses/{id}', [ProfileController::class, 'destroyAddress']);
 });

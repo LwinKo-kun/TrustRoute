@@ -18,10 +18,13 @@ class ListingController extends Controller
         if ($request->has('search') && !empty($request->search)) {
             $searchTerm = '%' . trim($request->search) . '%';
             
-            // Use ILIKE for case-insensitive search in PostgreSQL
+            // Use ILIKE for case-insensitive search in PostgreSQL across title, description, and shop name
             $query->where(function($q) use ($searchTerm) {
                 $q->where('title', 'ILIKE', $searchTerm)
-                ->orWhere('description', 'ILIKE', $searchTerm);
+                  ->orWhere('description', 'ILIKE', $searchTerm)
+                  ->orWhereHas('shop', function($shopQuery) use ($searchTerm) {
+                      $shopQuery->where('shop_name', 'ILIKE', $searchTerm);
+                  });
             });
         }
 

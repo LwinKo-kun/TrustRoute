@@ -1,3 +1,4 @@
+// frontend/src/components/layout/Header.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -136,6 +137,13 @@ export default function Header() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
                 Wallet
+              </Link>
+            )}
+
+            {/* Profile & Settings Navigation Link */}
+            {user && (
+              <Link to="/profile" className="flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 px-3 text-[13px] font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition" title="Profile & Addresses">
+                ⚙️ Settings
               </Link>
             )}
 
