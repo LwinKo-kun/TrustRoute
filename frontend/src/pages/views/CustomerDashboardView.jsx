@@ -1,13 +1,12 @@
+// frontend/src/pages/views/CustomerDashboardView.jsx
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from "../../context/AuthContext";
 import api from '../../services/api';
 import OrderTable from '../../components/common/OrderTable';
 
 export default function CustomerDashboardView() {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -56,8 +55,8 @@ export default function CustomerDashboardView() {
         </div>
       </div>
 
-      {/* Account Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Account Stats Row (Cleaned up: Removed profile card, kept stats & wallet) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="p-6 border border-slate-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#0d1326] shadow-sm">
           <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Active Deliveries</h3>
           <p className="text-4xl font-extrabold text-blue-600 dark:text-cyan-400 mt-2">{activeOrders.length}</p>
@@ -65,14 +64,6 @@ export default function CustomerDashboardView() {
         <div className="p-6 border border-slate-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#0d1326] shadow-sm">
           <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Total Purchases</h3>
           <p className="text-4xl font-extrabold text-slate-900 dark:text-white mt-2">{orders.length}</p>
-        </div>
-        <div className="p-6 border border-slate-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#0d1326] shadow-sm flex flex-col justify-center">
-           <Link to="/profile" className="text-blue-600 dark:text-cyan-400 font-semibold hover:underline flex items-center gap-2">
-              ⚙️ Manage Profile & Addresses ↗
-           </Link>
-           <Link to="/wallet" className="text-blue-600 dark:text-cyan-400 font-semibold hover:underline flex items-center gap-2 mt-3">
-              💳 Manage Escrow Wallet ↗
-           </Link>
         </div>
       </div>
 

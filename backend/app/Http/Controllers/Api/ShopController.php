@@ -37,7 +37,6 @@ class ShopController extends Controller
     {
         $user = $request->user();
 
-        // Enforce rule: One shopkeeper may own only one shop using shopkeeper_id
         if (Shop::where('shopkeeper_id', $user->id)->exists()) {
             return response()->json([
                 'status' => 'error',
@@ -62,13 +61,13 @@ class ShopController extends Controller
     }
 
     /**
-     * Display the specified shop.
+     * Display the specified shop with its listings and owner.
      */
     public function show(Shop $shop): JsonResponse
     {
         return response()->json([
             'status' => 'success',
-            'data' => $shop->load('user'),
+            'data' => $shop->load(['user', 'listings']),
         ]);
     }
 
@@ -99,7 +98,6 @@ class ShopController extends Controller
     {
         $user = $request->user();
 
-        // Enforce rule: Suspended shops cannot be modified except by admins
         if ($shop->status === 'suspended' && $user->role !== 'admin') {
             return response()->json([
                 'status' => 'error',
@@ -128,7 +126,6 @@ class ShopController extends Controller
     {
         $user = $request->user();
 
-        // Only owner or admin can delete using shopkeeper_id
         if ($user->role !== 'admin' && $shop->shopkeeper_id !== $user->id) {
             return response()->json([
                 'status' => 'error',

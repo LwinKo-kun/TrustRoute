@@ -15,8 +15,12 @@ import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import ChatPage from '../pages/ChatPage';
 import WalletPage from '../pages/WalletPage';
-import OrderDetailsPage from '../pages/OrderDetailsPage'; // <-- ORDER DETAILS PAGE IMPORT
+import OrderDetailsPage from '../pages/OrderDetailsPage';
+import ProfileSettingsPage from '../pages/ProfileSettingsPage'; // <-- NEW PROFILE SETTINGS
+import AddressBookPage from '../pages/AddressBookPage';       // <-- NEW ADDRESS BOOK
+import NotFoundPage from '../pages/NotFoundPage';             // <-- NEW 404 PAGE
 import ProtectedRoute from './ProtectedRoute';
+import ShopProfilePage from '../pages/ShopProfilePage';
 
 export default function AppRoutes() {
   return (
@@ -42,6 +46,10 @@ export default function AppRoutes() {
         
         {/* Wallet Route */}
         <Route path="/wallet" element={<WalletPage />} />
+
+        {/* Profile & Address Book Routes */}
+        <Route path="/profile" element={<ProfileSettingsPage />} />
+        <Route path="/addresses" element={<AddressBookPage />} />
         
         {/* Shop Routes */}
         <Route path="/shop/create" element={<ShopCreatePage />} />
@@ -54,13 +62,15 @@ export default function AppRoutes() {
 
         {/* Checkout, Orders & Chat Routes */}
         <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/orders/:orderId" element={<OrderDetailsPage />} /> {/* <-- ORDER DETAILS ROUTE */}
+        <Route path="/orders/:orderId" element={<OrderDetailsPage />} />
         <Route path="/chat/:userId" element={<ChatPage />} />
         <Route path="/chat" element={<ChatPage />} />
       </Route>
 
-      {/* Catch-all Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* Catch-all 404 Fallback */}
+      <Route path="*" element={<NotFoundPage />} />
+
+      <Route path="/shops/:id" element={<ShopProfilePage />} />
     </Routes>
   );
 }

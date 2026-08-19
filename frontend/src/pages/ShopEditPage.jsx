@@ -1,140 +1,93 @@
-// src/pages/ShopEditPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 export default function ShopEditPage() {
   const navigate = useNavigate();
+  const [shopId, setShopId] = useState(null);
   const [shopName, setShopName] = useState('');
-  const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
-  const [kpayNumber, setKpayNumber] = useState('');
-  const [shop, setShop] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    api.get('/my-shop')
-      .then((res) => {
-        const data = res.data.data;
-        setShop(data);
-        setShopName(data.shop_name || '');
-        setSlug(data.slug || '');
-        setDescription(data.description || '');
-        setKpayNumber(data.kpay_number || '');
-      })
-      .catch(() => setError('Failed to load shop details.'))
-      .finally(() => setLoading(false));
+    const fetchShop = async () => {
+      try {
+        const res = await api.get('/my-shop');
+        const shop = res.data?.data || res.data;
+        setShopId(shop.id);
+        setShopName(shop.shop_name || '');
+        setDescription(shop.description || '');
+      } catch (err) {
+        setError('Failed to load your store details.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchShop();
   }, []);
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+    setSaving(true);
+    setError(null);
+
     try {
-      setError(null);
-      setSubmitting(true);
-      await api.put(`/shops/${shop.id}`, { 
-        shop_name: shopName, 
-        slug, 
-        description, 
-        kpay_number: kpayNumber 
+      await api.put(`/shops/${shopId}`, {
+        shop_name: shopName,
+        description: description,
       });
+      alert('Store settings updated successfully!');
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update shop.');
+      setError(err.response?.data?.message || 'Failed to update store.');
     } finally {
-      setSubmitting(false);
+      setSaving(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete your shop? This action is irreversible.')) return;
-    try {
-      await api.delete(`/shops/${shop.id}`);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to delete shop.');
-    }
-  };
-
-  if (loading) return <p className="p-6 text-sm opacity-60">Loading store management...</p>;
+  if (loading) return <div className="text-center py-24 text-slate-400">Loading store settings...</div>;
 
   return (
-    <div className="p-8 max-w-xl mx-auto flex flex-col gap-6 bg-[var(--card-bg, transparent)] border border-[var(--border)] rounded-2xl shadow-sm mt-6 mb-12">
-      <div>
-        <span className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">Configuration</span>
-        <h1 className="text-2xl font-extrabold mt-1">Manage Store Profile</h1>
-        <p className="text-sm opacity-70 mt-1">Update your public brand identity, payment methods, or remove store data.</p>
-      </div>
+    <div className="max-w-2xl mx-auto px-4 py-12">
+      <div className="bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 rounded-3xl p-8 shadow-sm">
+        <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Manage Store Profile</h1>
+        <p className="text-sm text-slate-500 mb-6">Update your store name and custom description.</p>
 
-      {error && <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-500 rounded-lg text-sm">{error}</div>}
-      
-      <form onSubmit={handleUpdate} className="flex flex-col gap-4">
-        <div>
-          <label className="block text-xs font-semibold uppercase opacity-70 mb-1">Shop Name</label>
-          <input
-            type="text"
-            value={shopName}
-            onChange={(e) => setShopName(e.target.value)}
-            required
-            className="w-full px-4 py-2.5 border border-[var(--border)] rounded-xl bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition"
-          />
-        </div>
+        {error && <div className="p-4 mb-6 bg-red-100 text-red-700 rounded-xl text-sm font-semibold">{error}</div>}
 
-        <div>
-          <label className="block text-xs font-semibold uppercase opacity-70 mb-1">Slug URL Identifier</label>
-          <input
-            type="text"
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
-            required
-            className="w-full px-4 py-2.5 border border-[var(--border)] rounded-xl bg-transparent text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition"
-          />
-        </div>
+        <form onSubmit={handleUpdate} className="flex flex-col gap-6">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Store Name</label>
+            <input 
+              type="text" 
+              value={shopName} 
+              onChange={(e) => setShopName(e.target.value)} 
+              className="w-full p-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-transparent text-slate-900 dark:text-white text-sm"
+              required 
+            />
+          </div>
 
-        <div>
-          <label className="block text-xs font-semibold uppercase opacity-70 mb-1">KBZ Pay (KPay) Number</label>
-          <input
-            type="text"
-            value={kpayNumber}
-            onChange={(e) => setKpayNumber(e.target.value)}
-            placeholder="e.g., 09123456789"
-            className="w-full px-4 py-2.5 border border-[var(--border)] rounded-xl bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition"
-          />
-          <p className="text-[11px] opacity-60 mt-1">Customers will be instructed to send payments to this phone number when orders are accepted.</p>
-        </div>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Store Description</label>
+            <textarea 
+              value={description} 
+              onChange={(e) => setDescription(e.target.value)} 
+              rows="4"
+              className="w-full p-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-transparent text-slate-900 dark:text-white text-sm"
+            />
+          </div>
 
-        <div>
-          <label className="block text-xs font-semibold uppercase opacity-70 mb-1">Store Description</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows="3"
-            placeholder="Tell customers about your store..."
-            className="w-full px-4 py-2.5 border border-[var(--border)] rounded-xl bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition resize-none"
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={submitting}
-          className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition w-full mt-2 shadow-md"
-        >
-          {submitting ? 'Saving Changes...' : 'Update Shop Profile'}
-        </button>
-      </form>
-
-      {shop && (
-        <div className="mt-4 pt-6 border-t border-[var(--border)] flex flex-col gap-3">
-          <h3 className="text-red-500 text-xs font-bold uppercase tracking-wider">Danger Zone</h3>
-          <button
-            onClick={handleDelete}
-            className="px-4 py-2.5 bg-red-500/10 border border-red-500/30 text-red-500 text-sm font-medium rounded-xl hover:bg-red-500 hover:text-white transition w-full text-center"
+          <button 
+            type="submit" 
+            disabled={saving} 
+            className="py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow transition disabled:opacity-50"
           >
-            Permanently Delete Shop
+            {saving ? 'Saving...' : 'Save Changes'}
           </button>
-        </div>
-      )}
+        </form>
+      </div>
     </div>
   );
 }
