@@ -1,54 +1,68 @@
-// src/pages/views/AdminDashboardView.jsx
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
 export default function AdminDashboardView({ data }) {
   const { user } = useAuth();
-  const stats = data?.stats || {};
-
+  const navigate = useNavigate();
+  
   const [orders, setOrders] = useState([]);
+  const [disputes, setDisputes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [disputeError, setDisputeError] = useState(null); // <-- Added error tracking
   const [filterStatus, setFilterStatus] = useState('all');
 
   useEffect(() => {
-    const fetchAllOrders = async () => {
+    const fetchAdminData = async () => {
+      setLoading(true);
+      
+      // 1. Fetch Orders Independently
       try {
-        const response = await api.get('/orders');
-        const orderData = response.data.data || response.data.items || response.data;
-        setOrders(Array.isArray(orderData) ? orderData : []);
+        const ordersRes = await api.get('/orders');
+        setOrders(ordersRes.data?.data || ordersRes.data || []);
       } catch (err) {
-        console.error('Failed to fetch platform orders', err);
-        setError('Failed to load global transactions.');
-      } finally {
-        setLoading(false);
+        console.error('Failed to fetch orders', err);
       }
-    };
 
-    fetchAllOrders();
+      // 2. Fetch Disputes Independently (Won't crash orders if it fails)
+      try {
+        const disputesRes = await api.get('/disputes');
+        setDisputes(disputesRes.data?.data || disputesRes.data || []);
+      } catch (err) {
+        console.error('Failed to fetch disputes', err);
+        setDisputeError(err.response?.data?.message || err.message || "Failed to load disputes API.");
+      }
+
+      setLoading(false);
+    };
+    
+    fetchAdminData();
   }, []);
 
-  // Admin Arbitration Override (Force Resolve / Force Refund via 2PC status endpoint)
-  const handleAdminOverrideStatus = async (orderId, newStatus) => {
-    if (!window.confirm(`ADMIN ACTION: Force update order #${orderId} to status "${newStatus}"? This will execute 2PC commitment/rollback rules immediately.`)) return;
+  const handleResolveDispute = async (disputeId, resolutionType) => {
+    const resolutionText = resolutionType === 'resolved_refund' ? "REFUND BUYER" : "PAY SELLER (Penalize Buyer)";
+    const adminNotes = window.prompt(`Enter arbitration notes for resolution: ${resolutionText}`);
+    
+    if (!adminNotes) return;
 
     try {
-      await api.patch(`/orders/${orderId}/status`, { status: newStatus });
-      // Refresh orders list
-      const response = await api.get('/orders');
-      const orderData = response.data.data || response.data.items || response.data;
-      setOrders(Array.isArray(orderData) ? orderData : []);
-      alert(`Order #${orderId} successfully overridden to ${newStatus}.`);
+      await api.patch(`/disputes/${disputeId}/resolve`, { 
+        resolution: resolutionType,
+        admin_notes: adminNotes
+      });
+      alert(`Dispute resolved. Action: ${resolutionText}`);
+      
+      // Refresh Data safely
+      const [ordersRes, disputesRes] = await Promise.allSettled([api.get('/orders'), api.get('/disputes')]);
+      if (ordersRes.status === 'fulfilled') setOrders(ordersRes.value.data?.data || []);
+      if (disputesRes.status === 'fulfilled') setDisputes(disputesRes.value.data?.data || []);
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to execute admin override.');
+      alert(err.response?.data?.message || 'Failed to resolve dispute.');
     }
   };
 
-  const filteredOrders = filterStatus === 'all' 
-    ? orders 
-    : orders.filter(o => o.status === filterStatus);
+  const filteredOrders = filterStatus === 'all' ? orders : orders.filter(o => o.status === filterStatus);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-8 transition-colors duration-300">
@@ -60,113 +74,82 @@ export default function AdminDashboardView({ data }) {
           <span className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">Admin Arbitration Center</span>
         </div>
         <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">Administrator: {user?.name}</h1>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-          Handle global transactions, execute 2PC financial overrides, resolve disputes, and maintain platform stability.
-        </p>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Handle global transactions, resolve disputes, and mediate escrow funds.</p>
       </div>
 
-      {/* Stats */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 border border-slate-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#0d1326] shadow-sm transition-colors duration-300">
-          <h3 className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Network Nodes</h3>
-          <p className="text-4xl font-extrabold text-slate-900 dark:text-white mt-2">{stats.active_nodes ?? '--'}</p>
-        </div>
-        <div className="p-6 border border-slate-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#0d1326] shadow-sm transition-colors duration-300">
-          <h3 className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Active Disputes</h3>
-          <p className="text-4xl font-extrabold text-red-500 dark:text-red-400 mt-2">{stats.system_alerts ?? 0}</p>
-        </div>
-        <div className="p-6 border border-slate-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#0d1326] shadow-sm transition-colors duration-300">
-          <h3 className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Total Platform Orders</h3>
+        <div className="p-6 border border-slate-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#0d1326] shadow-sm">
+          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Total Orders</h3>
           <p className="text-4xl font-extrabold text-slate-900 dark:text-white mt-2">{orders.length}</p>
         </div>
+        <div className="p-6 border border-slate-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#0d1326] shadow-sm">
+          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Active Disputes</h3>
+          <p className="text-4xl font-extrabold text-red-500 mt-2">{disputes.filter(d => d.status === 'open' || d.status === 'investigating').length}</p>
+        </div>
+        <div className="p-6 border border-slate-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#0d1326] shadow-sm">
+          <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Resolved Disputes</h3>
+          <p className="text-4xl font-extrabold text-emerald-500 mt-2">{disputes.filter(d => d.status === 'resolved_refund' || d.status === 'resolved_penalize').length}</p>
+        </div>
       </div>
 
-      {/* Global Orders & Transactions Management Section */}
-      <div className="bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 dark:border-white/5 pb-4">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Global Transactions & Arbitration Ledger</h2>
-          
-          {/* Status Filter Tabs */}
-          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-white/5 p-1 rounded-xl text-xs font-semibold">
-            {['all', 'pending', 'processing', 'dispatched', 'completed', 'cancelled'].map((status) => (
-              <button
-                key={status}
-                onClick={() => setFilterStatus(status)}
-                className={`px-3 py-1.5 rounded-lg uppercase tracking-wider transition ${
-                  filterStatus === status 
-                    ? 'bg-blue-600 text-white shadow-sm' 
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                {status}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* --- DISPUTES ARBITRATION SECTION --- */}
+      <div className="bg-white dark:bg-[#0d1326] border border-rose-200 dark:border-rose-900/50 rounded-2xl p-6 shadow-sm">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            ⚠️ Active Disputes Requires Attention
+        </h2>
         
         {loading ? (
-          <p className="text-sm text-slate-500 py-6 text-center">Loading global transactions...</p>
-        ) : error ? (
-          <p className="text-sm text-red-500 py-6">{error}</p>
-        ) : filteredOrders.length === 0 ? (
-          <p className="text-sm text-slate-500 py-6 text-center">No platform orders found matching filter "{filterStatus}".</p>
+            <p className="text-sm py-4 text-center">Loading disputes...</p>
+        ) : disputeError ? (
+            <div className="p-4 bg-red-100 text-red-700 rounded-lg text-sm font-bold border border-red-200">
+                Backend Error: {disputeError} <br/><span className="font-normal mt-1 block">Check your routes/api.php and DisputeController.</span>
+            </div>
+        ) : disputes.length === 0 ? (
+          <p className="text-sm text-slate-500 py-4 text-center">No disputes recorded.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
               <thead className="bg-slate-50 dark:bg-white/5 uppercase text-[10px] tracking-wider text-slate-400 border-b border-slate-200 dark:border-white/10">
                 <tr>
                   <th className="p-3">Order ID</th>
-                  <th className="p-3">Customer ID</th>
-                  <th className="p-3">Shop ID</th>
-                  <th className="p-3">Total Amount</th>
+                  <th className="p-3">Raised By</th>
+                  <th className="p-3 w-1/3">Reason</th>
                   <th className="p-3">Status</th>
-                  <th className="p-3">Date</th>
-                  <th className="p-3 text-right">Arbitration Actions</th>
+                  <th className="p-3 text-right">Arbitration Decision</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-white/5">
-                {filteredOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                    <td className="p-3 font-bold">
-                      <Link to={`/orders/${order.id}`} className="text-blue-600 dark:text-cyan-400 hover:underline">
-                        #{order.id} ↗
-                      </Link>
+                {disputes.map((dispute) => (
+                  <tr key={dispute.id} className="hover:bg-slate-50 dark:hover:bg-white/5">
+                    <td className="p-3 font-bold text-blue-600 dark:text-cyan-400 cursor-pointer" onClick={() => navigate(`/orders/${dispute.order_id}`)}>
+                      #{dispute.order_id} ↗
                     </td>
-                    <td className="p-3">User #{order.customer_id}</td>
-                    <td className="p-3">Shop #{order.shop_id}</td>
-                    <td className="p-3 font-semibold text-slate-900 dark:text-white">${order.total_amount}</td>
+                    <td className="p-3 font-medium">{dispute.initiator?.name || `User #${dispute.raised_by}`}</td>
+                    <td className="p-3 text-xs opacity-90 truncate max-w-xs">{dispute.reason}</td>
                     <td className="p-3">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        order.status === 'completed' ? 'bg-green-500/20 text-green-500' :
-                        order.status === 'paid' || order.status === 'dispatched' ? 'bg-purple-500/20 text-purple-500' :
-                        order.status === 'processing' ? 'bg-yellow-500/20 text-yellow-500' :
-                        order.status === 'cancelled' ? 'bg-red-500/20 text-red-500' :
-                        'bg-slate-500/20 text-slate-400'
+                      <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
+                        dispute.status === 'open' ? 'bg-amber-100 text-amber-700' :
+                        dispute.status === 'resolved_refund' ? 'bg-rose-100 text-rose-700' :
+                        'bg-emerald-100 text-emerald-700'
                       }`}>
-                        {order.status}
+                        {/* Safe replace to prevent React crash */}
+                        {(dispute.status || 'open').replace('_', ' ')} 
                       </span>
                     </td>
-                    <td className="p-3 text-xs opacity-70">
-                      {new Date(order.created_at).toLocaleDateString()}
-                    </td>
                     <td className="p-3 text-right">
-                      <div className="flex justify-end gap-2">
-                        <Link
-                          to={`/orders/${order.id}`}
-                          className="px-3 py-1.5 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold hover:bg-slate-200 dark:hover:bg-white/20 transition shadow-sm"
-                        >
-                          Inspect
-                        </Link>
-                        {order.status !== 'completed' && order.status !== 'cancelled' && (
-                          <button
-                            onClick={() => handleAdminOverrideStatus(order.id, 'cancelled')}
-                            className="px-3 py-1.5 bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 rounded-lg text-xs font-semibold hover:bg-rose-100 dark:hover:bg-rose-900 transition shadow-sm"
-                            title="Force cancel and trigger escrow refund"
-                          >
-                            Force Refund
+                      {(dispute.status === 'open' || dispute.status === 'investigating') ? (
+                        <div className="flex justify-end gap-2">
+                          <button onClick={() => handleResolveDispute(dispute.id, 'resolved_refund')} className="px-3 py-1.5 bg-rose-600 text-white rounded text-xs font-bold shadow-sm hover:bg-rose-700 transition">
+                            Refund Buyer
                           </button>
-                        )}
-                      </div>
+                          <button onClick={() => handleResolveDispute(dispute.id, 'resolved_penalize')} className="px-3 py-1.5 bg-emerald-600 text-white rounded text-xs font-bold shadow-sm hover:bg-emerald-700 transition">
+                            Pay Seller
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs italic opacity-70">Resolved</span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -175,6 +158,60 @@ export default function AdminDashboardView({ data }) {
           </div>
         )}
       </div>
+
+      {/* --- GLOBAL ORDERS SECTION --- */}
+      <div className="bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 dark:border-white/5 pb-4 mb-4">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Global Transactions Ledger</h2>
+          <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 dark:bg-white/5 p-1 rounded-xl text-xs font-semibold">
+            {['all', 'pending', 'processing', 'dispatched', 'completed', 'cancelled', 'disputed'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilterStatus(status)}
+                className={`px-3 py-1.5 rounded-lg uppercase tracking-wider transition ${
+                  filterStatus === status ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        {loading ? <p className="text-sm py-4 text-center">Loading transactions...</p> : filteredOrders.length === 0 ? (
+          <p className="text-sm text-slate-500 py-4 text-center">No orders match "{filterStatus}".</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+              <thead className="bg-slate-50 dark:bg-white/5 uppercase text-[10px] tracking-wider text-slate-400 border-b border-slate-200 dark:border-white/10">
+                <tr>
+                  <th className="p-3">Order ID</th>
+                  <th className="p-3">Total Amount</th>
+                  <th className="p-3">Status</th>
+                  <th className="p-3">Date</th>
+                  <th className="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-white/5">
+                {filteredOrders.slice(0, 15).map((order) => (
+                  <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-white/5">
+                    <td className="p-3 font-bold">#{order.id}</td>
+                    <td className="p-3 font-semibold text-blue-600 dark:text-cyan-400">${order.total_amount}</td>
+                    <td className="p-3 uppercase text-[10px] font-bold">{order.status}</td>
+                    <td className="p-3 text-xs opacity-70">{new Date(order.created_at).toLocaleDateString()}</td>
+                    <td className="p-3 text-right">
+                      <button onClick={() => navigate(`/orders/${order.id}`)} className="px-3 py-1.5 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold hover:bg-slate-200 transition">
+                        Inspect
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }

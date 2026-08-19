@@ -1,4 +1,3 @@
-// src/pages/CheckoutPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
@@ -15,18 +14,23 @@ export default function CheckoutPage() {
     const [walletBalance, setWalletBalance] = useState(0);
 
     useEffect(() => {
-        setCartItems(getCart(user));
-        // Fetch wallet balance
+        const items = getCart(user);
+        setCartItems(items);
+        
         api.get('/wallet').then(res => {
-            setWalletBalance(Number(res.data.data.balance));
+            const balance = res.data?.data?.balance || res.data?.balance || 0;
+            setWalletBalance(Number(balance));
         }).catch(err => console.error("Failed to fetch wallet", err));
     }, [user]);
 
     const orderTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const hasEnoughBalance = walletBalance >= orderTotal;
 
+    const uniqueShops = new Set(cartItems.map(item => item.shop_id));
+    const hasMixedShops = uniqueShops.size > 1;
+
     const handlePlaceOrder = async () => {
-        if (cartItems.length === 0) return;
+        if (cartItems.length === 0 || hasMixedShops) return;
 
         const shopId = cartItems[0].shop_id; 
         const items = cartItems.map(item => ({
@@ -42,20 +46,30 @@ export default function CheckoutPage() {
             
             clearCart(user);
             
-            const shopkeeperId = response.data.data.shop.shopkeeper_id;
-            navigate(`/chat/${shopkeeperId}`); 
+            const shopkeeperId = response.data?.data?.shop?.shopkeeper_id || response.data?.shop?.shopkeeper_id;
+            
+            if (shopkeeperId) {
+                navigate(`/chat/${shopkeeperId}`);
+            } else {
+                navigate('/dashboard'); 
+            }
             
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to place order.');
-        } finally {
             setLoading(false);
-        }
+        } 
     };
 
     return (
         <div className="max-w-xl mx-auto py-10 px-4 flex flex-col gap-6 w-full">
             <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">Checkout</h1>
             
+            {hasMixedShops && (
+                <div className="p-4 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl text-sm font-semibold border border-amber-500/20">
+                    Your cart contains items from multiple shops. TrustRoute requires checking out from one shop at a time. Please clear or adjust your cart.
+                </div>
+            )}
+
             {error && <p className="p-4 bg-red-500/10 text-red-500 rounded-xl text-sm font-semibold">{error}</p>}
             
             {cartItems.length > 0 ? (
@@ -76,7 +90,6 @@ export default function CheckoutPage() {
                         </div>
                     </div>
 
-                    {/* Wallet Integration Section */}
                     <div className={`p-6 rounded-2xl border ${hasEnoughBalance ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-500/20' : 'bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-500/20'}`}>
                         <div className="flex justify-between items-center mb-2">
                             <span className="font-bold text-sm">Wallet Balance</span>
@@ -99,7 +112,7 @@ export default function CheckoutPage() {
                     
                     <button 
                         onClick={handlePlaceOrder}
-                        disabled={loading || !hasEnoughBalance}
+                        disabled={loading || !hasEnoughBalance || hasMixedShops}
                         className="w-full py-4 bg-blue-600 hover:bg-blue-700 dark:bg-gradient-to-r dark:from-blue-600 dark:to-cyan-500 text-white font-bold rounded-2xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
                         {loading ? 'Processing Escrow Lock...' : 'Confirm & Place Order'}

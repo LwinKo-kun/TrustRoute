@@ -70,4 +70,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/conversations', [MessageController::class, 'getConversations']);
     Route::get('/messages/{receiverId}', [MessageController::class, 'getMessages']);
     Route::post('/messages', [MessageController::class, 'sendMessage']);
+
+    // Dispute Management Routes
+    Route::get('/disputes', [App\Http\Controllers\Api\DisputeController::class, 'index']);
+    Route::post('/orders/{order}/disputes', [App\Http\Controllers\Api\DisputeController::class, 'store']);
+    Route::patch('/disputes/{dispute}/resolve', [App\Http\Controllers\Api\DisputeController::class, 'resolve']);
 });

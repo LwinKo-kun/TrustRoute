@@ -20,7 +20,6 @@ class WalletController extends Controller
         $user = $request->user();
         $wallet = $user->wallet;
 
-        // Calculate Incoming Escrow for Shopkeepers
         $incomingEscrow = 0;
         if ($user->role === 'shopkeeper') {
             $shopIds = \App\Models\Shop::where('shopkeeper_id', $user->id)->pluck('id');
@@ -33,8 +32,8 @@ class WalletController extends Controller
         return response()->json([
             'data' => [
                 'balance' => $wallet->balance,
-                'locked_balance' => $wallet->locked_balance, // Their own locked funds
-                'incoming_escrow' => (float) $incomingEscrow, // Funds locked by others FOR them
+                'locked_balance' => $wallet->locked_balance, 
+                'incoming_escrow' => (float) $incomingEscrow, 
             ]
         ]);
     }
@@ -58,7 +57,7 @@ class WalletController extends Controller
 
     public function transactions(Request $request)
     {
-        $transactions = $request->user()->wallet->transactions()->latest()->get();
+        $transactions = $request->user()->wallet->transactions()->latest()->limit(50)->get();
         return response()->json([
             'data' => $transactions
         ]);

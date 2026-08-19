@@ -1,4 +1,3 @@
-// src/pages/ChatPage.jsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
@@ -23,14 +22,12 @@ export default function ChatPage() {
         }
     };
 
-    // Sync URL param
     useEffect(() => {
         if (userId && userId !== 'undefined') {
             setActiveUserId(userId);
         }
     }, [userId]);
 
-    // 1. Fetch Conversations
     const fetchConversations = useCallback(async () => {
         try {
             const res = await api.get('/conversations');
@@ -47,7 +44,6 @@ export default function ChatPage() {
         return () => clearInterval(convInterval);
     }, [fetchConversations]);
 
-    // 2. Fetch Messages and force auto-refresh state updates for statuses
     const fetchMessages = useCallback(async (isInitial = false) => {
         if (!activeUserId || activeUserId === 'undefined') return;
         try {
@@ -56,7 +52,6 @@ export default function ChatPage() {
             const fetched = Array.isArray(data) ? data : [];
             
             setMessages((prev) => {
-                // Always sync to capture real-time order status changes inside chat bubbles
                 if (isInitial || prev.length !== fetched.length || JSON.stringify(prev) !== JSON.stringify(fetched)) {
                     if (isInitial || prev.length < fetched.length) {
                         setTimeout(() => scrollToBottom(isInitial ? 'auto' : 'smooth'), 50);
@@ -76,7 +71,6 @@ export default function ChatPage() {
         return () => clearInterval(msgInterval);
     }, [fetchMessages]);
 
-    // 3. Send Text Message
     const handleSendMessage = async (e) => {
         e.preventDefault();
         if (!newMessage.trim() || !activeUserId || isSending) return;
@@ -103,7 +97,6 @@ export default function ChatPage() {
         }
     };
 
-    // 4. Handle 2PC Escrow/Order Status Transitions with Immediate Refresh
     const handleUpdateOrderStatus = async (orderId, newStatus) => {
         let confirmationMessage = "Are you sure you want to update this order?";
         
@@ -119,7 +112,7 @@ export default function ChatPage() {
 
         try {
             await api.patch(`/orders/${orderId}/status`, { status: newStatus });
-            await fetchMessages(true); // Force immediate refresh
+            await fetchMessages(true); 
             await fetchConversations();
         } catch (err) {
             console.error(`Failed to update order status to ${newStatus}`, err);
@@ -147,7 +140,6 @@ export default function ChatPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-80px)] flex flex-col transition-colors duration-300">
             <div className="flex flex-1 border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden bg-white dark:bg-[#0d1326] shadow-sm min-h-0 transition-colors duration-300">
 
-                {/* Sidebar: Conversation List */}
                 <div className="w-full sm:w-80 md:w-96 border-r border-slate-200 dark:border-white/10 flex flex-col bg-slate-50/50 dark:bg-[#0a0f1d]/50">
                     <div className="p-4 border-b border-slate-200 dark:border-white/10 shrink-0 flex flex-col gap-3">
                         <div className="flex items-center justify-between">
@@ -208,11 +200,9 @@ export default function ChatPage() {
                     </div>
                 </div>
 
-                {/* Right: Message Stream */}
                 <div className="flex-1 flex flex-col bg-slate-50/30 dark:bg-[#070b1c]/30 min-h-0">
                     {activeUserId && activeUserId !== 'undefined' ? (
                         <>
-                            {/* Chat Topbar */}
                             <div className="px-6 py-4 border-b border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#0d1326]/80 backdrop-blur-md flex items-center justify-between shrink-0 shadow-sm">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 text-white font-bold flex items-center justify-center text-sm shadow-sm">
@@ -230,7 +220,6 @@ export default function ChatPage() {
                                 </div>
                             </div>
 
-                            {/* Messages Container */}
                             <div className="p-6 flex-1 overflow-y-auto flex flex-col gap-3 min-h-0 custom-scrollbar">
                                 {messages.length === 0 ? (
                                     <div className="m-auto text-center text-slate-400 dark:text-slate-500 text-sm flex flex-col items-center gap-2">
@@ -239,7 +228,7 @@ export default function ChatPage() {
                                     </div>
                                 ) : (
                                     messages.map((msg, index) => {
-                                        const isMe = Number(msg.sender_id) !== Number(activeUserId);
+                                        const isMe = Number(msg.sender_id) === Number(currentUser?.id);
                                         const isOrderRequest = msg.type === 'order_request';
 
                                         return (
@@ -256,18 +245,15 @@ export default function ChatPage() {
                                                             : 'bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white rounded-bl-none'
                                                     }`}
                                                 >
-                                                    {/* Plain Text or System Alerts */}
                                                     {(msg.type === 'text' || msg.type === 'system_alert') && (
                                                         <p className="leading-relaxed whitespace-pre-wrap select-text">{msg.message}</p>
                                                     )}
 
-                                                    {/* Escrow/Order Status Card */}
                                                     {isOrderRequest && msg.order && (
                                                         <div className="flex flex-col gap-2.5 min-w-[280px]">
                                                             <div className="bg-black/10 dark:bg-black/40 p-4 rounded-xl border border-white/20 dark:border-white/10 shadow-inner">
                                                                 <div className="flex justify-between items-center mb-3 pb-3 border-b border-white/15">
                                                                     
-                                                                    {/* CLICKABLE ORDER LINK */}
                                                                     <Link 
                                                                         to={`/orders/${msg.order.id}`} 
                                                                         className="font-extrabold text-sm tracking-wide hover:text-blue-300 dark:hover:text-cyan-300 transition underline decoration-dashed underline-offset-4 cursor-pointer"
@@ -306,7 +292,6 @@ export default function ChatPage() {
                                                             
                                                             <p className="text-xs opacity-90 italic px-1 mt-1">{msg.message}</p>
                                                             
-                                                            {/* --- ACTIONS FOR SHOPKEEPER --- */}
                                                             {!isMe && currentUser?.role === 'shopkeeper' && (
                                                                 <div className="flex flex-col gap-2 mt-2">
                                                                     {msg.order.status === 'pending' && (
@@ -324,7 +309,6 @@ export default function ChatPage() {
                                                                 </div>
                                                             )}
 
-                                                            {/* --- ACTIONS FOR CUSTOMER --- */}
                                                             {isMe && currentUser?.role === 'customer' && (
                                                                 <div className="flex flex-col gap-2 mt-2">
                                                                     {msg.order.status === 'pending' && (
@@ -352,7 +336,6 @@ export default function ChatPage() {
                                 <div ref={messagesEndRef} />
                             </div>
 
-                            {/* Message Composer */}
                             <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200 dark:border-white/10 bg-white dark:bg-[#0d1326] flex items-center gap-3 shrink-0">
                                 <input
                                     type="text"

@@ -1,4 +1,3 @@
-// src/pages/views/ShopkeeperDashboardView.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from "../../context/AuthContext";
@@ -70,11 +69,7 @@ export default function ShopkeeperDashboardView({ data }) {
           <tbody className="divide-y divide-slate-200 dark:divide-white/5">
             {orderList.map((order) => (
               <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                <td className="p-3 font-bold">
-                  <Link to={`/orders/${order.id}`} className="text-blue-600 dark:text-cyan-400 hover:underline">
-                    #{order.id}
-                  </Link>
-                </td>
+                <td className="p-3 font-bold text-slate-900 dark:text-white">#{order.id}</td>
                 <td className="p-3">{order.customer?.name || `User #${order.customer_id}`}</td>
                 <td className="p-3 font-semibold text-slate-900 dark:text-white">${order.total_amount}</td>
                 <td className="p-3">
@@ -92,12 +87,12 @@ export default function ShopkeeperDashboardView({ data }) {
                   {new Date(order.created_at).toLocaleDateString()}
                 </td>
                 <td className="p-3 text-right">
-                  <Link
-                    to={`/orders/${order.id}`}
+                  <button
+                    onClick={() => navigate(`/orders/${order.id}`)}
                     className="px-4 py-2 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-cyan-400 rounded-lg text-xs font-semibold hover:bg-blue-100 dark:hover:bg-blue-900 transition shadow-sm inline-block"
                   >
                     View Details
-                  </Link>
+                  </button>
                 </td>
               </tr>
             ))}

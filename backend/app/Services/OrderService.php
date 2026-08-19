@@ -8,6 +8,7 @@ use App\Models\Shop;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Exception;
 
 class OrderService
@@ -22,6 +23,10 @@ class OrderService
     public function createOrder(int $customerId, array $data): Order
     {
         return DB::transaction(function () use ($customerId, $data) {
+            if (empty($data['items'])) {
+                throw new Exception("Order must contain at least one item.");
+            }
+
             $customer = User::findOrFail($customerId);
             $shopId = $data['shop_id'];
             $shop = Shop::findOrFail($shopId);
@@ -49,25 +54,23 @@ class OrderService
                 ];
             }
 
+            $escrowHash = hash('sha256', $customerId . $shopId . time() . Str::random(16));
+
             $order = Order::create([
                 'customer_id' => $customerId,
                 'shop_id' => $shopId,
                 'delivery_id' => null,
                 'total_amount' => $totalAmount,
                 'status' => 'pending',
-                'escrow_tx_hash' => null,
+                'escrow_tx_hash' => $escrowHash,
             ]);
 
             foreach ($validatedItems as $item) {
                 $order->items()->create($item);
             }
 
-            // 2PC PHASE 1: Lock the funds in Escrow
-            // If the user doesn't have enough balance, this will throw an exception 
-            // and roll back the entire transaction (stock deductions, order creation).
             $this->walletService->lockForOrder($customer, $totalAmount, $order);
 
-            // AUTO-INJECT CHAT MESSAGE
             Message::create([
                 'sender_id' => $customerId,
                 'receiver_id' => $shop->shopkeeper_id,

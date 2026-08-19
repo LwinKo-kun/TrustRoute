@@ -1,5 +1,3 @@
-// src/utils/cartStorage.js
-
 export const getCart = (user = null) => {
   try {
     const key = user?.id ? `cart_user_${user.id}` : 'cart';
@@ -18,7 +16,6 @@ export const clearCart = (user = null) => {
   window.dispatchEvent(new Event('cartUpdated'));
 };
 
-// NEW: Centralized Add To Cart logic
 export const addToCartSecure = (user, listing, quantity = 1) => {
   const key = user?.id ? `cart_user_${user.id}` : 'cart';
   const cart = getCart(user);
@@ -26,8 +23,15 @@ export const addToCartSecure = (user, listing, quantity = 1) => {
   const existingIndex = cart.findIndex((item) => item.id === listing.id);
   
   if (existingIndex > -1) {
-    cart[existingIndex].quantity += quantity;
+    const newQuantity = cart[existingIndex].quantity + quantity;
+    if (newQuantity > listing.stock) {
+      console.warn(`Cannot add more than available stock (${listing.stock})`);
+      return false; 
+    }
+    cart[existingIndex].quantity = newQuantity;
   } else {
+    if (quantity > listing.stock) return false;
+    
     cart.push({
       ...listing,
       price: Number(listing.price) || 0,
@@ -37,4 +41,5 @@ export const addToCartSecure = (user, listing, quantity = 1) => {
 
   localStorage.setItem(key, JSON.stringify({ timestamp: Date.now(), items: cart }));
   window.dispatchEvent(new Event('cartUpdated'));
+  return true;
 };
