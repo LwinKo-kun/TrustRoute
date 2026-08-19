@@ -17,6 +17,7 @@ export default function ShopProfilePage() {
     const fetchShopProfile = async () => {
       try {
         setLoading(true);
+        // Ensure your API returns the shop object including the description field
         const res = await api.get(`/shops/${id}`);
         setShop(res.data?.data || res.data);
       } catch (err) {
@@ -65,6 +66,7 @@ export default function ShopProfilePage() {
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-8 transition-colors duration-300">
         
+        {/* Shop Header Banner */}
         <div className="p-8 rounded-3xl border border-slate-200 dark:border-white/10 bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -73,8 +75,12 @@ export default function ShopProfilePage() {
               </span>
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight">{shop.shop_name}</h1>
-            <p className="text-sm text-slate-300 max-w-2xl mt-1 leading-relaxed">
-              {shop.description || 'Welcome to our verified technology store. Explore our catalog backed by TrustRoute secure escrow protection.'}
+            
+            {/* Varied Description: whitespace-pre-line preserves newlines from textareas */}
+            <p className="text-sm text-slate-300 max-w-2xl mt-1 leading-relaxed whitespace-pre-line">
+              {shop.description && shop.description.trim() !== "" 
+                ? shop.description 
+                : 'Welcome to our verified technology store. Explore our catalog backed by TrustRoute secure escrow protection.'}
             </p>
           </div>
 
@@ -84,6 +90,7 @@ export default function ShopProfilePage() {
           </div>
         </div>
 
+        {/* Product Catalog Grid */}
         <div className="flex flex-col gap-6">
           <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">Store Inventory</h2>
 

@@ -37,6 +37,7 @@ class UpdateShopRequest extends FormRequest
                 Rule::unique('shops', 'slug')->ignore($shop->id),
             ],
             'status' => ['sometimes', 'string', 'in:active,suspended,pending'],
+            'description' => ['nullable', 'string'], // <-- Added this rule
         ];
     }
 }

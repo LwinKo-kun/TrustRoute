@@ -1,31 +1,26 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import Layout from '../components/layout/Layout';
 
 export default function ShopCreatePage() {
   const navigate = useNavigate();
   const [shopName, setShopName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [error, setError] = useState(null);
+  const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleNameChange = (e) => {
-    const val = e.target.value;
-    setShopName(val);
-    setSlug(
-      val
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '')
-    );
-  };
-
-  const handleCreate = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
+
     try {
-      setError(null);
-      setLoading(true);
-      await api.post('/shops', { shop_name: shopName, slug });
+      await api.post('/shops', {
+        shop_name: shopName,
+        description: description,
+      });
+      alert('Shop created successfully!');
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create shop.');
@@ -35,48 +30,48 @@ export default function ShopCreatePage() {
   };
 
   return (
-    <div className="p-8 max-w-xl mx-auto flex flex-col gap-6 bg-[var(--card-bg, transparent)] border border-[var(--border)] rounded-2xl shadow-sm mt-6">
-      <div>
-        <span className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">Onboarding</span>
-        <h1 className="text-2xl font-extrabold mt-1">Create Your Shop</h1>
-        <p className="text-sm opacity-70 mt-1">Configure your custom store identity and marketplace presence.</p>
+    <Layout>
+      <div className="max-w-2xl mx-auto px-4 py-12">
+        <div className="bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 rounded-3xl p-8 shadow-sm">
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Create Your Store</h1>
+          <p className="text-sm text-slate-500 mb-6">Set up your store identity and unique description for the marketplace.</p>
+
+          {error && <div className="p-4 mb-6 bg-red-100 text-red-700 rounded-xl text-sm font-semibold">{error}</div>}
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Store Name</label>
+              <input 
+                type="text" 
+                value={shopName} 
+                onChange={(e) => setShopName(e.target.value)} 
+                placeholder="e.g., CyberTech Solutions" 
+                className="w-full p-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-transparent text-slate-900 dark:text-white text-sm"
+                required 
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Store Description (Varies per store)</label>
+              <textarea 
+                value={description} 
+                onChange={(e) => setDescription(e.target.value)} 
+                placeholder="Describe what your store specializes in, your shipping policies, or your tech stack..." 
+                rows="4"
+                className="w-full p-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-transparent text-slate-900 dark:text-white text-sm"
+              />
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={loading} 
+              className="py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow transition disabled:opacity-50"
+            >
+              {loading ? 'Creating Store...' : 'Publish Store'}
+            </button>
+          </form>
+        </div>
       </div>
-
-      {error && <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-500 rounded-lg text-sm">{error}</div>}
-
-      <form onSubmit={handleCreate} className="flex flex-col gap-4">
-        <div>
-          <label className="block text-xs font-semibold uppercase opacity-70 mb-1">Shop Name</label>
-          <input
-            type="text"
-            value={shopName}
-            onChange={handleNameChange}
-            required
-            className="w-full px-4 py-2.5 border border-[var(--border)] rounded-xl bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition"
-            placeholder="e.g. CyberNode Electronics"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold uppercase opacity-70 mb-1">Slug URL Identifier</label>
-          <input
-            type="text"
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
-            required
-            className="w-full px-4 py-2.5 border border-[var(--border)] rounded-xl bg-transparent text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition"
-            placeholder="cyber-node-electronics"
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-5 py-2.5 bg-[var(--accent)] text-white text-sm font-semibold rounded-xl hover:opacity-90 transition w-full mt-2 shadow-md"
-        >
-          {loading ? 'Creating Shop...' : 'Launch Shop'}
-        </button>
-      </form>
-    </div>
+    </Layout>
   );
 }
