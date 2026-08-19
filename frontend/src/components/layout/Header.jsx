@@ -24,7 +24,6 @@ export default function Header() {
   const fetchUnreadCount = async () => {
     if (!user) return;
     try {
-      // FIX: Append timestamp query parameter to strictly bypass browser cache
       const res = await api.get(`/messages/unread-count?t=${Date.now()}`);
       setUnreadCount(res.data?.count || 0);
     } catch (err) {

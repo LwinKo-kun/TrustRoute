@@ -1,98 +1,46 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import RatingStars from './RatingStars';
 import { getListingImageUrl } from '../../services/api';
 
-export default function ProductCard({ product }) {
-  if (!product) return null;
-
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(price);
-  };
-
+export default function ProductCard({ product, actionButton }) {
   return (
-    <div className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
-      {/* Product Image */}
-      <div className="relative w-full h-48 overflow-hidden bg-gray-100 dark:bg-gray-700 cursor-pointer">
-        <Link to={`/products/${product.id}`}>
+    <div className="group border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden bg-white dark:bg-[#0d1326] flex flex-col shadow-sm hover:shadow-md transition">
+      <Link to={`/listings/${product.id}`} className="flex flex-col flex-grow">
+        <div className="w-full h-48 bg-slate-100 dark:bg-slate-800 relative overflow-hidden flex items-center justify-center">
           <img
             src={getListingImageUrl(product.id)}
             alt={product.title}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            onError={(e) => {
-              e.target.style.display = 'none';
+            className="w-full h-full object-cover group-hover:scale-105 transition duration-300 relative z-10 bg-slate-100 dark:bg-slate-800"
+            onError={(e) => { 
+                e.target.onerror = null; 
+                e.target.src = `https://picsum.photos/seed/${product.id * 10}/400/300`; 
             }}
           />
-        </Link>
+          
+          <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider z-20 shadow-sm">
+            {product.shop?.shop_name || product.shop?.name || 'Store'}
+          </div>
+          
+          {product.stock === 0 ? (
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-20">
+              <span className="text-white text-xs font-bold uppercase tracking-wider">Out of Stock</span>
+            </div>
+          ) : (
+            <div className={`absolute top-3 right-3 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-bold z-20 shadow-sm ${product.stock <= 5 ? 'bg-amber-500' : 'bg-black/60'}`}>
+              {product.stock <= 5 ? 'Low Stock' : `Stock: ${product.stock}`}
+            </div>
+          )}
+        </div>
         
-        {/* Stock Badge */}
-        <div className="absolute top-3 right-3">
-          <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
-            product.stock > 0 
-              ? 'bg-black/60 backdrop-blur-md text-white' 
-              : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-          }`}>
-            {product.stock > 0 ? `Stock: ${product.stock}` : 'Out of stock'}
-          </span>
+        <div className="p-5 flex flex-col flex-grow gap-1.5">
+          <h3 className="font-bold text-slate-900 dark:text-white text-base line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition">{product.title}</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{product.description || 'Verified secure listing with escrow backing.'}</p>
         </div>
+      </Link>
 
-        {/* Shop Badge */}
-        <div className="absolute top-3 left-3">
-          <span className="px-2.5 py-1 text-xs font-semibold bg-black/60 backdrop-blur-md text-white rounded-full shadow-sm uppercase tracking-wider text-[10px]">
-            {product.shop?.shop_name || 'Store'}
-          </span>
-        </div>
-      </div>
-
-      {/* Product Details */}
-      <div className="p-4 flex flex-col flex-grow">
-        <Link to={`/products/${product.id}`} className="mb-2">
-          <h3 className="font-semibold text-gray-900 dark:text-white line-clamp-2 hover:text-indigo-600 dark:hover:text-indigo-400 transition">
-            {product.title}
-          </h3>
-        </Link>
-        
-        {product.description && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
-            {product.description}
-          </p>
-        )}
-
-        {/* Rating */}
-        <div className="flex items-center gap-2 mb-3">
-          <RatingStars rating={4.5} count={128} />
-        </div>
-
-        {/* Price and Add to Cart */}
-        <div className="mt-auto pt-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
-            {formatPrice(product.price)}
-          </span>
-          <button
-            onClick={() => {
-              const cart = JSON.parse(localStorage.getItem('cart')) || [];
-              const idx = cart.findIndex(i => i.id === product.id);
-              if (idx >= 0) {
-                cart[idx].quantity += 1;
-              } else {
-                cart.push({
-                  id: product.id,
-                  title: product.title,
-                  price: Number(product.price) || 0,
-                  quantity: 1,
-                  shop_id: product.shop?.id || null,
-                });
-              }
-              localStorage.setItem('cart', JSON.stringify(cart));
-            }}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm transition"
-          >
-            Add to Cart
-          </button>
-        </div>
+      <div className="px-5 pb-5 pt-2 flex items-center justify-between mt-auto border-t border-slate-100 dark:border-white/5">
+        <span className="text-lg font-extrabold text-blue-600 dark:text-cyan-400">${product.price}</span>
+        {actionButton}
       </div>
     </div>
   );

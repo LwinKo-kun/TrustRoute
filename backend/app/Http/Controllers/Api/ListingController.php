@@ -13,21 +13,24 @@ class ListingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Listing::with(['shop.user']);
+        $query = Listing::with('shop');
 
-        if ($request->filled('search')) {
-            $search = $request->query('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = '%' . trim($request->search) . '%';
+            
+            // Use ILIKE for case-insensitive search in PostgreSQL
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('title', 'ILIKE', $searchTerm)
+                ->orWhere('description', 'ILIKE', $searchTerm);
             });
         }
 
-        if ($request->filled('category')) {
-            $query->where('category', $request->category);
-        }
+        $listings = $query->latest()->paginate(12);
 
-        return response()->json($query->latest()->paginate(12));
+        return response()->json([
+            'status' => 'success',
+            'data' => $listings,
+        ]);
     }
 
    public function shopListings(Request $request)
