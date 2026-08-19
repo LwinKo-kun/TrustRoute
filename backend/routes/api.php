@@ -2,13 +2,14 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\DisputeController;
 use App\Http\Controllers\Api\ListingController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\WalletController;
-use App\Http\Controllers\Api\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -41,10 +42,15 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
 
-    // --- NEW WALLET ROUTES ---
+    // --- WALLET ROUTES ---
     Route::get('/wallet', [WalletController::class, 'getBalance']);
     Route::post('/wallet/deposit', [WalletController::class, 'deposit']);
+    Route::post('/wallet/withdraw', [WalletController::class, 'withdraw']); // Added withdrawal request route
     Route::get('/wallet/transactions', [WalletController::class, 'transactions']);
+
+    // --- ADMIN WALLET VERIFICATION ROUTES ---
+    Route::get('/admin/wallet-pending', [WalletController::class, 'pendingTransactions']);
+    Route::patch('/admin/wallet-transactions/{id}/verify', [WalletController::class, 'verifyTransaction']);
 
     // Shop Management Routes
     Route::get('/my-shop', [ShopController::class, 'myShop']);
@@ -74,9 +80,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/messages', [MessageController::class, 'sendMessage']);
 
     // Dispute Management Routes
-    Route::get('/disputes', [App\Http\Controllers\Api\DisputeController::class, 'index']);
-    Route::post('/orders/{order}/disputes', [App\Http\Controllers\Api\DisputeController::class, 'store']);
-    Route::patch('/disputes/{dispute}/resolve', [App\Http\Controllers\Api\DisputeController::class, 'resolve']);
+    Route::get('/disputes', [DisputeController::class, 'index']);
+    Route::post('/orders/{order}/disputes', [DisputeController::class, 'store']);
+    Route::patch('/disputes/{dispute}/resolve', [DisputeController::class, 'resolve']);
 
     // Profile & Address Management Routes
     Route::put('/profile', [ProfileController::class, 'updateProfile']);
