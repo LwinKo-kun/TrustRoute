@@ -1,3 +1,4 @@
+// frontend/src/pages/views/ShopkeeperDashboardView.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from "../../context/AuthContext";
@@ -13,6 +14,10 @@ export default function ShopkeeperDashboardView() {
   const [listings, setListings] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Pagination & See More limits
+  const [inventoryLimit, setInventoryLimit] = useState(8);
+  const [orderLimit, setOrderLimit] = useState(5);
 
   useEffect(() => {
     const fetchShopkeeperData = async () => {
@@ -49,7 +54,6 @@ export default function ShopkeeperDashboardView() {
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div></div>;
 
   const activeOrders = orders.filter(o => !['completed', 'cancelled'].includes(o.status));
-  const pastOrders = orders.filter(o => ['completed', 'cancelled'].includes(o.status));
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-8 transition-colors duration-300">
@@ -78,6 +82,7 @@ export default function ShopkeeperDashboardView() {
         )}
       </div>
 
+      {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="p-6 border border-slate-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#0d1326] shadow-sm">
           <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Active Inventory</h3>
@@ -106,17 +111,37 @@ export default function ShopkeeperDashboardView() {
       ) : (
         <div className="flex flex-col gap-10">
           
+          {/* Active Fulfillment Section with See More */}
           <div className="bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Active Fulfillment</h2>
-              <span className="text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-3 py-1 rounded-full font-bold">{activeOrders.length} Pending</span>
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Active Fulfillment</h2>
+                <span className="text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-3 py-1 rounded-full font-bold">{activeOrders.length} Pending</span>
+              </div>
+              {activeOrders.length > 5 && (
+                <button 
+                  onClick={() => setOrderLimit(prev => prev === 5 ? activeOrders.length : 5)}
+                  className="text-xs font-bold text-blue-600 dark:text-cyan-400 hover:underline"
+                >
+                  {orderLimit === 5 ? `See More (${activeOrders.length - 5} more)` : 'Show Less'}
+                </button>
+              )}
             </div>
-            <OrderTable orders={activeOrders} emptyMessage="No active orders currently." />
+            <OrderTable orders={activeOrders.slice(0, orderLimit)} emptyMessage="No active orders currently." />
           </div>
 
+          {/* Inventory Management with See More Grid */}
           <div className="flex flex-col gap-6">
             <div className="flex justify-between items-center px-2">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Inventory Management</h2>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Inventory Management ({listings.length})</h2>
+              {listings.length > 8 && (
+                <button 
+                  onClick={() => setInventoryLimit(prev => prev === 8 ? listings.length : 8)}
+                  className="text-xs font-bold text-blue-600 dark:text-cyan-400 hover:underline"
+                >
+                  {inventoryLimit === 8 ? `See All Products (${listings.length - 8} more)` : 'Show Less'}
+                </button>
+              )}
             </div>
 
             {listings.length === 0 ? (
@@ -125,7 +150,7 @@ export default function ShopkeeperDashboardView() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {listings.map((item) => (
+                {listings.slice(0, inventoryLimit).map((item) => (
                   <ProductCard 
                     key={item.id} 
                     product={item} 

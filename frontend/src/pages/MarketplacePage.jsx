@@ -1,4 +1,3 @@
-// frontend/src/pages/MarketplacePage.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
@@ -16,44 +15,83 @@ export default function MarketplacePage() {
   const [loading, setLoading] = useState(true);
   const [cartCount, setCartCount] = useState(0);
 
+  // --- MULTI-PAGE STATE ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [loadingPage, setLoadingPage] = useState(false);
+
+  // Reset to page 1 whenever the search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setListings([]);
+  }, [searchQuery]);
+
   useEffect(() => {
     const fetchSearchData = async () => {
       try {
-        setLoading(true);
-        const params = searchQuery ? { search: searchQuery } : {};
+        if (currentPage === 1) setLoading(true);
+        else setLoadingPage(true);
+
+        const params = { 
+            ...(searchQuery ? { search: searchQuery } : {}),
+            page: currentPage 
+        };
         
-        // Fetch listings and shops concurrently
         const [listingsRes, shopsRes] = await Promise.all([
           api.get('/listings', { params }),
-          api.get('/shops', { params })
+          api.get('/shops', { params: searchQuery ? { search: searchQuery } : {} })
         ]);
 
-        const listingData = listingsRes.data?.data || listingsRes.data;
-        setListings(Array.isArray(listingData) ? listingData : listingData?.data || []);
+        // Safely extract Laravel pagination data
+        const rawListings = listingsRes.data;
+        let newItems = [];
+        let totalPages = 1;
 
-        const shopData = shopsRes.data?.data || shopsRes.data;
-        const allShops = Array.isArray(shopData) ? shopData : shopData?.data || [];
-        
-        // Filter shops client-side if a search query is present to match shop names
-        if (searchQuery) {
-          const filteredShops = allShops.filter(s => 
-            s.shop_name.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-          setMatchedShops(filteredShops);
-        } else {
-          setMatchedShops([]);
+        if (Array.isArray(rawListings)) {
+          newItems = rawListings;
+        } else if (Array.isArray(rawListings?.data)) {
+          newItems = rawListings.data;
+          totalPages = rawListings.last_page || 1;
+        } else if (rawListings?.data?.data && Array.isArray(rawListings.data.data)) {
+          newItems = rawListings.data.data;
+          totalPages = rawListings.data.last_page || 1;
+        }
+
+        // REPLACE items instead of appending them for a multi-page feel
+        setListings(newItems);
+        setLastPage(totalPages);
+
+        // Fetch shops only on the first page load
+        if (currentPage === 1) {
+            const shopData = shopsRes.data?.data || shopsRes.data;
+            const allShops = Array.isArray(shopData) ? shopData : shopData?.data || [];
+            
+            if (searchQuery) {
+              const filteredShops = allShops.filter(s => 
+                s.shop_name.toLowerCase().includes(searchQuery.toLowerCase())
+              );
+              setMatchedShops(filteredShops);
+            } else {
+              setMatchedShops([]);
+            }
+        }
+
+        // Scroll to the top of the product list smoothly when changing pages
+        if (currentPage > 1) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
       } catch (err) {
         console.error('Failed to load marketplace data', err);
       } finally {
         setLoading(false);
+        setLoadingPage(false);
       }
     };
 
     const timer = setTimeout(fetchSearchData, 300);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, currentPage]);
 
   useEffect(() => {
     const update = () => {
@@ -114,8 +152,7 @@ export default function MarketplacePage() {
         ) : (
           <div className="flex flex-col gap-10">
             
-            {/* Matched Shops Section (Shows up if query matches any store) */}
-            {matchedShops.length > 0 && (
+            {matchedShops.length > 0 && currentPage === 1 && (
               <div className="flex flex-col gap-4">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   🏪 Matching Stores ({matchedShops.length})
@@ -138,11 +175,17 @@ export default function MarketplacePage() {
               </div>
             )}
 
-            {/* Products Section */}
             <div className="flex flex-col gap-4">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                Products ({listings.length})
-              </h2>
+              <div className="flex justify-between items-end">
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                    Products
+                  </h2>
+                  {lastPage > 1 && (
+                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                          Page {currentPage} of {lastPage}
+                      </span>
+                  )}
+              </div>
 
               {listings.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 gap-4 text-slate-400 bg-white dark:bg-[#0d1326] rounded-2xl border border-slate-200 dark:border-white/10">
@@ -151,26 +194,70 @@ export default function MarketplacePage() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {listings.map(listing => (
-                    <ProductCard 
-                      key={listing.id} 
-                      product={listing} 
-                      actionButton={
-                        <button
-                          onClick={e => addToCart(e, listing)}
-                          disabled={listing.stock === 0}
-                          className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white text-xs font-semibold rounded-xl shadow-sm transition"
-                        >
-                          {listing.stock === 0 ? 'Sold Out' : 'Add to Cart'}
-                        </button>
-                      }
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 transition-opacity duration-300 ${loadingPage ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+                    {listings.map(listing => (
+                      <ProductCard 
+                        key={listing.id} 
+                        product={listing} 
+                        actionButton={
+                          <button
+                            onClick={e => addToCart(e, listing)}
+                            disabled={listing.stock === 0}
+                            className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white text-xs font-semibold rounded-xl shadow-sm transition"
+                          >
+                            {listing.stock === 0 ? 'Sold Out' : 'Add to Cart'}
+                          </button>
+                        }
+                      />
+                    ))}
+                  </div>
+                  
+                  {/* --- MULTI-PAGE PAGINATION CONTROLS --- */}
+                  {lastPage > 1 && (
+                    <div className="flex justify-center items-center gap-4 mt-8">
+                      <button 
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1 || loadingPage}
+                        className="px-5 py-2.5 bg-slate-100 dark:bg-[#0d1326] hover:bg-slate-200 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold rounded-xl shadow-sm transition disabled:opacity-30 flex items-center gap-2"
+                      >
+                        ← Previous
+                      </button>
+
+                      <div className="flex items-center gap-1.5">
+                          {[...Array(lastPage)].map((_, idx) => {
+                              const pageNum = idx + 1;
+                              // Only show a few pages around the current page to avoid clutter
+                              if (pageNum === 1 || pageNum === lastPage || (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)) {
+                                  return (
+                                      <button
+                                          key={pageNum}
+                                          onClick={() => setCurrentPage(pageNum)}
+                                          disabled={loadingPage}
+                                          className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm font-bold transition ${currentPage === pageNum ? 'bg-blue-600 text-white shadow-md' : 'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'}`}
+                                      >
+                                          {pageNum}
+                                      </button>
+                                  );
+                              } else if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
+                                  return <span key={pageNum} className="text-slate-400">...</span>;
+                              }
+                              return null;
+                          })}
+                      </div>
+
+                      <button 
+                        onClick={() => setCurrentPage(prev => Math.min(lastPage, prev + 1))}
+                        disabled={currentPage === lastPage || loadingPage}
+                        className="px-5 py-2.5 bg-slate-100 dark:bg-[#0d1326] hover:bg-slate-200 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold rounded-xl shadow-sm transition disabled:opacity-30 flex items-center gap-2"
+                      >
+                        Next →
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
-
           </div>
         )}
       </div>

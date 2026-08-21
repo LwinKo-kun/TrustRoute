@@ -67,8 +67,8 @@ export default function ListingCreatePage() {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            rows="3"
-            className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+            rows="8" // Increased from 3 to 8
+            className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)] resize-y"
           />
         </div>
 

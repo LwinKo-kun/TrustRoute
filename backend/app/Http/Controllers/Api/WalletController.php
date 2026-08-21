@@ -52,30 +52,34 @@ class WalletController extends Controller
     {
         $request->validate([
             'amount' => 'required|numeric|min:1',
-            'reference_note' => 'nullable|string|max:255',
-            'screenshot' => 'nullable|image|max:5120', // Max 5MB image verification
+            'reference_note' => 'required|string',
+            'screenshot' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         $user = $request->user();
-        $screenshotPath = null;
 
-        if ($request->hasFile('screenshot')) {
-            $screenshotPath = $request->file('screenshot')->store('wallet-screenshots', 'public');
-        }
-        
-        // Create a pending transaction with screenshot path for admin verification
-        $transaction = $user->wallet->transactions()->create([
-            'amount' => $request->amount,
-            'type' => 'deposit',
-            'status' => 'pending',
-            'description' => $request->reference_note ?: 'Deposit top-up via KPay/Bank',
-            'screenshot_path' => $screenshotPath,
+        // THE FIX: Use firstOrCreate so it automatically builds a wallet if it's missing
+        $wallet = $user->wallet()->firstOrCreate([], [
+            'balance' => 0,
+            'locked_balance' => 0,
+            'incoming_escrow' => 0,
         ]);
 
-        return response()->json([
-            'message' => 'Deposit request and proof submitted successfully! Waiting for admin verification.',
-            'data' => $transaction
-        ], 201);
+        $path = null;
+        if ($request->hasFile('screenshot')) {
+            $path = $request->file('screenshot')->store('wallet_proofs', 'public');
+        }
+
+        // Now this will work perfectly because $wallet is guaranteed to exist
+        $wallet->transactions()->create([
+            'type' => 'deposit',
+            'amount' => $request->amount,
+            'status' => 'pending',
+            'reference_note' => $request->reference_note,
+            'screenshot_path' => $path,
+        ]);
+
+        return response()->json(['message' => 'Deposit request submitted successfully']);
     }
 
     public function withdraw(Request $request)

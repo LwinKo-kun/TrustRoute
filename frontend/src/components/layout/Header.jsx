@@ -1,4 +1,3 @@
-// frontend/src/components/layout/Header.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -107,20 +106,20 @@ export default function Header() {
       <div className="mx-auto w-full max-w-[1500px] px-3 sm:px-5 lg:px-7">
         <div className="flex h-[72px] min-w-0 items-center justify-between gap-2 lg:gap-3">
 
-          {/* Logo */}
+          {/* Logo - Updated to TrustNode Marketplace */}
           <Link to="/" className="group flex shrink-0 items-center gap-2.5">
             <div className="relative">
               <div className="absolute inset-0 rounded-xl bg-blue-500/30 blur-lg opacity-60 transition group-hover:opacity-100 dark:bg-cyan-500/30" />
               <div className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-400 shadow-lg shadow-blue-600/20 transition-transform duration-300 group-hover:scale-105 dark:border-cyan-400/30">
-                <span className="text-sm font-black tracking-tight text-white">TR</span>
+                <span className="text-sm font-black tracking-tight text-white">TN</span>
               </div>
             </div>
             <div className="hidden xl:block leading-none">
               <div className="text-[17px] font-extrabold tracking-tight text-gray-900 dark:text-white">
-                Trust<span className="text-blue-600 dark:text-cyan-400">Route</span>
+                Trust<span className="text-blue-600 dark:text-cyan-400">Node</span>
               </div>
               <div className="mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] text-gray-500 dark:text-slate-400">
-                Technology Marketplace
+                Marketplace
               </div>
             </div>
           </Link>
@@ -129,6 +128,9 @@ export default function Header() {
           <nav className="hidden shrink-0 items-center gap-1 lg:flex">
             <Link to="/marketplace" className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white">
               Marketplace
+            </Link>
+            <Link to="/marketplace" className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white">
+              Trusted Shops
             </Link>
             {user && (
               <Link to="/dashboard" className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white">
