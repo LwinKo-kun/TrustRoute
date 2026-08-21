@@ -10,6 +10,9 @@ export default function CustomerDashboardView() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [activeLimit, setActiveLimit] = useState(5);
+  const [pastLimit, setPastLimit] = useState(5);
+
   useEffect(() => {
     const fetchCustomerOrders = async () => {
       try {
@@ -55,7 +58,7 @@ export default function CustomerDashboardView() {
         </div>
       </div>
 
-      {/* Account Stats Row (Cleaned up: Removed profile card, kept stats & wallet) */}
+      {/* Account Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="p-6 border border-slate-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#0d1326] shadow-sm">
           <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Active Deliveries</h3>
@@ -67,24 +70,45 @@ export default function CustomerDashboardView() {
         </div>
       </div>
 
-      {/* My Orders Section */}
+      {/* Active Orders Section with See More */}
       <div className="flex flex-col gap-8">
         <div className="bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Active Orders & Tracking</h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Active Orders & Tracking ({activeOrders.length})</h2>
+            {activeOrders.length > 5 && (
+              <button 
+                onClick={() => setActiveLimit(prev => prev === 5 ? activeOrders.length : 5)}
+                className="text-xs font-bold text-blue-600 dark:text-cyan-400 hover:underline"
+              >
+                {activeLimit === 5 ? `See More (${activeOrders.length - 5} more)` : 'Show Less'}
+              </button>
+            )}
           </div>
-          {loading ? <p className="text-sm py-4 text-center">Loading your orders...</p> : 
-            <OrderTable orders={activeOrders} emptyMessage="You have no active orders. Head to the marketplace to start shopping!" />
-          }
+          {loading ? (
+            <p className="text-sm py-4 text-center">Loading your orders...</p>
+          ) : (
+            <OrderTable orders={activeOrders.slice(0, activeLimit)} emptyMessage="You have no active orders. Head to the marketplace to start shopping!" />
+          )}
         </div>
 
-        <div className="bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm opacity-90">
+        {/* Past Purchases Section with See More */}
+        <div className="bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm opacity-95">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Past Purchases</h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Past Purchases ({pastOrders.length})</h2>
+            {pastOrders.length > 5 && (
+              <button 
+                onClick={() => setPastLimit(prev => prev === 5 ? pastOrders.length : 5)}
+                className="text-xs font-bold text-blue-600 dark:text-cyan-400 hover:underline"
+              >
+                {pastLimit === 5 ? `See More (${pastOrders.length - 5} more)` : 'Show Less'}
+              </button>
+            )}
           </div>
-          {loading ? <p className="text-sm py-4 text-center">Loading history...</p> : 
-            <OrderTable orders={pastOrders} emptyMessage="No past purchases recorded." />
-          }
+          {loading ? (
+            <p className="text-sm py-4 text-center">Loading history...</p>
+          ) : (
+            <OrderTable orders={pastOrders.slice(0, pastLimit)} emptyMessage="No past purchases recorded." />
+          )}
         </div>
       </div>
 

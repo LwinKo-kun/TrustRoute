@@ -58,7 +58,6 @@ export default function WalletPage() {
                 formData.append('screenshot', topUpScreenshot);
             }
 
-            // Note: Ensure your axios api instance handles multipart/form-data headers automatically or via interceptor
             await api.post('/wallet/deposit', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
@@ -111,7 +110,7 @@ export default function WalletPage() {
                 <div className="p-8 rounded-3xl bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-lg flex flex-col justify-between">
                     <div>
                         <p className="text-sm font-bold uppercase tracking-wider opacity-80 mb-1">Available Balance</p>
-                        <h2 className="text-5xl font-extrabold">${balance.toFixed(2)}</h2>
+                        <h2 className="text-5xl font-extrabold">MMK {balance.toFixed(2)}</h2>
                     </div>
                     <p className="text-sm opacity-90 mt-6">Ready to spend or withdraw.</p>
                 </div>
@@ -119,7 +118,7 @@ export default function WalletPage() {
                 <div className="p-8 rounded-3xl bg-slate-800 dark:bg-[#0d1326] border border-slate-700 dark:border-white/10 text-white shadow-lg flex flex-col justify-between">
                     <div>
                         <p className="text-sm font-bold uppercase tracking-wider opacity-60 mb-1 text-amber-400">My Locked Escrow</p>
-                        <h2 className="text-4xl font-extrabold">${lockedBalance.toFixed(2)}</h2>
+                        <h2 className="text-4xl font-extrabold">MMK {lockedBalance.toFixed(2)}</h2>
                     </div>
                     <p className="text-xs text-slate-400 mt-6 leading-relaxed">
                         Funds safely held for active orders. Refunded automatically if an order fails.
@@ -130,7 +129,7 @@ export default function WalletPage() {
                     <div className="p-8 rounded-3xl bg-emerald-900/40 dark:bg-emerald-950/20 border border-emerald-700/50 dark:border-emerald-500/20 text-white shadow-lg flex flex-col justify-between">
                         <div>
                             <p className="text-sm font-bold uppercase tracking-wider opacity-80 mb-1 text-emerald-400">Incoming Escrow</p>
-                            <h2 className="text-4xl font-extrabold text-emerald-400">${incomingEscrow.toFixed(2)}</h2>
+                            <h2 className="text-4xl font-extrabold text-emerald-400">MMK {incomingEscrow.toFixed(2)}</h2>
                         </div>
                         <p className="text-xs text-emerald-200/70 mt-6 leading-relaxed">
                             Funds locked by buyers for your active orders. Released upon successful delivery.
@@ -145,7 +144,7 @@ export default function WalletPage() {
                         <h3 className="font-bold text-lg mb-4 text-slate-900 dark:text-white">Request Deposit</h3>
                         <form onSubmit={handleTopUp} className="flex flex-col gap-4">
                             <div>
-                                <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Amount ($)</label>
+                                <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Amount (MMK)</label>
                                 <input 
                                     type="number" min="1" step="0.01" value={topUpAmount}
                                     onChange={(e) => setTopUpAmount(e.target.value)}
@@ -184,7 +183,7 @@ export default function WalletPage() {
                         <h3 className="font-bold text-lg mb-4 text-slate-900 dark:text-white">Request Withdrawal</h3>
                         <form onSubmit={handleWithdraw} className="flex flex-col gap-4">
                             <div>
-                                <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Amount ($)</label>
+                                <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Amount (MMK)</label>
                                 <input 
                                     type="number" min="1" max={balance} step="0.01" value={withdrawAmount}
                                     onChange={(e) => setWithdrawAmount(e.target.value)}
@@ -231,7 +230,6 @@ export default function WalletPage() {
                                         </p>
                                         <p className="text-xs text-slate-500">{tx.description || tx.reference_note || 'Admin verification pending'}</p>
                                         
-                                        {/* Display uploaded screenshot link if available */}
                                         {tx.screenshot_path && (
                                             <a 
                                                 href={`/storage/${tx.screenshot_path}`} 
@@ -252,7 +250,7 @@ export default function WalletPage() {
                                         )}
                                     </div>
                                     <div className={`text-lg font-extrabold ${['deposit', 'refund'].includes(tx.type) ? 'text-emerald-500 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>
-                                        {['deposit', 'refund'].includes(tx.type) ? '+' : '-'}${Math.abs(tx.amount).toFixed(2)}
+                                        {['deposit', 'refund'].includes(tx.type) ? '+' : '-'} MMK {Math.abs(tx.amount).toFixed(2)}
                                     </div>
                                 </div>
                             ))}

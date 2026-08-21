@@ -1,4 +1,3 @@
-// frontend/src/pages/MarketplacePage.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
@@ -14,80 +13,90 @@ export default function MarketplacePage() {
   const [listings, setListings] = useState([]);
   const [matchedShops, setMatchedShops] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cartCount, setCartCount] = useState(0);
+
+  // --- MULTI-PAGE STATE ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [loadingPage, setLoadingPage] = useState(false);
+
+  // Reset to page 1 whenever the search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setListings([]);
+  }, [searchQuery]);
 
   useEffect(() => {
     const fetchSearchData = async () => {
       try {
-        setLoading(true);
-        const params = searchQuery ? { search: searchQuery } : {};
+        if (currentPage === 1) setLoading(true);
+        else setLoadingPage(true);
+
+        const params = { 
+            ...(searchQuery ? { search: searchQuery } : {}),
+            page: currentPage 
+        };
         
-        // Fetch listings and shops concurrently
         const [listingsRes, shopsRes] = await Promise.all([
           api.get('/listings', { params }),
-          api.get('/shops', { params })
+          api.get('/shops', { params: searchQuery ? { search: searchQuery } : {} })
         ]);
 
-        const listingData = listingsRes.data?.data || listingsRes.data;
-        setListings(Array.isArray(listingData) ? listingData : listingData?.data || []);
+        // Safely extract Laravel pagination data
+        const rawListings = listingsRes.data;
+        let newItems = [];
+        let totalPages = 1;
 
-        const shopData = shopsRes.data?.data || shopsRes.data;
-        const allShops = Array.isArray(shopData) ? shopData : shopData?.data || [];
-        
-        // Filter shops client-side if a search query is present to match shop names
-        if (searchQuery) {
-          const filteredShops = allShops.filter(s => 
-            s.shop_name.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-          setMatchedShops(filteredShops);
-        } else {
-          setMatchedShops([]);
+        if (Array.isArray(rawListings)) {
+          newItems = rawListings;
+        } else if (Array.isArray(rawListings?.data)) {
+          newItems = rawListings.data;
+          totalPages = rawListings.last_page || 1;
+        } else if (rawListings?.data?.data && Array.isArray(rawListings.data.data)) {
+          newItems = rawListings.data.data;
+          totalPages = rawListings.data.last_page || 1;
+        }
+
+        // REPLACE items instead of appending them for a multi-page feel
+        setListings(newItems);
+        setLastPage(totalPages);
+
+        // Fetch shops only on the first page load
+        if (currentPage === 1) {
+            const shopData = shopsRes.data?.data || shopsRes.data;
+            const allShops = Array.isArray(shopData) ? shopData : shopData?.data || [];
+            
+            if (searchQuery) {
+              // Bulletproof search filter to prevent crashing on missing shop names
+              const filteredShops = allShops.filter(s => {
+                const name = s.shop_name || s.name || '';
+                const desc = s.description || '';
+                const searchLower = searchQuery.toLowerCase();
+                
+                return name.toLowerCase().includes(searchLower) || 
+                       desc.toLowerCase().includes(searchLower);
+              });
+              setMatchedShops(filteredShops);
+            } else {
+              setMatchedShops([]);
+            }
+        }
+
+        // Scroll to the top of the product list smoothly when changing pages
+        if (currentPage > 1) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
       } catch (err) {
         console.error('Failed to load marketplace data', err);
       } finally {
         setLoading(false);
+        setLoadingPage(false);
       }
     };
 
     const timer = setTimeout(fetchSearchData, 300);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    const update = () => {
-      const cartKey = `cart_user_${user?.id || 'guest'}`;
-      const cartObj = JSON.parse(localStorage.getItem(cartKey) || '[]');
-      const items = Array.isArray(cartObj) ? cartObj : (cartObj.items || []);
-      setCartCount(items.reduce((s, i) => s + (i.quantity || 1), 0));
-    };
-    update();
-    window.addEventListener('storage', update);
-    window.addEventListener('cartUpdated', update);
-    const interval = setInterval(update, 1000);
-    return () => { 
-      clearInterval(interval); 
-      window.removeEventListener('storage', update); 
-      window.removeEventListener('cartUpdated', update);
-    };
-  }, [user]);
-
-  const addToCart = (e, listing) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const cartKey = `cart_user_${user?.id || 'guest'}`;
-    const cartObj = JSON.parse(localStorage.getItem(cartKey) || '[]');
-    const cart = Array.isArray(cartObj) ? cartObj : (cartObj.items || []);
-    
-    const idx = cart.findIndex(i => i.id === listing.id);
-    if (idx > -1) cart[idx].quantity += 1;
-    else cart.push({ ...listing, price: Number(listing.price) || 0, quantity: 1 });
-    
-    localStorage.setItem(cartKey, JSON.stringify({ timestamp: Date.now(), items: cart }));
-    window.dispatchEvent(new Event('cartUpdated'));
-    setCartCount(cart.reduce((s, i) => s + (i.quantity || 1), 0));
-  };
+  }, [searchQuery, currentPage]);
 
   return (
     <Layout>
@@ -100,13 +109,6 @@ export default function MarketplacePage() {
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Browse verified products and trusted shops</p>
           </div>
-          <Link to="/cart" className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md transition">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            Cart
-            {cartCount > 0 && <span className="px-2 py-0.5 bg-white text-blue-600 text-xs font-extrabold rounded-full">{cartCount}</span>}
-          </Link>
         </div>
 
         {loading ? (
@@ -114,8 +116,7 @@ export default function MarketplacePage() {
         ) : (
           <div className="flex flex-col gap-10">
             
-            {/* Matched Shops Section (Shows up if query matches any store) */}
-            {matchedShops.length > 0 && (
+            {matchedShops.length > 0 && currentPage === 1 && (
               <div className="flex flex-col gap-4">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   🏪 Matching Stores ({matchedShops.length})
@@ -128,8 +129,8 @@ export default function MarketplacePage() {
                       className="p-5 rounded-2xl bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 hover:border-blue-500 shadow-sm flex flex-col gap-2 transition group"
                     >
                       <div className="flex justify-between items-center">
-                        <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition">{shop.shop_name}</h3>
-                        <span className="text-[10px] uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">{shop.status}</span>
+                        <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition">{shop.shop_name || shop.name || 'Store'}</h3>
+                        <span className="text-[10px] uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">{shop.status || 'Active'}</span>
                       </div>
                       <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">{shop.description || 'Verified merchant store.'}</p>
                     </Link>
@@ -138,11 +139,17 @@ export default function MarketplacePage() {
               </div>
             )}
 
-            {/* Products Section */}
             <div className="flex flex-col gap-4">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                Products ({listings.length})
-              </h2>
+              <div className="flex justify-between items-end">
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                    Products
+                  </h2>
+                  {lastPage > 1 && (
+                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                          Page {currentPage} of {lastPage}
+                      </span>
+                  )}
+              </div>
 
               {listings.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 gap-4 text-slate-400 bg-white dark:bg-[#0d1326] rounded-2xl border border-slate-200 dark:border-white/10">
@@ -151,26 +158,69 @@ export default function MarketplacePage() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {listings.map(listing => (
-                    <ProductCard 
-                      key={listing.id} 
-                      product={listing} 
-                      actionButton={
-                        <button
-                          onClick={e => addToCart(e, listing)}
-                          disabled={listing.stock === 0}
-                          className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white text-xs font-semibold rounded-xl shadow-sm transition"
-                        >
-                          {listing.stock === 0 ? 'Sold Out' : 'Add to Cart'}
-                        </button>
-                      }
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 transition-opacity duration-300 ${loadingPage ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+                    {listings.map(listing => (
+                      <ProductCard 
+                        key={listing.id} 
+                        product={listing} 
+                        actionButton={
+                          <Link
+                            to={`/listings/${listing.id}`}
+                            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition"
+                          >
+                            View Details
+                          </Link>
+                        }
+                      />
+                    ))}
+                  </div>
+                  
+                  {/* --- MULTI-PAGE PAGINATION CONTROLS --- */}
+                  {lastPage > 1 && (
+                    <div className="flex justify-center items-center gap-4 mt-8">
+                      <button 
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1 || loadingPage}
+                        className="px-5 py-2.5 bg-slate-100 dark:bg-[#0d1326] hover:bg-slate-200 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold rounded-xl shadow-sm transition disabled:opacity-30 flex items-center gap-2"
+                      >
+                        ← Previous
+                      </button>
+
+                      <div className="flex items-center gap-1.5">
+                          {[...Array(lastPage)].map((_, idx) => {
+                              const pageNum = idx + 1;
+                              // Only show a few pages around the current page to avoid clutter
+                              if (pageNum === 1 || pageNum === lastPage || (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)) {
+                                  return (
+                                      <button
+                                          key={pageNum}
+                                          onClick={() => setCurrentPage(pageNum)}
+                                          disabled={loadingPage}
+                                          className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm font-bold transition ${currentPage === pageNum ? 'bg-blue-600 text-white shadow-md' : 'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'}`}
+                                      >
+                                          {pageNum}
+                                      </button>
+                                  );
+                              } else if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
+                                  return <span key={pageNum} className="text-slate-400">...</span>;
+                              }
+                              return null;
+                          })}
+                      </div>
+
+                      <button 
+                        onClick={() => setCurrentPage(prev => Math.min(lastPage, prev + 1))}
+                        disabled={currentPage === lastPage || loadingPage}
+                        className="px-5 py-2.5 bg-slate-100 dark:bg-[#0d1326] hover:bg-slate-200 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold rounded-xl shadow-sm transition disabled:opacity-30 flex items-center gap-2"
+                      >
+                        Next →
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
-
           </div>
         )}
       </div>

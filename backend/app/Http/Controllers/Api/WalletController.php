@@ -18,30 +18,35 @@ class WalletController extends Controller
     public function getBalance(Request $request)
     {
         $user = $request->user();
-        $wallet = $user->wallet;
+        
+        // Ensure the wallet exists so it doesn't throw an error on fresh accounts
+        $wallet = $user->wallet()->firstOrCreate([], [
+            'balance' => 0,
+            'locked_balance' => 0,
+            'incoming_escrow' => 0,
+        ]);
 
-        $lockedBalance = 0;
+        // 1. Calculate Locked Escrow (Funds this user has locked as a BUYER)
+        // We calculate this for EVERYONE, because shopkeepers can buy things too!
+        $lockedBalance = \App\Models\Order::where('customer_id', $user->id)
+            ->whereIn('status', ['pending', 'processing', 'dispatched', 'cancellation_requested'])
+            ->sum('total_amount');
+
+        // 2. Calculate Incoming Escrow (Funds coming to this user as a SELLER)
+        $shopIds = \App\Models\Shop::where('shopkeeper_id', $user->id)->pluck('id');
         $incomingEscrow = 0;
 
-        // Calculate locked escrow for customers based on active orders
-        if ($user->role === 'customer') {
-            $lockedBalance = \App\Models\Order::where('customer_id', $user->id)
-                ->whereIn('status', ['pending', 'processing', 'dispatched'])
-                ->sum('total_amount');
-        }
-
-        // Calculate incoming escrow for shopkeepers based on active store orders
-        if ($user->role === 'shopkeeper') {
-            $shopIds = \App\Models\Shop::where('shopkeeper_id', $user->id)->pluck('id');
-            
+        // If they own any shops, sum up the active orders for those shops
+        if ($shopIds->isNotEmpty()) {
             $incomingEscrow = \App\Models\Order::whereIn('shop_id', $shopIds)
-                ->whereIn('status', ['pending', 'processing', 'dispatched'])
+                ->whereIn('status', ['pending', 'processing', 'dispatched', 'cancellation_requested'])
                 ->sum('total_amount');
         }
 
         return response()->json([
+            'status' => 'success',
             'data' => [
-                'balance' => (float) ($wallet->balance ?? 0),
+                'balance' => (float) $wallet->balance,
                 'locked_balance' => (float) $lockedBalance, 
                 'incoming_escrow' => (float) $incomingEscrow, 
             ]
@@ -52,30 +57,34 @@ class WalletController extends Controller
     {
         $request->validate([
             'amount' => 'required|numeric|min:1',
-            'reference_note' => 'nullable|string|max:255',
-            'screenshot' => 'nullable|image|max:5120', // Max 5MB image verification
+            'reference_note' => 'required|string',
+            'screenshot' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         $user = $request->user();
-        $screenshotPath = null;
 
-        if ($request->hasFile('screenshot')) {
-            $screenshotPath = $request->file('screenshot')->store('wallet-screenshots', 'public');
-        }
-        
-        // Create a pending transaction with screenshot path for admin verification
-        $transaction = $user->wallet->transactions()->create([
-            'amount' => $request->amount,
-            'type' => 'deposit',
-            'status' => 'pending',
-            'description' => $request->reference_note ?: 'Deposit top-up via KPay/Bank',
-            'screenshot_path' => $screenshotPath,
+        // Use firstOrCreate so it automatically builds a wallet if it's missing
+        $wallet = $user->wallet()->firstOrCreate([], [
+            'balance' => 0,
+            'locked_balance' => 0,
+            'incoming_escrow' => 0,
         ]);
 
-        return response()->json([
-            'message' => 'Deposit request and proof submitted successfully! Waiting for admin verification.',
-            'data' => $transaction
-        ], 201);
+        $path = null;
+        if ($request->hasFile('screenshot')) {
+            $path = $request->file('screenshot')->store('wallet_proofs', 'public');
+        }
+
+        // Now this will work perfectly because $wallet is guaranteed to exist
+        $wallet->transactions()->create([
+            'type' => 'deposit',
+            'amount' => $request->amount,
+            'status' => 'pending',
+            'reference_note' => $request->reference_note,
+            'screenshot_path' => $path,
+        ]);
+
+        return response()->json(['message' => 'Deposit request submitted successfully']);
     }
 
     public function withdraw(Request $request)

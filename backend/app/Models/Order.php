@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\OrderApproval;
 
 class Order extends Model
 {
@@ -39,4 +40,11 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    // Approvals relationship (shopkeeper & admin)
+    public function approvals(): HasMany
+    {
+        return $this->hasMany(OrderApproval::class);
+    }
+
 }

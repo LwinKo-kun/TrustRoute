@@ -16,27 +16,46 @@ export default function ShopEditPage() {
       try {
         const res = await api.get('/my-shop');
         const shop = res.data?.data || res.data;
+        
+        if (!shop || !shop.id) {
+            throw new Error('Shop data not found');
+        }
+
         setShopId(shop.id);
         setShopName(shop.shop_name || '');
         setDescription(shop.description || '');
       } catch (err) {
-        setError('Failed to load your store details.');
+        console.error(err);
+        // If the backend returns a 404 Not Found, redirect them to create a shop
+        if (err.response?.status === 404) {
+            navigate('/shop/create');
+        } else {
+            setError('Failed to load your store details. Check your network connection.');
+        }
       } finally {
         setLoading(false);
       }
     };
     fetchShop();
-  }, []);
+  }, [navigate]);
 
   const handleUpdate = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError(null);
 
+    // Auto-generate the URL-friendly slug from the updated shop name
+    const generatedSlug = shopName
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/[\s-]+/g, '-');
+
     try {
       await api.put(`/shops/${shopId}`, {
         shop_name: shopName,
         description: description,
+        slug: generatedSlug, // Include the required slug field
       });
       alert('Store settings updated successfully!');
       navigate('/dashboard');
@@ -47,10 +66,10 @@ export default function ShopEditPage() {
     }
   };
 
-  if (loading) return <div className="text-center py-24 text-slate-400">Loading store settings...</div>;
+  if (loading) return <div className="text-center py-24 text-slate-400 font-medium">Loading store settings...</div>;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-12">
+    <div className="max-w-2xl mx-auto px-4 py-12 w-full">
       <div className="bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 rounded-3xl p-8 shadow-sm">
         <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Manage Store Profile</h1>
         <p className="text-sm text-slate-500 mb-6">Update your store name and custom description.</p>
@@ -64,7 +83,7 @@ export default function ShopEditPage() {
               type="text" 
               value={shopName} 
               onChange={(e) => setShopName(e.target.value)} 
-              className="w-full p-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-transparent text-slate-900 dark:text-white text-sm"
+              className="w-full p-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-transparent text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500"
               required 
             />
           </div>
@@ -75,7 +94,7 @@ export default function ShopEditPage() {
               value={description} 
               onChange={(e) => setDescription(e.target.value)} 
               rows="4"
-              className="w-full p-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-transparent text-slate-900 dark:text-white text-sm"
+              className="w-full p-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-transparent text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500"
             />
           </div>
 

@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import Header from '../components/layout/Header';
 import ShopCard from '../components/market/ShopCard';
 import Layout from '../components/layout/Layout';
 import api from '../api/axios';
@@ -9,10 +8,35 @@ export default function LandingPage() {
   const [products, setProducts] = useState([]);
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(true);
-  const heroRef = useRef(null);
   
+  const heroRef = useRef(null);
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
   const [particles, setParticles] = useState([]);
+  
+  // --- FADE ANIMATION STATE ---
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isSliderHovered, setIsSliderHovered] = useState(false);
+
+  // Auto-Fade exactly one item every 4 seconds
+  useEffect(() => {
+    if (products.length <= 1 || isSliderHovered) return;
+    
+    const sliderInterval = setInterval(() => {
+      setCurrentIndex((prev) => (prev === products.length - 1 ? 0 : prev + 1));
+    }, 4000); 
+
+    return () => clearInterval(sliderInterval);
+  }, [products.length, isSliderHovered]);
+
+  const nextSlide = () => {
+    if (products.length <= 1) return;
+    setCurrentIndex((prev) => (prev === products.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevSlide = () => {
+    if (products.length <= 1) return;
+    setCurrentIndex((prev) => (prev === 0 ? products.length - 1 : prev - 1));
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -31,10 +55,9 @@ export default function LandingPage() {
         speedY: (Math.random() - 0.5) * 0.2 - 0.12,
       });
     }
-
     setParticles(generated);
 
-    const interval = setInterval(() => {
+    const particleInterval = setInterval(() => {
       setParticles(prev =>
         prev.map(p => ({
           ...p,
@@ -43,7 +66,7 @@ export default function LandingPage() {
       );
     }, 220);
 
-    return () => clearInterval(interval);
+    return () => clearInterval(particleInterval);
   }, []);
 
   const handleMouseMove = (e) => {
@@ -58,10 +81,22 @@ export default function LandingPage() {
   const fetchProducts = async () => {
     try {
       const res = await api.get('/listings');
-      const data = res.data;
-      setProducts(data.data || data);
+      const rawData = res.data;
+      
+      let productList = [];
+      if (Array.isArray(rawData)) {
+        productList = rawData;
+      } else if (Array.isArray(rawData?.data)) {
+        productList = rawData.data;
+      } else if (rawData?.data?.data && Array.isArray(rawData.data.data)) {
+        productList = rawData.data.data;
+      }
+      
+      // Limit to 6 items for the featured fade slider
+      setProducts(productList.slice(0, 6));
     } catch (err) {
       console.error('Failed to fetch products:', err);
+      setProducts([]); 
     } finally {
       setLoading(false);
     }
@@ -70,10 +105,21 @@ export default function LandingPage() {
   const fetchShops = async () => {
     try {
       const res = await api.get('/shops');
-      const data = res.data;
-      setShops(data.data || data);
+      const rawData = res.data;
+      
+      let shopList = [];
+      if (Array.isArray(rawData)) {
+        shopList = rawData;
+      } else if (Array.isArray(rawData?.data)) {
+        shopList = rawData.data;
+      } else if (rawData?.data?.data && Array.isArray(rawData.data.data)) {
+        shopList = rawData.data.data;
+      }
+      
+      setShops(shopList);
     } catch (err) {
       console.error('Failed to fetch shops:', err);
+      setShops([]);
     }
   };
 
@@ -85,12 +131,12 @@ export default function LandingPage() {
   };
 
   const featuredCategories = [
-    { name: 'Electronics', icon: '📱', count: '1,234' },
-    { name: 'Fashion', icon: '👕', count: '856' },
-    { name: 'Home & Garden', icon: '🏠', count: '678' },
-    { name: 'Sports', icon: '⚽', count: '432' },
-    { name: 'Books', icon: '📚', count: '345' },
-    { name: 'Toys', icon: '🧸', count: '234' },
+    { name: 'Laptops & PCs', icon: '💻', count: '1,234' },
+    { name: 'Smartphones', icon: '📱', count: '856' },
+    { name: 'PC Components', icon: '⚙️', count: '678' },
+    { name: 'Networking', icon: '📡', count: '432' },
+    { name: 'Accessories', icon: '🎧', count: '345' },
+    { name: 'Storage', icon: '💾', count: '234' },
   ];
 
   return (
@@ -156,14 +202,15 @@ export default function LandingPage() {
 
         <div className="relative w-full px-6 pb-24 pt-16 sm:px-12 sm:pb-28 sm:pt-24 lg:px-24 lg:pb-36 lg:pt-32">
           <div className="grid items-center gap-16 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20 w-full">
-            <div className="w-full">
+            
+            <div className="w-full relative z-10">
               <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-blue-200/80 bg-blue-50/90 dark:border-cyan-400/20 dark:bg-cyan-400/[0.06] px-4 py-2 shadow-sm backdrop-blur-md">
                 <span className="relative flex h-2.5 w-2.5">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 dark:bg-cyan-400 opacity-75" />
                   <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-600 dark:bg-cyan-400" />
                 </span>
                 <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-700 dark:text-cyan-200">
-                  Trusted Technology Marketplace
+                  TrustNode Technology Marketplace
                 </span>
               </div>
 
@@ -176,10 +223,9 @@ export default function LandingPage() {
               </h1>
 
               <p className="mt-7 text-base leading-relaxed text-slate-600 dark:text-slate-300 sm:text-lg sm:leading-8 max-w-2xl">
-                Discover laptops, computers, accessories and more from
+                Discover laptops, networking hardware, pc components and more from
                 trusted sellers. Buy securely with verified shops,
-                protected transactions and transparent marketplace
-                technology.
+                protected transactions and transparent escrow technology.
               </p>
 
               <div className="mt-8 flex flex-col gap-4 sm:flex-row">
@@ -217,74 +263,109 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="relative hidden lg:block w-full">
-              <div className="absolute -inset-6 rounded-[2.5rem] bg-gradient-to-r from-blue-500/15 via-cyan-400/15 to-indigo-500/15 blur-2xl" />
-
-              <div className="relative rounded-[2.5rem] border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-[#0d1326]/80 p-8 shadow-2xl shadow-slate-300/70 dark:shadow-black/40 backdrop-blur-2xl w-full">
-                <div className="mb-6 flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/50 animate-pulse" />
-                      <span className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Live Marketplace</span>
-                    </div>
-                    <h2 className="mt-1.5 text-xl font-extrabold text-slate-900 dark:text-white">Featured Technology</h2>
-                  </div>
-                  <Link to="/marketplace" className="text-xs font-bold text-blue-600 dark:text-cyan-400 transition hover:underline">
-                    View all →
-                  </Link>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 w-full">
-                  {(
-                    products.slice(0, 6).length > 0
-                      ? products.slice(0, 6)
-                      : Array.from({ length: 6 }, (_, i) => ({ id: i + 1, title: `Featured item ${i + 1}` }))
-                  ).map((product, index) => (
+            {/* --- IMAGE CARD ONLY (BORDERLESS & FADE ANIMATION) --- */}
+            <div className="relative hidden lg:block w-full min-w-0 h-[450px] xl:h-[550px] rounded-[2rem] overflow-hidden shadow-2xl shadow-blue-500/20">
+              {loading ? (
+                <div className="w-full h-full animate-pulse bg-slate-200 dark:bg-white/5" />
+              ) : products.length > 0 ? (
+                <>
+                  {products.map((product, index) => (
                     <div
-                      key={product.id ?? index}
-                      className="group overflow-hidden rounded-2xl border border-slate-200 dark:border-white/[0.07] bg-slate-50/70 dark:bg-white/[0.035] transition-all duration-300 hover:-translate-y-1.5 hover:border-blue-400 dark:hover:border-cyan-400/20 w-full"
+                      key={product.id}
+                      className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
+                        index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                      }`}
+                      onMouseEnter={() => setIsSliderHovered(true)}
+                      onMouseLeave={() => setIsSliderHovered(false)}
                     >
-                      <div className="relative aspect-[1.15/1] overflow-hidden bg-slate-100 dark:bg-[#11192e] w-full">
+                      {/* FIX: Make the entire background image a clickable link */}
+                      <Link to={`/listings/${product.id}`} className="absolute inset-0 z-0 block w-full h-full">
                         <img
                           src={getListingImageUrl(product)}
-                          alt={product.title || `Featured item ${index + 1}`}
-                          className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+                          alt={product.title}
+                          className="w-full h-full object-cover transform transition-transform duration-[10000ms] ease-out scale-100 hover:scale-110"
                           onError={(e) => { e.currentTarget.src = fallbackImage; }}
                         />
-                        <div className="absolute left-2.5 top-2.5">
-                          <span className="rounded-lg border border-slate-200/60 dark:border-white/10 bg-white/95 dark:bg-black/50 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider text-slate-800 dark:text-white shadow-md">
-                            {product.shop?.shop_name || 'Store'}
-                          </span>
-                        </div>
-                        <div className="absolute right-2.5 top-2.5">
-                          <span className={`rounded-lg border px-2 py-1 text-[9px] font-extrabold shadow-md ${product.stock > 0 ? 'border-emerald-200 dark:border-emerald-400/20 bg-emerald-50/90 dark:bg-emerald-400/10 text-emerald-700 dark:text-emerald-300' : 'border-rose-200 dark:border-rose-400/20 bg-rose-50/90 dark:bg-rose-400/10 text-rose-700 dark:text-rose-300'}`}>
-                            {product.stock > 0 ? `${product.stock} available` : 'Sold out'}
-                          </span>
-                        </div>
+                      </Link>
+                      
+                      {/* Dark Gradient Overlay for text visibility */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#070b1c]/90 via-[#070b1c]/30 to-transparent pointer-events-none z-10" />
+
+                      {/* Floating Badges */}
+                      <div className="absolute top-6 left-6 z-20 flex flex-col gap-2">
+                         {/* FIX: Make the shop name clickable! */}
+                         <Link to={product.shop?.id ? `/shops/${product.shop.id}` : '#'} className="bg-white/20 backdrop-blur-md border border-white/10 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg shadow-sm uppercase tracking-wider hover:bg-white/30 transition">
+                           {product.shop?.shop_name || 'Verified Store'}
+                         </Link>
+                      </div>
+                      
+                      <div className="absolute top-6 right-6 z-20">
+                        <span className={`px-3 py-1.5 text-[10px] font-extrabold rounded-lg shadow-sm uppercase tracking-wider backdrop-blur-md ${product.stock > 0 ? 'bg-emerald-500/80 text-white' : 'bg-rose-500/80 text-white'}`}>
+                          {product.stock > 0 ? 'In Stock' : 'Sold Out'}
+                        </span>
                       </div>
 
-                      <div className="p-3.5 w-full bg-white dark:bg-transparent">
-                        <h3 className="line-clamp-1 text-sm font-bold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-300 transition">
-                          {product.title || `Featured item ${index + 1}`}
+                      {/* Product Details overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 p-8 sm:p-10 z-20 pointer-events-none">
+                        <h3 className="text-2xl sm:text-3xl font-extrabold text-white mb-3 line-clamp-2 leading-tight drop-shadow-md">
+                          {product.title}
                         </h3>
-                        <div className="mt-2.5 flex items-center justify-between text-[11px]">
-                          <span className="text-slate-400 font-medium">Verified listing</span>
-                          <span className="flex items-center gap-1 font-bold text-blue-600 dark:text-cyan-400 bg-blue-50 dark:bg-cyan-950/50 px-2 py-0.5 rounded-md">★ Trusted</span>
+                        <div className="flex items-center justify-between pointer-events-auto">
+                          <span className="text-3xl font-black text-cyan-400 drop-shadow-lg">
+                            MMK {Number(product.price).toFixed(2)}
+                          </span>
+                          <Link 
+                            to={`/listings/${product.id}`} 
+                            className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-blue-500/50 hover:-translate-y-0.5"
+                          >
+                            View Details
+                          </Link>
                         </div>
                       </div>
                     </div>
                   ))}
-                </div>
 
-                <div className="mt-6 flex items-center justify-between rounded-xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/80 dark:bg-white/[0.025] px-4 py-3.5 w-full">
-                  <div className="flex items-center gap-2.5">
-                    <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-500" />
-                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-400">Marketplace active & operational</span>
-                  </div>
-                  <span className="text-xs font-bold text-blue-600 dark:text-cyan-400 bg-blue-100/60 dark:bg-cyan-950/60 px-2.5 py-1 rounded-lg">Escrow Secured</span>
+                  {/* Navigation Arrows */}
+                  {products.length > 1 && (
+                    <div 
+                      className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-4 z-30 opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                      onMouseEnter={() => setIsSliderHovered(true)}
+                      onMouseLeave={() => setIsSliderHovered(false)}
+                    >
+                      <button 
+                        onClick={prevSlide}
+                        className="pointer-events-auto flex items-center justify-center w-10 h-10 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white transition-all transform hover:-translate-x-1"
+                      >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
+                      </button>
+                      <button 
+                        onClick={nextSlide}
+                        className="pointer-events-auto flex items-center justify-center w-10 h-10 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white transition-all transform hover:translate-x-1"
+                      >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* Subtle Dot Indicators */}
+                  {products.length > 1 && (
+                    <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-20 pointer-events-none">
+                      {products.map((_, idx) => (
+                        <div
+                          key={idx}
+                          className={`h-1.5 rounded-full transition-all duration-700 shadow-md ${currentIndex === idx ? 'w-8 bg-cyan-400' : 'w-2 bg-white/40'}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-white/5">
+                   <p className="text-slate-500 font-semibold">No active listings found.</p>
                 </div>
-              </div>
+              )}
             </div>
+
           </div>
         </div>
       </section>
@@ -306,7 +387,7 @@ export default function LandingPage() {
               </span>
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg">
-              TrustRoute combines secure transactions, verified sellers, and transparent technology to create a safer experience.
+              TrustNode combines secure transactions, verified sellers, and transparent technology to create a safer experience.
             </p>
           </div>
 
@@ -387,7 +468,8 @@ export default function LandingPage() {
               </h2>
               <p className="mt-2 text-slate-600 dark:text-slate-400 text-base">Discover verified sellers and trusted technology stores.</p>
             </div>
-            <Link to="/marketplace" className="group inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 dark:text-cyan-300 transition">
+            {/* FIX: Ensure this button correctly routes to the shops page */}
+            <Link to="/shops" className="group inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 dark:text-cyan-300 transition">
               View All Shops <span className="transition-transform group-hover:translate-x-1">→</span>
             </Link>
           </div>
@@ -411,7 +493,7 @@ export default function LandingPage() {
               <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 dark:bg-cyan-400/5 text-blue-600 dark:text-cyan-400 text-2xl font-bold">🏪</div>
               <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white">No shops yet</h3>
               <p className="mx-auto mt-2 max-w-md text-sm text-slate-500 leading-relaxed">
-                Be the first seller to open a trusted shop on TrustRoute.
+                Be the first seller to open a trusted shop on TrustNode.
               </p>
               <Link to="/signup" className="mt-8 inline-flex items-center rounded-xl bg-blue-600 dark:bg-cyan-400/10 px-7 py-3.5 text-sm font-bold text-white dark:text-cyan-300 shadow-lg transition">
                 Start Selling Now
@@ -429,7 +511,7 @@ export default function LandingPage() {
           <div className="mx-auto mb-20 text-center max-w-3xl">
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-cyan-400">Live Platform Data</span>
             <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl text-slate-900 dark:text-white w-full">
-              The Numbers Behind <span className="bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-cyan-400 dark:to-indigo-500 bg-clip-text text-transparent">TrustRoute</span>
+              The Numbers Behind <span className="bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-cyan-400 dark:to-indigo-500 bg-clip-text text-transparent">TrustNode</span>
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-400">A secure technology marketplace connecting trusted buyers and sellers globally.</p>
           </div>
@@ -437,7 +519,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 gap-6 lg:grid-cols-4 w-full">
             {[
               { number: '500+', label: 'Verified Shops', desc: 'Trusted tech sellers' },
-              { number: '10K+', label: 'Products', desc: 'Laptops & components' },
+              { number: '10K+', label: 'Products', desc: 'Hardware & components' },
               { number: '99.9%', label: 'Secure', desc: 'Protected by escrow' },
               { number: '24/7', label: 'Support', desc: 'Always available' },
             ].map((stat, index) => (

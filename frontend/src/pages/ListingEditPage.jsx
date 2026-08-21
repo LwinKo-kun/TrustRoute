@@ -23,7 +23,6 @@ export default function ListingEditPage() {
         setDescription(item.description || '');
         setPrice(item.price);
         setStock(item.stock);
-        // Display existing image from the backend image endpoint
         setPreviewUrl(`http://localhost:8000/api/listings/${id}/image`);
       })
       .catch(() => setError('Failed to load listing details.'))
@@ -34,7 +33,6 @@ export default function ListingEditPage() {
     const file = e.target.files[0];
     if (file) {
       setImage(file);
-      // Switch preview to local blob URL immediately
       setPreviewUrl(URL.createObjectURL(file));
     }
   };
@@ -88,14 +86,14 @@ export default function ListingEditPage() {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            rows="3"
-            className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+            rows="8"
+            className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)] resize-y"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold uppercase opacity-70 mb-1">Price ($)</label>
+            <label className="block text-xs font-semibold uppercase opacity-70 mb-1">Price (MMK)</label>
             <input
               type="number"
               step="0.01"

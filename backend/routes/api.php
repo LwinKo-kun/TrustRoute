@@ -69,6 +69,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus']);
+    Route::post('/orders/{order}/approve-cancellation', [OrderController::class, 'approveCancellation']);
 
     // Review Management Routes
     Route::post('/reviews', [ReviewController::class, 'store']);

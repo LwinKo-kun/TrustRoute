@@ -6,6 +6,7 @@ import LoginPage from '../pages/LoginPage';
 import SignupPage from '../pages/SignupPage';
 import DashboardPage from '../pages/DashboardPage';
 import MarketplacePage from '../pages/MarketplacePage';
+import ShopsPage from '../pages/ShopsPage'; // <-- ADDED: Import the ShopsPage
 import ShopCreatePage from '../pages/ShopCreatePage';
 import ShopEditPage from '../pages/ShopEditPage';
 import ListingCreatePage from '../pages/ListingCreatePage';
@@ -16,9 +17,9 @@ import CheckoutPage from '../pages/CheckoutPage';
 import ChatPage from '../pages/ChatPage';
 import WalletPage from '../pages/WalletPage';
 import OrderDetailsPage from '../pages/OrderDetailsPage';
-import ProfileSettingsPage from '../pages/ProfileSettingsPage'; // <-- NEW PROFILE SETTINGS
-import AddressBookPage from '../pages/AddressBookPage';       // <-- NEW ADDRESS BOOK
-import NotFoundPage from '../pages/NotFoundPage';             // <-- NEW 404 PAGE
+import ProfileSettingsPage from '../pages/ProfileSettingsPage';
+import AddressBookPage from '../pages/AddressBookPage';
+import NotFoundPage from '../pages/NotFoundPage';
 import ProtectedRoute from './ProtectedRoute';
 import ShopProfilePage from '../pages/ShopProfilePage';
 
@@ -33,6 +34,12 @@ export default function AppRoutes() {
       
       {/* Consolidated Marketplace Route */}
       <Route path="/marketplace" element={<MarketplacePage />} />
+      
+      {/* ADDED: Trusted Shops Directory Route */}
+      <Route path="/shops" element={<ShopsPage />} />
+      
+      {/* Public Shop Profile Route */}
+      <Route path="/shops/:id" element={<ShopProfilePage />} />
 
       {/* Protected Routes */}
       <Route
@@ -70,7 +77,6 @@ export default function AppRoutes() {
       {/* Catch-all 404 Fallback */}
       <Route path="*" element={<NotFoundPage />} />
 
-      <Route path="/shops/:id" element={<ShopProfilePage />} />
     </Routes>
   );
 }

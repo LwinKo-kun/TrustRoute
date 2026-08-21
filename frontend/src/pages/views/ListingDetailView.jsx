@@ -148,11 +148,11 @@ export default function ListingDetailView() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 {/* Product Image */}
-                <div className="w-full h-96 bg-slate-100 dark:bg-[#0d1326] rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 flex items-center justify-center relative shadow-sm">
+                <div className="w-full h-96 lg:h-[32rem] bg-slate-100 dark:bg-[#0d1326] rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 flex items-center justify-center relative shadow-sm">
                     <img
                         src={getListingImageUrl(listing.id)}
                         alt={listing.title || 'Product'}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain p-6"
                         onError={(e) => { e.target.style.display = 'none'; }}
                     />
                     
@@ -185,7 +185,7 @@ export default function ListingDetailView() {
                         </p>
                     </div>
 
-                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                         {listing.description || 'No detailed product description available.'}
                     </p>
 
