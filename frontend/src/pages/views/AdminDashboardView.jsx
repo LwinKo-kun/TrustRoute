@@ -1,4 +1,3 @@
-// frontend/src/pages/views/AdminDashboardView.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -140,7 +139,7 @@ export default function AdminDashboardView() {
                   <tr key={tx.id} className="hover:bg-slate-50 dark:hover:bg-white/5">
                     <td className="p-3 font-bold text-slate-900 dark:text-white">{tx.wallet?.user?.name || `User #${tx.wallet?.user_id}`}</td>
                     <td className="p-3 uppercase font-semibold text-xs">{tx.type}</td>
-                    <td className="p-3 font-extrabold text-emerald-600">${Number(tx.amount).toFixed(2)}</td>
+                    <td className="p-3 font-extrabold text-emerald-600">MMK {Number(tx.amount).toFixed(2)}</td>
                     <td className="p-3 text-xs opacity-90">
                       <div>{tx.description}</div>
                       {tx.screenshot_path && (

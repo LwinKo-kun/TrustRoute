@@ -1,4 +1,3 @@
-// src/pages/OrderDetailsPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api, { getListingImageUrl } from '../services/api';
@@ -49,10 +48,12 @@ export default function OrderDetailsPage() {
         
         if (newStatus === 'cancelled') {
             confirmationMessage = isAdmin 
-                ? "ADMIN ACTION: Force cancel this order and refund escrow?" 
+                ? "ADMIN ACTION: Force cancel this order and refund escrow to the buyer?" 
                 : "WARNING: This marks the order as FAILED. Escrow funds will be refunded. Proceed?";
         } else if (newStatus === 'completed') {
-            confirmationMessage = "SUCCESS: Confirm you received the items in good condition? Funds will be permanently released to the seller.";
+            confirmationMessage = isAdmin
+                ? "ADMIN ACTION: Force complete this order and release escrow to the seller?"
+                : "SUCCESS: Confirm you received the items in good condition? Funds will be permanently released to the seller.";
         } else if (newStatus === 'processing') {
             confirmationMessage = "Accept this order and prepare it for dispatch?";
         } else if (newStatus === 'dispatched') {
@@ -123,7 +124,7 @@ export default function OrderDetailsPage() {
                 </div>
                 <div className="text-right">
                     <p className="text-xs font-bold uppercase tracking-wider opacity-70 mb-1">Total Escrow Amount</p>
-                    <h2 className="text-3xl font-black">${order.total_amount}</h2>
+                    <h2 className="text-3xl font-black">MMK {order.total_amount}</h2>
                 </div>
             </div>
 
@@ -160,9 +161,14 @@ export default function OrderDetailsPage() {
 
                         {/* ADMIN ACTIONS */}
                         {isAdmin && (
-                            <button onClick={() => handleUpdateOrderStatus('cancelled')} className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-md transition">
-                                ⚖️ Force Refund (Arbitration)
-                            </button>
+                            <>
+                                <button onClick={() => handleUpdateOrderStatus('cancelled')} className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-md transition">
+                                    ⚖️ Force Refund (Buyer)
+                                </button>
+                                <button onClick={() => handleUpdateOrderStatus('completed')} className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition">
+                                    ⚖️ Force Release (Seller)
+                                </button>
+                            </>
                         )}
                     </div>
                 </div>
@@ -216,10 +222,10 @@ export default function OrderDetailsPage() {
                                         )}
                                         <span>{item.listing?.title || 'Product Unavailable'}</span>
                                     </td>
-                                    <td className="p-3 text-center">${item.price_at_purchase}</td>
+                                    <td className="p-3 text-center">MMK {item.price_at_purchase}</td>
                                     <td className="p-3 text-center font-bold bg-slate-50 dark:bg-white/5">{item.quantity}</td>
                                     <td className="p-3 text-right font-bold text-blue-600 dark:text-cyan-400">
-                                        ${(item.price_at_purchase * item.quantity).toFixed(2)}
+                                        MMK {(item.price_at_purchase * item.quantity).toFixed(2)}
                                     </td>
                                 </tr>
                             ))}
@@ -227,7 +233,7 @@ export default function OrderDetailsPage() {
                         <tfoot className="border-t-2 border-slate-200 dark:border-white/10">
                             <tr>
                                 <td colSpan="3" className="p-4 text-right font-bold uppercase tracking-wider text-xs text-slate-500">Escrow Total</td>
-                                <td className="p-4 text-right font-black text-xl text-slate-900 dark:text-white">${order.total_amount}</td>
+                                <td className="p-4 text-right font-black text-xl text-slate-900 dark:text-white">MMK {order.total_amount}</td>
                             </tr>
                         </tfoot>
                     </table>

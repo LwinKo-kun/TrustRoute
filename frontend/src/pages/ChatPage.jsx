@@ -118,7 +118,7 @@ export default function ChatPage() {
         let confirmationMessage = "Are you sure you want to update this order?";
         
         if (newStatus === 'cancelled') {
-            confirmationMessage = "WARNING: This will mark the order as FAILED. The locked Escrow funds will be immediately refunded to the buyer's wallet. Proceed?";
+            confirmationMessage = "WARNING: This will mark the order as FAILED. An administrator will manually review this transaction and process the Escrow refund. Proceed?";
         } else if (newStatus === 'completed') {
             confirmationMessage = "SUCCESS: Have you received the items in good condition? Confirming will permanently release the Escrow funds to the shopkeeper. Proceed?";
         } else if (newStatus === 'processing') {
@@ -148,7 +148,7 @@ export default function ChatPage() {
             case 'processing': return { label: 'Preparing Dispatch', color: 'bg-blue-500/20 text-blue-400' };
             case 'dispatched': return { label: 'In Transit', color: 'bg-purple-500/20 text-purple-400' };
             case 'completed': return { label: 'Delivered (Funds Released)', color: 'bg-emerald-500/20 text-emerald-400' };
-            case 'cancelled': return { label: 'Failed (Refunded)', color: 'bg-rose-500/20 text-rose-400' };
+            case 'cancelled': return { label: 'Failed (Admin Reviewing Refund)', color: 'bg-rose-500/20 text-rose-400' };
             default: return { label: status, color: 'bg-slate-500/20 text-slate-400' };
         }
     };
@@ -299,7 +299,7 @@ export default function ChatPage() {
                                                                                 <span className="truncate pr-3 font-medium">
                                                                                     <span className="opacity-70 mr-1">{item.quantity}x</span> {item.listing?.title || 'Product'}
                                                                                 </span>
-                                                                                <span className="font-semibold">${Number(item.quantity * item.price_at_purchase).toFixed(2)}</span>
+                                                                                <span className="font-semibold">MMK {Number(item.quantity * item.price_at_purchase).toFixed(2)}</span>
                                                                             </div>
                                                                         ))
                                                                     ) : (
@@ -311,7 +311,16 @@ export default function ChatPage() {
                                                                     <div className="flex flex-col">
                                                                         <span className="text-[10px] font-bold uppercase opacity-70 tracking-widest">Escrow Locked</span>
                                                                     </div>
-                                                                    <p className="text-lg font-black text-white">${msg.order.total_amount}</p>
+                                                                    <p className="text-lg font-black text-white">MMK {msg.order.total_amount}</p>
+                                                                </div>
+
+                                                                {/* NEW: Validator Node Status Badge */}
+                                                                <div className="flex items-center gap-2 mt-4 pt-3 border-t border-white/10">
+                                                                    <span className="relative flex h-2 w-2">
+                                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                                                    </span>
+                                                                    <span className="text-[9px] font-mono text-emerald-400 uppercase tracking-widest">TrustRoute P2P Validator Node Active</span>
                                                                 </div>
                                                             </div>
                                                             
@@ -329,7 +338,7 @@ export default function ChatPage() {
                                                                         <button onClick={() => handleUpdateOrderStatus(msg.order.id, 'dispatched')} className="w-full py-2 bg-blue-600 hover:bg-blue-700 border border-blue-400 text-white text-xs rounded-lg font-bold transition shadow-sm">Mark as Dispatched (Shipped)</button>
                                                                     )}
                                                                     {msg.order.status === 'dispatched' && (
-                                                                        <button onClick={() => handleUpdateOrderStatus(msg.order.id, 'cancelled')} className="w-full py-2 bg-rose-800 hover:bg-rose-900 border border-rose-400 text-white text-xs rounded-lg font-bold transition shadow-sm">Report Failed Delivery (Refund Buyer)</button>
+                                                                        <button onClick={() => handleUpdateOrderStatus(msg.order.id, 'cancelled')} className="w-full py-2 bg-rose-800 hover:bg-rose-900 border border-rose-400 text-white text-xs rounded-lg font-bold transition shadow-sm">Report Failed Delivery (Admin Review)</button>
                                                                     )}
                                                                 </div>
                                                             )}
@@ -337,7 +346,7 @@ export default function ChatPage() {
                                                             {isMe && currentUser?.role === 'customer' && (
                                                                 <div className="flex flex-col gap-2 mt-2">
                                                                     {msg.order.status === 'pending' && (
-                                                                        <button onClick={() => handleUpdateOrderStatus(msg.order.id, 'cancelled')} className="w-full py-2 bg-rose-600 hover:bg-rose-700 border border-rose-400 text-white text-xs rounded-lg font-bold transition shadow-sm">Cancel Order (Refund Escrow)</button>
+                                                                        <button onClick={() => handleUpdateOrderStatus(msg.order.id, 'cancelled')} className="w-full py-2 bg-rose-600 hover:bg-rose-700 border border-rose-400 text-white text-xs rounded-lg font-bold transition shadow-sm">Cancel Order (Request Refund)</button>
                                                                     )}
                                                                     {msg.order.status === 'dispatched' && (
                                                                         <div className="flex gap-2">

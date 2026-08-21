@@ -18,30 +18,35 @@ class WalletController extends Controller
     public function getBalance(Request $request)
     {
         $user = $request->user();
-        $wallet = $user->wallet;
+        
+        // Ensure the wallet exists so it doesn't throw an error on fresh accounts
+        $wallet = $user->wallet()->firstOrCreate([], [
+            'balance' => 0,
+            'locked_balance' => 0,
+            'incoming_escrow' => 0,
+        ]);
 
-        $lockedBalance = 0;
+        // 1. Calculate Locked Escrow (Funds this user has locked as a BUYER)
+        // We calculate this for EVERYONE, because shopkeepers can buy things too!
+        $lockedBalance = \App\Models\Order::where('customer_id', $user->id)
+            ->whereIn('status', ['pending', 'processing', 'dispatched'])
+            ->sum('total_amount');
+
+        // 2. Calculate Incoming Escrow (Funds coming to this user as a SELLER)
+        $shopIds = \App\Models\Shop::where('shopkeeper_id', $user->id)->pluck('id');
         $incomingEscrow = 0;
 
-        // Calculate locked escrow for customers based on active orders
-        if ($user->role === 'customer') {
-            $lockedBalance = \App\Models\Order::where('customer_id', $user->id)
-                ->whereIn('status', ['pending', 'processing', 'dispatched'])
-                ->sum('total_amount');
-        }
-
-        // Calculate incoming escrow for shopkeepers based on active store orders
-        if ($user->role === 'shopkeeper') {
-            $shopIds = \App\Models\Shop::where('shopkeeper_id', $user->id)->pluck('id');
-            
+        // If they own any shops, sum up the active orders for those shops
+        if ($shopIds->isNotEmpty()) {
             $incomingEscrow = \App\Models\Order::whereIn('shop_id', $shopIds)
                 ->whereIn('status', ['pending', 'processing', 'dispatched'])
                 ->sum('total_amount');
         }
 
         return response()->json([
+            'status' => 'success',
             'data' => [
-                'balance' => (float) ($wallet->balance ?? 0),
+                'balance' => (float) $wallet->balance,
                 'locked_balance' => (float) $lockedBalance, 
                 'incoming_escrow' => (float) $incomingEscrow, 
             ]

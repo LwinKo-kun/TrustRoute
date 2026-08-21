@@ -113,8 +113,6 @@ class OrderController extends Controller
         try {
             return DB::transaction(function () use ($request, $order, $user, $isCustomer) {
                 $originalStatus = $order->status;
-                
-                // FIX: Ensure the system alert goes to the OTHER person in the transaction
                 $recipientId = $isCustomer ? $order->shop->shopkeeper_id : $order->customer_id;
 
                 if ($request->status === 'cancelled' && $originalStatus !== 'cancelled') {
@@ -125,13 +123,14 @@ class OrderController extends Controller
                         }
                     }
 
+                    // RESTORED: This is the line that actually refunds the MMK to the buyer!
                     $customer = User::findOrFail($order->customer_id);
                     $this->walletService->rollbackOrderFunds($customer, $order->total_amount, $order);
-
+                    
                     \App\Models\Message::create([
                         'sender_id' => $user->id, 
                         'receiver_id' => $recipientId, 
-                        'message' => 'This order has been declined/cancelled. Your Escrow funds have been successfully refunded to your wallet.',
+                        'message' => 'This order has been declined/cancelled. The Escrow funds have been successfully refunded to the buyer\'s wallet.',
                         'type' => 'system_alert', 
                         'order_id' => $order->id,
                     ]);
