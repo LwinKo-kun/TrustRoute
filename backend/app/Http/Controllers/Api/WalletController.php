@@ -29,7 +29,7 @@ class WalletController extends Controller
         // 1. Calculate Locked Escrow (Funds this user has locked as a BUYER)
         // We calculate this for EVERYONE, because shopkeepers can buy things too!
         $lockedBalance = \App\Models\Order::where('customer_id', $user->id)
-            ->whereIn('status', ['pending', 'processing', 'dispatched'])
+            ->whereIn('status', ['pending', 'processing', 'dispatched', 'cancellation_requested'])
             ->sum('total_amount');
 
         // 2. Calculate Incoming Escrow (Funds coming to this user as a SELLER)
@@ -39,7 +39,7 @@ class WalletController extends Controller
         // If they own any shops, sum up the active orders for those shops
         if ($shopIds->isNotEmpty()) {
             $incomingEscrow = \App\Models\Order::whereIn('shop_id', $shopIds)
-                ->whereIn('status', ['pending', 'processing', 'dispatched'])
+                ->whereIn('status', ['pending', 'processing', 'dispatched', 'cancellation_requested'])
                 ->sum('total_amount');
         }
 
@@ -63,7 +63,7 @@ class WalletController extends Controller
 
         $user = $request->user();
 
-        // THE FIX: Use firstOrCreate so it automatically builds a wallet if it's missing
+        // Use firstOrCreate so it automatically builds a wallet if it's missing
         $wallet = $user->wallet()->firstOrCreate([], [
             'balance' => 0,
             'locked_balance' => 0,

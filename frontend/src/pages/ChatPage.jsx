@@ -118,7 +118,7 @@ export default function ChatPage() {
         let confirmationMessage = "Are you sure you want to update this order?";
         
         if (newStatus === 'cancelled') {
-            confirmationMessage = "WARNING: This will mark the order as FAILED. An administrator will manually review this transaction and process the Escrow refund. Proceed?";
+            confirmationMessage = "WARNING: This will submit a cancellation request. An administrator will review and process the Escrow refund. Proceed?";
         } else if (newStatus === 'completed') {
             confirmationMessage = "SUCCESS: Have you received the items in good condition? Confirming will permanently release the Escrow funds to the shopkeeper. Proceed?";
         } else if (newStatus === 'processing') {
@@ -133,7 +133,22 @@ export default function ChatPage() {
             await fetchConversations();
         } catch (err) {
             console.error(`Failed to update order status to ${newStatus}`, err);
-            alert("Failed to update status. Please try again.");
+            const msg = err.response?.data?.message || "Failed to update status. Please try again.";
+            alert(msg);
+        }
+    };
+
+    const handleApproveCancellation = async (orderId) => {
+        if (!window.confirm("ADMIN: Approve this cancellation and refund the Escrow funds to the buyer?")) return;
+
+        try {
+            await api.post(`/orders/${orderId}/approve-cancellation`);
+            await fetchMessages(true);
+            await fetchConversations();
+        } catch (err) {
+            console.error('Failed to approve cancellation', err);
+            const msg = err.response?.data?.message || "Failed to approve cancellation. Please try again.";
+            alert(msg);
         }
     };
 
@@ -148,7 +163,8 @@ export default function ChatPage() {
             case 'processing': return { label: 'Preparing Dispatch', color: 'bg-blue-500/20 text-blue-400' };
             case 'dispatched': return { label: 'In Transit', color: 'bg-purple-500/20 text-purple-400' };
             case 'completed': return { label: 'Delivered (Funds Released)', color: 'bg-emerald-500/20 text-emerald-400' };
-            case 'cancelled': return { label: 'Failed (Admin Reviewing Refund)', color: 'bg-rose-500/20 text-rose-400' };
+            case 'cancellation_requested': return { label: 'Cancellation Pending (Admin Review)', color: 'bg-orange-500/20 text-orange-400' };
+            case 'cancelled': return { label: 'Cancelled (Refunded)', color: 'bg-rose-500/20 text-rose-400' };
             default: return { label: status, color: 'bg-slate-500/20 text-slate-400' };
         }
     };
@@ -354,6 +370,12 @@ export default function ChatPage() {
                                                                             <button onClick={() => handleUpdateOrderStatus(msg.order.id, 'cancelled')} className="flex-1 py-2.5 bg-rose-700 hover:bg-rose-800 border border-rose-500 text-white text-xs rounded-lg font-bold transition shadow-sm">Report Failure</button>
                                                                         </div>
                                                                     )}
+                                                                </div>
+                                                            )}
+
+                                                            {currentUser?.role === 'admin' && msg.order.status === 'cancellation_requested' && (
+                                                                <div className="flex flex-col gap-2 mt-2">
+                                                                    <button onClick={() => handleApproveCancellation(msg.order.id)} className="w-full py-2 bg-amber-600 hover:bg-amber-700 border border-amber-400 text-white text-xs rounded-lg font-bold transition shadow-sm">✅ Approve Cancellation & Refund</button>
                                                                 </div>
                                                             )}
                                                         </div>

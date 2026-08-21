@@ -73,6 +73,19 @@ export default function OrderDetailsPage() {
         }
     };
 
+    const handleApproveCancellation = async () => {
+        if (!window.confirm("ADMIN: Approve this cancellation and refund the Escrow funds to the buyer?")) return;
+
+        try {
+            await api.post(`/orders/${orderId}/approve-cancellation`);
+            const res = await api.get(`/orders/${orderId}`);
+            setOrder(res.data.data);
+        } catch (err) {
+            console.error('Failed to approve cancellation', err);
+            alert(err.response?.data?.message || "Failed to approve cancellation. Please try again.");
+        }
+    };
+
     if (loading) return <div className="p-10 text-center font-medium text-slate-500">Loading order details...</div>;
     if (error) return <div className="p-10 text-center font-bold text-rose-500">{error}</div>;
     if (!order) return null;
@@ -84,7 +97,8 @@ export default function OrderDetailsPage() {
             case 'processing': return { label: 'Preparing Dispatch', color: 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20' };
             case 'dispatched': return { label: 'In Transit', color: 'bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20' };
             case 'completed': return { label: 'Delivered (Funds Released)', color: 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' };
-            case 'cancelled': return { label: 'Failed (Refunded)', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' };
+            case 'cancellation_requested': return { label: 'Cancellation Pending (Admin Review)', color: 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20' };
+            case 'cancelled': return { label: 'Cancelled (Refunded)', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' };
             default: return { label: status, color: 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/20' };
         }
     };
@@ -160,7 +174,12 @@ export default function OrderDetailsPage() {
                         )}
 
                         {/* ADMIN ACTIONS */}
-                        {isAdmin && (
+                        {isAdmin && order.status === 'cancellation_requested' && (
+                            <button onClick={() => handleApproveCancellation()} className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-md transition">
+                                ✅ Approve Cancellation & Refund
+                            </button>
+                        )}
+                        {isAdmin && order.status !== 'cancellation_requested' && (
                             <>
                                 <button onClick={() => handleUpdateOrderStatus('cancelled')} className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-md transition">
                                     ⚖️ Force Refund (Buyer)

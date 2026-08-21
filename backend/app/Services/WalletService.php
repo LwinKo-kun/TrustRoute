@@ -96,6 +96,7 @@ class WalletService
                 throw new Exception('CRITICAL ERROR: Cannot refund. Insufficient locked funds.');
             }
 
+            // Move funds from locked escrow BACK to available balance
             $wallet->locked_balance -= $amount;
             $wallet->balance += $amount;
             $wallet->save();
@@ -105,8 +106,8 @@ class WalletService
                 'amount' => $amount,
                 'reference_type' => get_class($order),
                 'reference_id' => $order->id,
-                'status' => 'completed',
-                'description' => 'Escrow refunded for cancelled/declined Order #' . $order->id,
+                'status' => 'completed', // Marked as completed instantly since Admin has already approved it
+                'description' => 'Escrow refunded for cancelled Order #' . $order->id,
             ]);
         });
     }

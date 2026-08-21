@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderRequest;
 use App\Models\Order;
+use App\Models\OrderApproval;
 use App\Models\Shop;
 use App\Models\User;
 use App\Services\OrderService;
@@ -95,7 +96,7 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:processing,paid,dispatched,completed,cancelled'
+            'status' => 'required|in:processing,paid,dispatched,completed,cancelled,cancellation_requested'
         ]);
 
         $user = auth()->user();
@@ -111,11 +112,39 @@ class OrderController extends Controller
         }
 
         try {
-            return DB::transaction(function () use ($request, $order, $user, $isCustomer) {
+            return DB::transaction(function () use ($request, $order, $user, $isCustomer, $isShopkeeper) {
                 $originalStatus = $order->status;
                 $recipientId = $isCustomer ? $order->shop->shopkeeper_id : $order->customer_id;
 
-                if ($request->status === 'cancelled' && $originalStatus !== 'cancelled') {
+                // --- CANCELLATION REQUEST (customer or shopkeeper) ---
+                // When a customer or shopkeeper wants to cancel, set status to 'cancellation_requested'
+                // The actual cancellation + refund happens only when admin approves
+                if ($request->status === 'cancelled' && $user->role !== 'admin') {
+                    // Non-admin users cannot directly cancel; they request cancellation instead
+                    $order->update(['status' => 'cancellation_requested']);
+
+                    \App\Models\Message::create([
+                        'sender_id' => $user->id,
+                        'receiver_id' => $recipientId,
+                        'message' => 'A cancellation has been requested for this order. An administrator will review and process the refund.',
+                        'type' => 'system_alert',
+                        'order_id' => $order->id,
+                    ]);
+
+                    return response()->json([
+                        'message' => 'Cancellation request submitted. An admin will review and process the refund.',
+                        'data' => $order->fresh()
+                    ]);
+                }
+
+                // --- ADMIN CANCELLATION (with refund) ---
+                if ($request->status === 'cancelled' && $user->role === 'admin') {
+                    // Record admin approval
+                    OrderApproval::updateOrCreate(
+                        ['order_id' => $order->id, 'role' => 'admin'],
+                        ['approved_by' => $user->id]
+                    );
+
                     $order->load('items.listing');
                     foreach ($order->items as $item) {
                         if ($item->listing) {
@@ -123,16 +152,33 @@ class OrderController extends Controller
                         }
                     }
 
-                    // RESTORED: This is the line that actually refunds the MMK to the buyer!
+                    // Refund escrow funds to the buyer
                     $customer = User::findOrFail($order->customer_id);
                     $this->walletService->rollbackOrderFunds($customer, $order->total_amount, $order);
-                    
+
+                    $order->update(['status' => 'cancelled']);
+
+                    // Notify customer
                     \App\Models\Message::create([
-                        'sender_id' => $user->id, 
-                        'receiver_id' => $recipientId, 
-                        'message' => 'This order has been declined/cancelled. The Escrow funds have been successfully refunded to the buyer\'s wallet.',
-                        'type' => 'system_alert', 
+                        'sender_id' => $user->id,
+                        'receiver_id' => $order->customer_id,
+                        'message' => 'This order has been cancelled by an administrator. The Escrow funds have been successfully refunded to your wallet.',
+                        'type' => 'system_alert',
                         'order_id' => $order->id,
+                    ]);
+
+                    // Notify shopkeeper
+                    \App\Models\Message::create([
+                        'sender_id' => $user->id,
+                        'receiver_id' => $order->shop->shopkeeper_id,
+                        'message' => 'This order has been cancelled by an administrator. The Escrow funds have been refunded to the buyer.',
+                        'type' => 'system_alert',
+                        'order_id' => $order->id,
+                    ]);
+
+                    return response()->json([
+                        'message' => 'Order cancelled and escrow funds refunded.',
+                        'data' => $order->fresh()
                     ]);
                 }
 
@@ -181,6 +227,71 @@ class OrderController extends Controller
 
                 return response()->json([
                     'message' => 'Order status updated successfully.',
+                    'data' => $order->fresh()
+                ]);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Admin approves a cancellation request and processes the refund.
+     */
+    public function approveCancellation(Request $request, Order $order)
+    {
+        $user = auth()->user();
+
+        if ($user->role !== 'admin') {
+            return response()->json(['message' => 'Only administrators can approve cancellations.'], 403);
+        }
+
+        if ($order->status !== 'cancellation_requested') {
+            return response()->json(['message' => 'This order does not have a pending cancellation request.'], 422);
+        }
+
+        try {
+            return DB::transaction(function () use ($order, $user) {
+                // Record admin approval
+                OrderApproval::updateOrCreate(
+                    ['order_id' => $order->id, 'role' => 'admin'],
+                    ['approved_by' => $user->id]
+                );
+
+                // Restore stock
+                $order->load('items.listing');
+                foreach ($order->items as $item) {
+                    if ($item->listing) {
+                        $item->listing->increment('stock', $item->quantity);
+                    }
+                }
+
+                // Refund escrow funds to the buyer
+                $customer = User::findOrFail($order->customer_id);
+                $this->walletService->rollbackOrderFunds($customer, $order->total_amount, $order);
+
+                $order->update(['status' => 'cancelled']);
+
+                // Notify customer
+                \App\Models\Message::create([
+                    'sender_id' => $user->id,
+                    'receiver_id' => $order->customer_id,
+                    'message' => 'Your cancellation request has been approved by an administrator. The Escrow funds have been successfully refunded to your wallet.',
+                    'type' => 'system_alert',
+                    'order_id' => $order->id,
+                ]);
+
+                // Notify shopkeeper
+                \App\Models\Message::create([
+                    'sender_id' => $user->id,
+                    'receiver_id' => $order->shop->shopkeeper_id,
+                    'message' => 'A cancellation request has been approved by an administrator. The Escrow funds have been refunded to the buyer.',
+                    'type' => 'system_alert',
+                    'order_id' => $order->id,
+                ]);
+
+                return response()->json([
+                    'message' => 'Cancellation approved. Escrow funds refunded to buyer.',
                     'data' => $order->fresh()
                 ]);
             });
