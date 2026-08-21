@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import Header from '../components/layout/Header';
 import ShopCard from '../components/market/ShopCard';
 import Layout from '../components/layout/Layout';
 import api from '../api/axios';
@@ -29,7 +28,6 @@ export default function LandingPage() {
     return () => clearInterval(sliderInterval);
   }, [products.length, isSliderHovered]);
 
-  // Manual Controls
   const nextSlide = () => {
     if (products.length <= 1) return;
     setCurrentIndex((prev) => (prev === products.length - 1 ? 0 : prev + 1));
@@ -265,61 +263,60 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* --- SINGLE FADE ANIMATION CARD --- */}
-            <div 
-              className="relative hidden lg:block w-full h-[450px] xl:h-[520px] rounded-[2.5rem] shadow-2xl shadow-blue-500/10 dark:shadow-cyan-500/10"
-              onMouseEnter={() => setIsSliderHovered(true)}
-              onMouseLeave={() => setIsSliderHovered(false)}
-            >
+            {/* --- IMAGE CARD ONLY (BORDERLESS & FADE ANIMATION) --- */}
+            <div className="relative hidden lg:block w-full min-w-0 h-[450px] xl:h-[550px] rounded-[2rem] overflow-hidden shadow-2xl shadow-blue-500/20">
               {loading ? (
-                <div className="w-full h-full animate-pulse bg-slate-200 dark:bg-white/5 rounded-[2.5rem]" />
+                <div className="w-full h-full animate-pulse bg-slate-200 dark:bg-white/5" />
               ) : products.length > 0 ? (
                 <>
                   {products.map((product, index) => (
                     <div
                       key={product.id}
-                      className={`absolute inset-0 w-full h-full rounded-[2.5rem] overflow-hidden transition-opacity duration-1000 ease-in-out ${
+                      className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
                         index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
                       }`}
+                      onMouseEnter={() => setIsSliderHovered(true)}
+                      onMouseLeave={() => setIsSliderHovered(false)}
                     >
-                      <img
-                        src={getListingImageUrl(product)}
-                        alt={product.title}
-                        className="w-full h-full object-cover transform transition-transform duration-[10000ms] ease-out scale-100 hover:scale-110"
-                        onError={(e) => { e.currentTarget.src = fallbackImage; }}
-                      />
+                      {/* FIX: Make the entire background image a clickable link */}
+                      <Link to={`/listings/${product.id}`} className="absolute inset-0 z-0 block w-full h-full">
+                        <img
+                          src={getListingImageUrl(product)}
+                          alt={product.title}
+                          className="w-full h-full object-cover transform transition-transform duration-[10000ms] ease-out scale-100 hover:scale-110"
+                          onError={(e) => { e.currentTarget.src = fallbackImage; }}
+                        />
+                      </Link>
                       
-                      {/* Gradient Overlay for Text Visibility */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#070b1c]/90 via-[#070b1c]/40 to-transparent pointer-events-none" />
+                      {/* Dark Gradient Overlay for text visibility */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#070b1c]/90 via-[#070b1c]/30 to-transparent pointer-events-none z-10" />
 
                       {/* Floating Badges */}
-                      <div className="absolute top-6 left-6 flex flex-col gap-2">
-                         <span className="bg-white/90 dark:bg-[#070b1c]/80 backdrop-blur-md text-slate-800 dark:text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg shadow-md uppercase tracking-wider">
+                      <div className="absolute top-6 left-6 z-20 flex flex-col gap-2">
+                         {/* FIX: Make the shop name clickable! */}
+                         <Link to={product.shop?.id ? `/shops/${product.shop.id}` : '#'} className="bg-white/20 backdrop-blur-md border border-white/10 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg shadow-sm uppercase tracking-wider hover:bg-white/30 transition">
                            {product.shop?.shop_name || 'Verified Store'}
-                         </span>
+                         </Link>
                       </div>
                       
-                      <div className="absolute top-6 right-6">
-                        <span className={`px-3 py-1.5 text-[10px] font-extrabold rounded-lg shadow-md uppercase tracking-wider backdrop-blur-md ${product.stock > 0 ? 'bg-emerald-500/90 text-white' : 'bg-rose-500/90 text-white'}`}>
+                      <div className="absolute top-6 right-6 z-20">
+                        <span className={`px-3 py-1.5 text-[10px] font-extrabold rounded-lg shadow-sm uppercase tracking-wider backdrop-blur-md ${product.stock > 0 ? 'bg-emerald-500/80 text-white' : 'bg-rose-500/80 text-white'}`}>
                           {product.stock > 0 ? 'In Stock' : 'Sold Out'}
                         </span>
                       </div>
 
-                      {/* Content Overlay */}
-                      <div className="absolute bottom-0 left-0 right-0 p-8 sm:p-10">
-                        <span className="inline-block px-2.5 py-1 bg-blue-600/90 text-white text-[10px] font-black rounded uppercase tracking-widest mb-3 backdrop-blur-md">
-                          Featured
-                        </span>
-                        <h3 className="text-2xl sm:text-3xl font-extrabold text-white mb-3 line-clamp-2 leading-tight">
+                      {/* Product Details overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 p-8 sm:p-10 z-20 pointer-events-none">
+                        <h3 className="text-2xl sm:text-3xl font-extrabold text-white mb-3 line-clamp-2 leading-tight drop-shadow-md">
                           {product.title}
                         </h3>
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between pointer-events-auto">
                           <span className="text-3xl font-black text-cyan-400 drop-shadow-lg">
-                            ${Number(product.price).toFixed(2)}
+                            MMK {Number(product.price).toFixed(2)}
                           </span>
                           <Link 
                             to={`/listings/${product.id}`} 
-                            className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105"
+                            className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-blue-500/50 hover:-translate-y-0.5"
                           >
                             View Details
                           </Link>
@@ -328,38 +325,42 @@ export default function LandingPage() {
                     </div>
                   ))}
 
-                  {/* Elegant Floating Navigation Controls */}
+                  {/* Navigation Arrows */}
                   {products.length > 1 && (
-                    <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-4 z-20 pointer-events-none">
+                    <div 
+                      className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-4 z-30 opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                      onMouseEnter={() => setIsSliderHovered(true)}
+                      onMouseLeave={() => setIsSliderHovered(false)}
+                    >
                       <button 
                         onClick={prevSlide}
-                        className="pointer-events-auto flex items-center justify-center w-10 h-10 rounded-full bg-black/30 hover:bg-black/60 backdrop-blur-md border border-white/20 text-white transition-all transform hover:-translate-x-1"
+                        className="pointer-events-auto flex items-center justify-center w-10 h-10 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white transition-all transform hover:-translate-x-1"
                       >
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
                       </button>
                       <button 
                         onClick={nextSlide}
-                        className="pointer-events-auto flex items-center justify-center w-10 h-10 rounded-full bg-black/30 hover:bg-black/60 backdrop-blur-md border border-white/20 text-white transition-all transform hover:translate-x-1"
+                        className="pointer-events-auto flex items-center justify-center w-10 h-10 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white transition-all transform hover:translate-x-1"
                       >
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                       </button>
                     </div>
                   )}
-
-                  {/* Dot Indicators */}
+                  
+                  {/* Subtle Dot Indicators */}
                   {products.length > 1 && (
-                    <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20 pointer-events-none">
+                    <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-20 pointer-events-none">
                       {products.map((_, idx) => (
                         <div
                           key={idx}
-                          className={`h-1.5 rounded-full transition-all duration-500 shadow-lg ${currentIndex === idx ? 'w-6 bg-cyan-400' : 'w-2 bg-white/40'}`}
+                          className={`h-1.5 rounded-full transition-all duration-700 shadow-md ${currentIndex === idx ? 'w-8 bg-cyan-400' : 'w-2 bg-white/40'}`}
                         />
                       ))}
                     </div>
                   )}
                 </>
               ) : (
-                <div className="w-full h-full flex items-center justify-center rounded-[2.5rem] bg-slate-100 dark:bg-white/5">
+                <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-white/5">
                    <p className="text-slate-500 font-semibold">No active listings found.</p>
                 </div>
               )}
@@ -467,7 +468,8 @@ export default function LandingPage() {
               </h2>
               <p className="mt-2 text-slate-600 dark:text-slate-400 text-base">Discover verified sellers and trusted technology stores.</p>
             </div>
-            <Link to="/marketplace" className="group inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 dark:text-cyan-300 transition">
+            {/* FIX: Ensure this button correctly routes to the shops page */}
+            <Link to="/shops" className="group inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 dark:text-cyan-300 transition">
               View All Shops <span className="transition-transform group-hover:translate-x-1">→</span>
             </Link>
           </div>

@@ -13,7 +13,6 @@ export default function MarketplacePage() {
   const [listings, setListings] = useState([]);
   const [matchedShops, setMatchedShops] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cartCount, setCartCount] = useState(0);
 
   // --- MULTI-PAGE STATE ---
   const [currentPage, setCurrentPage] = useState(1);
@@ -67,9 +66,15 @@ export default function MarketplacePage() {
             const allShops = Array.isArray(shopData) ? shopData : shopData?.data || [];
             
             if (searchQuery) {
-              const filteredShops = allShops.filter(s => 
-                s.shop_name.toLowerCase().includes(searchQuery.toLowerCase())
-              );
+              // Bulletproof search filter to prevent crashing on missing shop names
+              const filteredShops = allShops.filter(s => {
+                const name = s.shop_name || s.name || '';
+                const desc = s.description || '';
+                const searchLower = searchQuery.toLowerCase();
+                
+                return name.toLowerCase().includes(searchLower) || 
+                       desc.toLowerCase().includes(searchLower);
+              });
               setMatchedShops(filteredShops);
             } else {
               setMatchedShops([]);
@@ -93,40 +98,6 @@ export default function MarketplacePage() {
     return () => clearTimeout(timer);
   }, [searchQuery, currentPage]);
 
-  useEffect(() => {
-    const update = () => {
-      const cartKey = `cart_user_${user?.id || 'guest'}`;
-      const cartObj = JSON.parse(localStorage.getItem(cartKey) || '[]');
-      const items = Array.isArray(cartObj) ? cartObj : (cartObj.items || []);
-      setCartCount(items.reduce((s, i) => s + (i.quantity || 1), 0));
-    };
-    update();
-    window.addEventListener('storage', update);
-    window.addEventListener('cartUpdated', update);
-    const interval = setInterval(update, 1000);
-    return () => { 
-      clearInterval(interval); 
-      window.removeEventListener('storage', update); 
-      window.removeEventListener('cartUpdated', update);
-    };
-  }, [user]);
-
-  const addToCart = (e, listing) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const cartKey = `cart_user_${user?.id || 'guest'}`;
-    const cartObj = JSON.parse(localStorage.getItem(cartKey) || '[]');
-    const cart = Array.isArray(cartObj) ? cartObj : (cartObj.items || []);
-    
-    const idx = cart.findIndex(i => i.id === listing.id);
-    if (idx > -1) cart[idx].quantity += 1;
-    else cart.push({ ...listing, price: Number(listing.price) || 0, quantity: 1 });
-    
-    localStorage.setItem(cartKey, JSON.stringify({ timestamp: Date.now(), items: cart }));
-    window.dispatchEvent(new Event('cartUpdated'));
-    setCartCount(cart.reduce((s, i) => s + (i.quantity || 1), 0));
-  };
-
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 transition-colors duration-300 flex flex-col gap-8">
@@ -138,13 +109,6 @@ export default function MarketplacePage() {
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Browse verified products and trusted shops</p>
           </div>
-          <Link to="/cart" className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md transition">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            Cart
-            {cartCount > 0 && <span className="px-2 py-0.5 bg-white text-blue-600 text-xs font-extrabold rounded-full">{cartCount}</span>}
-          </Link>
         </div>
 
         {loading ? (
@@ -165,8 +129,8 @@ export default function MarketplacePage() {
                       className="p-5 rounded-2xl bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-white/10 hover:border-blue-500 shadow-sm flex flex-col gap-2 transition group"
                     >
                       <div className="flex justify-between items-center">
-                        <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition">{shop.shop_name}</h3>
-                        <span className="text-[10px] uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">{shop.status}</span>
+                        <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition">{shop.shop_name || shop.name || 'Store'}</h3>
+                        <span className="text-[10px] uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">{shop.status || 'Active'}</span>
                       </div>
                       <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">{shop.description || 'Verified merchant store.'}</p>
                     </Link>
@@ -201,13 +165,12 @@ export default function MarketplacePage() {
                         key={listing.id} 
                         product={listing} 
                         actionButton={
-                          <button
-                            onClick={e => addToCart(e, listing)}
-                            disabled={listing.stock === 0}
-                            className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white text-xs font-semibold rounded-xl shadow-sm transition"
+                          <Link
+                            to={`/listings/${listing.id}`}
+                            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition"
                           >
-                            {listing.stock === 0 ? 'Sold Out' : 'Add to Cart'}
-                          </button>
+                            View Details
+                          </Link>
                         }
                       />
                     ))}

@@ -46,7 +46,7 @@ export default function ProductCard({ product, actionButton }) {
       </Link>
 
       <div className="px-5 pb-5 pt-2 flex items-center justify-between mt-auto border-t border-slate-100 dark:border-white/5">
-        <span className="text-lg font-extrabold text-blue-600 dark:text-cyan-400">${product.price}</span>
+        <span className="text-lg font-extrabold text-blue-600 dark:text-cyan-400">MMK {product.price}</span>
         {actionButton}
       </div>
     </div>

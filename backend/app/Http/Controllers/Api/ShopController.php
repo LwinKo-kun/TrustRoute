@@ -16,7 +16,8 @@ class ShopController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Shop::with('user');
+        // FIX: Added ->withCount('listings') so the frontend gets the exact number!
+        $query = Shop::with('user')->withCount('listings');
 
         if ($request->has('status')) {
             $query->where('status', $request->query('status'));
@@ -67,7 +68,8 @@ class ShopController extends Controller
     {
         return response()->json([
             'status' => 'success',
-            'data' => $shop->load(['user', 'listings']),
+            // It's good practice to also include the count here just in case!
+            'data' => $shop->load(['user', 'listings'])->loadCount('listings'),
         ]);
     }
 
@@ -76,7 +78,7 @@ class ShopController extends Controller
      */
     public function myShop(Request $request): JsonResponse
     {
-        $shop = Shop::with('user')->where('shopkeeper_id', $request->user()->id)->first();
+        $shop = Shop::with('user')->withCount('listings')->where('shopkeeper_id', $request->user()->id)->first();
 
         if (!$shop) {
             return response()->json([

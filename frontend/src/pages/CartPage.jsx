@@ -1,9 +1,8 @@
-// src/pages/CartPage.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getCart } from '../utils/cartStorage';
-import PageLayout from '../layouts/PageLayout'; // Ensure this path matches your structure
+import PageLayout from '../layouts/PageLayout';
 
 export default function CartPage() {
   const { user } = useAuth();
@@ -80,7 +79,7 @@ export default function CartPage() {
                   <span className="text-xs font-semibold text-blue-600 dark:text-cyan-400 uppercase tracking-wider">
                     {item.shop?.shop_name || 'Store'}
                   </span>
-                  <p className="font-bold text-slate-900 dark:text-white mt-2">${item.price}</p>
+                  <p className="font-bold text-slate-900 dark:text-white mt-2">MMK {item.price}</p>
                 </div>
 
                 <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
@@ -107,14 +106,14 @@ export default function CartPage() {
             
             <div className="flex justify-between items-center text-sm text-slate-600 dark:text-slate-400">
               <span>Subtotal ({cartItems.length} items)</span>
-              <span className="font-semibold text-slate-900 dark:text-white">${totalAmount.toFixed(2)}</span>
+              <span className="font-semibold text-slate-900 dark:text-white">MMK {totalAmount.toFixed(2)}</span>
             </div>
             
             <hr className="border-slate-200 dark:border-white/10" />
             
             <div className="flex justify-between items-center text-lg">
               <span className="font-bold text-slate-900 dark:text-white">Total</span>
-              <span className="font-extrabold text-blue-600 dark:text-cyan-400">${totalAmount.toFixed(2)}</span>
+              <span className="font-extrabold text-blue-600 dark:text-cyan-400">MMK {totalAmount.toFixed(2)}</span>
             </div>
 
             <button 

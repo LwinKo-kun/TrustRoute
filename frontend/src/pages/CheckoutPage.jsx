@@ -80,25 +80,25 @@ export default function CheckoutPage() {
                             {cartItems.map((item, idx) => (
                                 <li key={idx} className="flex justify-between items-center text-slate-800 dark:text-slate-200">
                                     <span>{item.quantity}x {item.title || 'Product'}</span>
-                                    <span className="font-semibold">${(item.price * item.quantity).toFixed(2)}</span>
+                                    <span className="font-semibold">MMK {(item.price * item.quantity).toFixed(2)}</span>
                                 </li>
                             ))}
                         </ul>
                         <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex justify-between items-center">
                             <span className="font-bold text-slate-900 dark:text-white">Total Amount</span>
-                            <span className="text-2xl font-extrabold text-blue-600 dark:text-cyan-400">${orderTotal.toFixed(2)}</span>
+                            <span className="text-2xl font-extrabold text-blue-600 dark:text-cyan-400">MMK {orderTotal.toFixed(2)}</span>
                         </div>
                     </div>
 
                     <div className={`p-6 rounded-2xl border ${hasEnoughBalance ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-500/20' : 'bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-500/20'}`}>
                         <div className="flex justify-between items-center mb-2">
                             <span className="font-bold text-sm">Wallet Balance</span>
-                            <span className="font-extrabold text-lg">${walletBalance.toFixed(2)}</span>
+                            <span className="font-extrabold text-lg">MMK {walletBalance.toFixed(2)}</span>
                         </div>
                         
                         {!hasEnoughBalance ? (
                             <div className="mt-4 text-rose-600 dark:text-rose-400 text-sm font-medium">
-                                <p>Insufficient funds. You need ${(orderTotal - walletBalance).toFixed(2)} more.</p>
+                                <p>Insufficient funds. You need MMK {(orderTotal - walletBalance).toFixed(2)} more.</p>
                                 <Link to="/wallet" className="mt-3 block w-full text-center py-2.5 bg-rose-600 text-white rounded-xl font-bold shadow-md hover:bg-rose-700 transition">
                                     Top Up Wallet Now
                                 </Link>

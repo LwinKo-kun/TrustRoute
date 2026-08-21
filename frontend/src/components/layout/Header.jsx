@@ -87,6 +87,7 @@ export default function Header() {
   const handleSearch = (e) => {
     e.preventDefault();
     if (!search.trim()) return;
+    setMobileOpen(false); // Close mobile menu if searching from there
     navigate(`/marketplace?search=${encodeURIComponent(search.trim())}`);
   };
 
@@ -106,7 +107,7 @@ export default function Header() {
       <div className="mx-auto w-full max-w-[1500px] px-3 sm:px-5 lg:px-7">
         <div className="flex h-[72px] min-w-0 items-center justify-between gap-2 lg:gap-3">
 
-          {/* Logo - Updated to TrustNode Marketplace */}
+          {/* Logo - TrustNode Marketplace */}
           <Link to="/" className="group flex shrink-0 items-center gap-2.5">
             <div className="relative">
               <div className="absolute inset-0 rounded-xl bg-blue-500/30 blur-lg opacity-60 transition group-hover:opacity-100 dark:bg-cyan-500/30" />
@@ -124,12 +125,13 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* Main Navigation Links */}
+          {/* Main Navigation Links (Desktop) */}
           <nav className="hidden shrink-0 items-center gap-1 lg:flex">
             <Link to="/marketplace" className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white">
               Marketplace
             </Link>
-            <Link to="/marketplace" className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white">
+            {/* FIXED ROUTE: Points to /shops */}
+            <Link to="/shops" className="group relative rounded-lg px-3 py-2 text-[13px] font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white">
               Trusted Shops
             </Link>
             {user && (
@@ -139,7 +141,7 @@ export default function Header() {
             )}
           </nav>
 
-          {/* Global Search Bar */}
+          {/* Global Search Bar (Desktop) */}
           <form onSubmit={handleSearch} className="group relative min-w-0 flex-1 max-w-md mx-2 hidden sm:block">
             <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-r from-blue-500/0 via-blue-500/20 to-cyan-400/0 opacity-0 blur-md transition duration-300 group-focus-within:opacity-100" />
             <div className="relative flex h-11 min-w-0 items-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50/80 transition-all duration-300 group-hover:border-gray-300 group-focus-within:border-blue-500/50 group-focus-within:bg-white dark:border-white/10 dark:bg-white/[0.045] dark:group-hover:border-white/20 dark:group-focus-within:border-cyan-400/40 dark:group-focus-within:bg-white/[0.07]">
@@ -203,7 +205,7 @@ export default function Header() {
               </div>
             ) : (
               /* User Account Dropdown Menu */
-              <div className="relative ml-1" ref={dropdownRef}>
+              <div className="relative ml-1 hidden sm:block" ref={dropdownRef}>
                 <button 
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center gap-2 h-10 px-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition"
@@ -271,9 +273,60 @@ export default function Header() {
               </svg>
             </button>
           </div>
-
         </div>
       </div>
+
+      {/* --- ADDED: MOBILE MENU DROPDOWN --- */}
+      {mobileOpen && (
+        <div className="lg:hidden border-t border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[#070b1c]/95 backdrop-blur-xl px-4 py-4 space-y-4 shadow-lg absolute w-full left-0">
+          
+          <form onSubmit={handleSearch} className="relative sm:hidden">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search products..."
+              className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+            />
+            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-white font-bold text-xs bg-blue-600 dark:bg-cyan-500 px-3 py-1.5 rounded-lg shadow-sm">Search</button>
+          </form>
+
+          <nav className="flex flex-col gap-2">
+            <Link to="/marketplace" onClick={() => setMobileOpen(false)} className="block px-4 py-3 text-sm font-semibold text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition">
+              Marketplace
+            </Link>
+            <Link to="/shops" onClick={() => setMobileOpen(false)} className="block px-4 py-3 text-sm font-semibold text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition">
+              Trusted Shops
+            </Link>
+            {user && (
+              <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block px-4 py-3 text-sm font-semibold text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition">
+                Dashboard
+              </Link>
+            )}
+            
+            {/* Mobile User Links */}
+            {!user ? (
+              <div className="flex flex-col gap-2 mt-2 pt-4 border-t border-gray-200 dark:border-white/10 sm:hidden">
+                <Link to="/login" onClick={() => setMobileOpen(false)} className="w-full text-center px-4 py-3 text-sm font-bold text-blue-600 dark:text-cyan-400 bg-blue-50 dark:bg-cyan-950/30 rounded-xl">Log In</Link>
+                <Link to="/signup" onClick={() => setMobileOpen(false)} className="w-full text-center px-4 py-3 text-sm font-bold text-white bg-blue-600 dark:bg-cyan-500 rounded-xl">Sign Up</Link>
+              </div>
+            ) : (
+              <div className="mt-2 pt-4 border-t border-gray-200 dark:border-white/10 flex flex-col gap-2 sm:hidden">
+                <div className="px-4 mb-2">
+                   <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{user.name}</p>
+                   <p className="text-[11px] text-gray-500 truncate">{user.email}</p>
+                </div>
+                <Link to="/wallet" onClick={() => setMobileOpen(false)} className="block px-4 py-3 text-sm font-semibold text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition">💳 Wallet</Link>
+                <Link to="/profile" onClick={() => setMobileOpen(false)} className="block px-4 py-3 text-sm font-semibold text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition">⚙️ Profile</Link>
+                {user?.role === 'shopkeeper' && hasShop && (
+                  <Link to="/shop/edit" onClick={() => setMobileOpen(false)} className="block px-4 py-3 text-sm font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl transition">🏪 Shop Settings</Link>
+                )}
+                <button onClick={() => { setMobileOpen(false); handleLogout(); }} className="w-full text-left px-4 py-3 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition">🚪 Logout</button>
+              </div>
+            )}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }
