@@ -680,3 +680,112 @@ University of Computer Studies, Monywa
 ## 🛡️ TrustRoute
 
 **A marketplace with escrow-based transactions, shop management, delivery, and dispute handling.**
+
+
+
+```mermaid
+erDiagram
+    users {
+        bigint id PK
+        varchar name
+        varchar email
+        varchar role
+        varchar acc_status
+        boolean online_status
+    }
+
+    wallets {
+        bigint id PK
+        bigint user_id FK
+        numeric balance
+        numeric locked_balance
+    }
+
+    wallet_transactions {
+        bigint id PK
+        bigint wallet_id FK
+        varchar type
+        numeric amount
+        varchar status
+    }
+
+    shops {
+        bigint id PK
+        bigint shopkeeper_id FK
+        varchar shop_name
+        varchar slug
+        varchar status
+        text description
+    }
+
+    listings {
+        bigint id PK
+        bigint shop_id FK
+        varchar title
+        numeric price
+        integer stock
+    }
+
+    orders {
+        bigint id PK
+        bigint customer_id FK
+        bigint shop_id FK
+        bigint delivery_id FK
+        varchar status
+        numeric total_amount
+    }
+
+    order_items {
+        bigint id PK
+        bigint order_id FK
+        bigint listing_id FK
+        integer quantity
+        numeric price_at_purchase
+    }
+
+    messages {
+        bigint id PK
+        bigint sender_id FK
+        bigint receiver_id FK
+        text message
+        varchar type
+        bigint order_id FK
+        bigint listing_id FK
+    }
+
+    disputes {
+        bigint id PK
+        bigint order_id FK
+        bigint raised_by FK
+        bigint accused_user_id FK
+        text reason
+        varchar status
+    }
+
+    peer_nodes {
+        bigint id PK
+        bigint user_id FK
+        varchar node_id
+        varchar host
+        integer port
+    }
+
+    users ||--o{ wallets : "has"
+    users ||--o{ shops : "owns"
+    users ||--o{ orders : "places as customer"
+    users ||--o{ orders : "delivers as delivery"
+    users ||--o{ messages : "sends"
+    users ||--o{ messages : "receives"
+    users ||--o{ disputes : "raises"
+    users ||--o{ peer_nodes : "operates"
+
+    wallets ||--o{ wallet_transactions : "records"
+    shops ||--o{ listings : "contains"
+    shops ||--o{ orders : "fulfills"
+    
+    orders ||--o{ order_items : "includes"
+    orders ||--o{ messages : "links to"
+    orders ||--o{ disputes : "generates"
+    
+    listings ||--o{ order_items : "ordered as"
+    listings ||--o{ messages : "links to"
