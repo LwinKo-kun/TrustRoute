@@ -2,14 +2,16 @@
 
 return [
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => [
+        'api/*',
+        'sanctum/csrf-cookie',
+    ],
 
     'allowed_methods' => ['*'],
 
-    // Must be a specific origin (not '*') when withCredentials: true is used on the frontend
     'allowed_origins' => [
         'http://localhost:5173',
-        'http://192.168.26.118:5173', // Network IP for local network access
+        'http://192.168.111.128:5173',
     ],
 
     'allowed_origins_patterns' => [],
@@ -20,7 +22,6 @@ return [
 
     'max_age' => 0,
 
-    // Must be true to allow cookies/Authorization headers with withCredentials: true
     'supports_credentials' => true,
 
 ];
