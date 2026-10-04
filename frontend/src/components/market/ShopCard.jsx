@@ -28,44 +28,46 @@ export default function ShopCard({ shop }) {
   const reviewsCount = shop?.reviews_count ?? shop?.reviews?.length ?? 0;
 
   return (
-    <div className="flex flex-col rounded-2xl overflow-hidden bg-slate-800 dark:bg-[#1e293b] text-white shadow-lg border border-slate-700/50 h-full">
+    <div className="flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-[#1e293b] text-slate-900 dark:text-white shadow-md dark:shadow-lg border border-slate-200 dark:border-slate-700/50 h-full transition-colors duration-200">
       {/* Banner */}
       <div className="h-24 w-full bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-purple-500 dark:to-indigo-500"></div>
 
       <div className="px-5 pb-5 relative flex-1 flex flex-col">
         {/* Avatar */}
-        <div className="w-12 h-12 rounded-xl bg-gray-900 flex items-center justify-center text-xl font-bold text-blue-400 dark:text-purple-400 absolute -top-6 shadow-md border border-gray-700">
+        <div className="w-12 h-12 rounded-xl bg-white dark:bg-gray-900 flex items-center justify-center text-xl font-bold text-blue-600 dark:text-purple-400 absolute -top-6 shadow-md border border-slate-200 dark:border-gray-700">
           {getInitial(shop?.shop_name)}
         </div>
 
         <div className="mt-8 mb-2">
-          <h3 className="font-bold text-lg text-white line-clamp-1">{shop?.shop_name || 'Store'}</h3>
-          <div className="flex items-center gap-1.5 mt-1 text-xs text-yellow-400">
+          <h3 className="font-bold text-lg text-slate-900 dark:text-white line-clamp-1">
+            {shop?.shop_name || 'Store'}
+          </h3>
+          <div className="flex items-center gap-1.5 mt-1 text-xs text-yellow-500 dark:text-yellow-400">
             <span>{'★'.repeat(Math.round(Number(ratingRaw) || 5))}</span>
-            <span className="text-gray-400">
+            <span className="text-slate-500 dark:text-gray-400">
               {rating !== 'New' ? `${rating} (${reviewsCount})` : '(No reviews yet)'}
             </span>
           </div>
         </div>
 
-        <p className="text-xs text-gray-400 line-clamp-2 mb-4 flex-1">
+        <p className="text-xs text-slate-600 dark:text-gray-400 line-clamp-2 mb-4 flex-1">
           {shop?.description || 'Verified trusted seller on TrustNode marketplace.'}
         </p>
 
-        <div className="flex items-center gap-6 mb-4 border-t border-gray-700/50 pt-4">
+        <div className="flex items-center gap-6 mb-4 border-t border-slate-200 dark:border-gray-700/50 pt-4">
           <div className="flex flex-col">
-            <span className="text-sm font-bold text-white">{listingsCount}</span>
-            <span className="text-[10px] text-gray-500 uppercase font-semibold">Listings</span>
+            <span className="text-sm font-bold text-slate-900 dark:text-white">{listingsCount}</span>
+            <span className="text-[10px] text-slate-500 dark:text-gray-500 uppercase font-semibold">Listings</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-bold text-white">{calculateJoined(shop?.created_at)}</span>
-            <span className="text-[10px] text-gray-500 uppercase font-semibold">Joined</span>
+            <span className="text-sm font-bold text-slate-900 dark:text-white">{calculateJoined(shop?.created_at)}</span>
+            <span className="text-[10px] text-slate-500 dark:text-gray-500 uppercase font-semibold">Joined</span>
           </div>
         </div>
 
         <Link 
           to={`/shops/${shop?.id}`}
-          className="inline-flex w-fit items-center justify-center rounded-lg bg-blue-600/90 dark:bg-indigo-600/90 px-4 py-2 text-xs font-bold text-white transition hover:bg-blue-500 dark:hover:bg-indigo-500"
+          className="inline-flex w-fit items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-500 dark:bg-indigo-600/90 dark:hover:bg-indigo-500 px-4 py-2 text-xs font-bold text-white transition shadow-sm"
         >
           View Shop
         </Link>

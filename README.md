@@ -1,69 +1,80 @@
 # 🛡️ TrustRoute
 
-TrustRoute is an **escrow-based marketplace system** that connects customers, shopkeepers, delivery personnel, and administrators.
+**TrustRoute** is an escrow-based online marketplace designed to make online shopping safer and more trustworthy.
 
-Customers can buy products from shops, pay through the platform, and track their orders. Payments are held in a **locked balance** until the order is completed.
+It connects **customers, shopkeepers, delivery personnel, and administrators** in one platform.
+
+Customers can buy products, make payments, track deliveries, and receive their money back when a valid dispute is resolved. Payments are kept in a **locked balance** until the order is completed.
 
 > **Status:** Under Development
 
 ---
 
-## ✨ Features
+## ✨ Main Features
 
 * User registration and login
 * Role-based access
-* Customer dashboard
-* Shopkeeper dashboard
-* Delivery dashboard
-* Admin dashboard
+* Customer, shopkeeper, delivery, and admin dashboards
 * Shop management
 * Product management
+* Inventory management
 * Shopping cart
 * Checkout
 * Order management
 * Order tracking
 * Wallet system
-* Escrow payment system
+* Escrow-style payments
 * Delivery management
 * Dispute handling
 * Refund management
-* Messaging
-* Reviews
+* User messaging
+* Product/shop reviews
 
 ---
 
 ## 👥 User Roles
 
-### Customer
+### 🛒 Customer
 
+Customers can:
+
+* Register and log in
 * Browse shops and products
 * Add products to cart
 * Place orders
-* Make payments
+* Pay for orders
 * Track orders
-* Manage wallet
+* Manage their wallet
 * Create disputes
 * Send messages
-* Review orders
+* Review completed orders
 
-### Shopkeeper
+### 🏪 Shopkeeper
 
-* Create and manage a shop
+Shopkeepers can:
+
+* Create a shop
+* Manage shop information
 * Add and manage products
-* Manage inventory
+* Manage product stock
 * View customer orders
 * Process orders
-* Receive payments
+* Receive payments after completion
 * View reviews
 
-### Delivery Personnel
+### 🚚 Delivery Personnel
+
+Delivery personnel can:
 
 * View assigned deliveries
-* Manage delivery tasks
+* Pick up orders
 * Update delivery status
+* Manage delivery tasks
 * Confirm deliveries
 
-### Admin
+### 👨‍💼 Admin
+
+Administrators can:
 
 * Manage users
 * Manage shops
@@ -75,39 +86,44 @@ Customers can buy products from shops, pay through the platform, and track their
 
 ---
 
-## 💰 Escrow System
+# 💰 Escrow Payment System
 
-TrustRoute uses an escrow-style payment system.
+The main idea of TrustRoute is to **protect the customer's payment until the order is completed**.
 
-When a customer places an order:
+### Payment Flow
 
 ```text
 Customer Wallet
       ↓
-Payment
+   Payment
       ↓
-Locked Balance
+ Locked Balance
       ↓
 Order Processing
       ↓
-Delivery
+   Delivery
       ↓
 Order Completed
       ↓
 Shopkeeper Wallet
 ```
 
-The payment is not immediately transferred to the shopkeeper.
+The payment is **not immediately given to the shopkeeper**.
 
-It remains locked until the order is successfully completed.
+Instead:
 
-If there is a problem with the order, the payment can remain locked while the dispute is reviewed.
+1. The customer pays for the order.
+2. The payment is moved to a locked balance.
+3. The shopkeeper processes the order.
+4. The order is delivered.
+5. The order is completed.
+6. The payment is released to the shopkeeper.
+
+If a problem occurs, the payment can remain locked while the dispute is reviewed.
 
 ---
 
-## 📦 Order Flow
-
-A normal order follows this process:
+# 📦 Order Flow
 
 ```text
 Customer
@@ -133,7 +149,9 @@ Order Completed
 Payment Released
 ```
 
-Possible order states include:
+### Order Status
+
+An order can have states such as:
 
 ```text
 Pending
@@ -150,9 +168,11 @@ Refunded
 
 ---
 
-## 🏪 Marketplace
+# 🏪 Marketplace
 
 Shopkeepers can create shops and sell products through the marketplace.
+
+### Shop
 
 A shop can contain:
 
@@ -163,21 +183,23 @@ A shop can contain:
 * Contact information
 * Shop status
 
-Products can contain:
+### Product
+
+A product can contain:
 
 * Product name
 * Description
 * Price
-* Quantity
+* Stock quantity
 * Category
 * Image
 * Availability
 
 ---
 
-## 🛒 Shopping Cart
+# 🛒 Shopping Cart
 
-Customers can add products to a cart before checkout.
+Customers can add products to their cart before placing an order.
 
 The cart supports:
 
@@ -200,11 +222,9 @@ Total
 
 ---
 
-## 🚚 Delivery
+# 🚚 Delivery
 
-After a shopkeeper prepares an order, it can be assigned to a delivery person.
-
-Basic delivery flow:
+After a shopkeeper prepares an order, the order can be assigned to a delivery person.
 
 ```text
 Order Ready
@@ -218,11 +238,11 @@ Out for Delivery
 Delivered
 ```
 
-Delivery personnel can update the delivery status through their dashboard.
+Delivery personnel update the delivery status through their dashboard.
 
 ---
 
-## ⚖️ Disputes
+# ⚖️ Disputes
 
 Customers can create a dispute when there is a problem with an order.
 
@@ -234,7 +254,7 @@ Examples:
 * Delivery problem
 * Other order problems
 
-Basic flow:
+### Dispute Flow
 
 ```text
 Customer
@@ -246,7 +266,7 @@ Admin Review
 Resolution
 ```
 
-The administrator can decide whether to:
+Depending on the situation, the administrator can:
 
 * Refund the customer
 * Release the payment
@@ -254,29 +274,30 @@ The administrator can decide whether to:
 
 ---
 
-## 💬 Messaging
+# 💬 Messaging
 
-TrustRoute can provide communication between users.
+TrustRoute supports communication between users.
 
 Messages can be related to:
 
 * Orders
 * Shops
+* Products
 * Deliveries
 * Payments
 
 ---
 
-## ⭐ Reviews
+# ⭐ Reviews
 
 Customers can review completed orders.
 
-Reviews can include:
+A review can contain:
 
 * Rating
 * Comment
 * Customer
-* Shop/product
+* Shop or product
 * Order
 * Date
 
@@ -284,41 +305,41 @@ Reviews help customers evaluate shops and products.
 
 ---
 
-# 🏗️ Architecture
+# 🏗️ System Architecture
 
-TrustRoute uses a separate React frontend and Laravel backend.
+TrustRoute uses a separate **React frontend** and **Laravel REST API backend**.
 
 ```text
-┌─────────────────────┐
-│    React Frontend   │
-│                     │
-│ React + Vite        │
-│ TailwindCSS         │
-│ React Router        │
-│ Axios               │
-└──────────┬──────────┘
-           │
-           │ REST API
-           ↓
-┌─────────────────────┐
-│    Laravel Backend  │
-│                     │
-│ Laravel 11          │
-│ PHP 8.2+            │
-│ Laravel Sanctum     │
-└──────────┬──────────┘
-           │
-           ↓
-┌─────────────────────┐
-│     PostgreSQL      │
-└─────────────────────┘
+┌─────────────────────────┐
+│     React Frontend      │
+│                         │
+│ React + Vite            │
+│ TailwindCSS             │
+│ React Router            │
+│ Axios                   │
+└────────────┬────────────┘
+             │
+             │ REST API
+             ↓
+┌─────────────────────────┐
+│     Laravel Backend     │
+│                         │
+│ Laravel 11              │
+│ PHP 8.2+                │
+│ Laravel Sanctum         │
+└────────────┬────────────┘
+             │
+             ↓
+┌─────────────────────────┐
+│       PostgreSQL        │
+└─────────────────────────┘
 ```
 
 ---
 
 # 💻 Technology Stack
 
-| Component      | Technology      |
+| Part           | Technology      |
 | -------------- | --------------- |
 | Frontend       | React 18        |
 | Build Tool     | Vite            |
@@ -367,24 +388,24 @@ TrustRoute/
 
 TrustRoute uses **PostgreSQL**.
 
-The database stores information about:
+The database manages:
 
 * Users
 * Shops
-* Products
-* Categories
+* Products / Listings
 * Inventory
 * Carts
 * Orders
 * Order items
 * Wallets
-* Transactions
+* Wallet transactions
 * Deliveries
 * Disputes
 * Messages
 * Reviews
+* Peer nodes
 
-Basic relationship:
+### Main Relationships
 
 ```text
 User
@@ -392,299 +413,30 @@ User
  ├── Order
  ├── Wallet
  ├── Message
- └── Review
+ ├── Review
+ ├── Dispute
+ └── Peer Node
 
 Shop
- └── Products
+ └── Listings
 
 Order
  ├── Order Items
- ├── Payment
  ├── Delivery
+ ├── Messages
  └── Dispute
+
+Wallet
+ └── Wallet Transactions
 ```
 
 ---
 
-# 🔐 Authentication
-
-The backend uses **Laravel Sanctum** for authentication.
-
-Authentication handles:
-
-* Registration
-* Login
-* Logout
-* Protected API access
-
-Role-based authorization controls what each user can access.
-
----
-
-# 🔌 API
-
-The frontend communicates with the Laravel backend through REST APIs.
-
-Main API areas include:
-
-```text
-/api/auth
-/api/users
-/api/shops
-/api/products
-/api/cart
-/api/orders
-/api/wallet
-/api/deliveries
-/api/disputes
-/api/messages
-/api/reviews
-```
-
-The exact API routes may change during development.
-
----
-
-# 🚀 Installation
-
-## Requirements
-
-Install:
-
-* PHP 8.2+
-* Composer
-* Node.js 18+
-* npm
-* PostgreSQL
-* Git
-
-Check versions:
-
-```bash
-php --version
-composer --version
-node --version
-npm --version
-psql --version
-```
-
----
-
-## 1. Clone Repository
-
-```bash
-git clone <repository-url>
-cd TrustRoute
-```
-
----
-
-## 2. Backend Setup
-
-```bash
-cd backend
-composer install
-```
-
-Create the environment file:
-
-```bash
-cp .env.example .env
-```
-
-Generate the Laravel key:
-
-```bash
-php artisan key:generate
-```
-
----
-
-## 3. Database Setup
-
-Create a PostgreSQL database named:
-
-```text
-trustroute
-```
-
-Configure `backend/.env`:
-
-```env
-DB_CONNECTION=pgsql
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_DATABASE=trustroute
-DB_USERNAME=postgres
-DB_PASSWORD=your_password
-```
-
-Run migrations:
-
-```bash
-php artisan migrate
-```
-
-If seeders are available:
-
-```bash
-php artisan migrate --seed
-```
-
----
-
-## 4. Start Backend
-
-```bash
-php artisan serve
-```
-
-Backend:
-
-```text
-http://127.0.0.1:8000
-```
-
----
-
-## 5. Frontend Setup
-
-Open another terminal:
-
-```bash
-cd frontend
-npm install
-```
-
-Start the frontend:
-
-```bash
-npm run dev
-```
-
-Frontend:
-
-```text
-http://localhost:5173
-```
-
----
-
-# 🧪 Development Commands
-
-### Backend
-
-Start Laravel:
-
-```bash
-php artisan serve
-```
-
-Run migrations:
-
-```bash
-php artisan migrate
-```
-
-Reset database:
-
-```bash
-php artisan migrate:fresh
-```
-
-Reset and seed:
-
-```bash
-php artisan migrate:fresh --seed
-```
-
-Run tests:
-
-```bash
-php artisan test
-```
-
-### Frontend
-
-Start development server:
-
-```bash
-npm run dev
-```
-
-Build for production:
-
-```bash
-npm run build
-```
-
-Preview production build:
-
-```bash
-npm run preview
-```
-
----
-
-# 🔒 Security
-
-TrustRoute handles user accounts and financial transactions, so the system should use:
-
-* Password hashing
-* Authentication
-* Role-based authorization
-* Request validation
-* Protected API routes
-* Database transactions
-* Secure environment variables
-* Proper error handling
-
-Never commit `.env` files or database passwords to the repository.
-
----
-
-# 📌 Core Transaction Rule
-
-The main financial rule is:
-
-```text
-Customer Payment
-       ↓
-Locked Balance
-       ↓
-Order Completed
-       ↓
-Shopkeeper Wallet
-```
-
-The customer's payment should remain locked until the appropriate order completion or dispute resolution process is finished.
-
----
-
-# 📄 License
-
-This project is licensed under the **MIT License**.
-
-See the `LICENSE` file for details.
-
----
-
-# 👨‍💻 Author
-
-**Lwin Ko**
-
-University of Computer Studies, Monywa
-
----
-
-## 🛡️ TrustRoute
-
-**A marketplace with escrow-based transactions, shop management, delivery, and dispute handling.**
-
-
+# 🗃️ Database ER Diagram
 
 ```mermaid
 erDiagram
+
     users {
         bigint id PK
         varchar name
@@ -770,22 +522,316 @@ erDiagram
         integer port
     }
 
-    users ||--o{ wallets : "has"
-    users ||--o{ shops : "owns"
-    users ||--o{ orders : "places as customer"
-    users ||--o{ orders : "delivers as delivery"
-    users ||--o{ messages : "sends"
-    users ||--o{ messages : "receives"
-    users ||--o{ disputes : "raises"
-    users ||--o{ peer_nodes : "operates"
+    users ||--o{ wallets : has
+    users ||--o{ shops : owns
+    users ||--o{ orders : places
+    users ||--o{ orders : delivers
+    users ||--o{ messages : sends
+    users ||--o{ messages : receives
+    users ||--o{ disputes : raises
+    users ||--o{ peer_nodes : operates
 
-    wallets ||--o{ wallet_transactions : "records"
-    shops ||--o{ listings : "contains"
-    shops ||--o{ orders : "fulfills"
-    
-    orders ||--o{ order_items : "includes"
-    orders ||--o{ messages : "links to"
-    orders ||--o{ disputes : "generates"
-    
-    listings ||--o{ order_items : "ordered as"
-    listings ||--o{ messages : "links to"
+    wallets ||--o{ wallet_transactions : records
+
+    shops ||--o{ listings : contains
+    shops ||--o{ orders : fulfills
+
+    orders ||--o{ order_items : includes
+    orders ||--o{ messages : has
+    orders ||--o{ disputes : generates
+
+    listings ||--o{ order_items : ordered
+    listings ||--o{ messages : references
+```
+
+---
+
+# 🔐 Authentication
+
+The backend uses **Laravel Sanctum** for authentication.
+
+Authentication provides:
+
+* Registration
+* Login
+* Logout
+* Protected API access
+* Role-based authorization
+
+Different roles have different permissions and access to different parts of the system.
+
+---
+
+# 🔌 REST API
+
+The React frontend communicates with Laravel through REST APIs.
+
+Main API areas include:
+
+```text
+/api/auth
+/api/users
+/api/shops
+/api/products
+/api/cart
+/api/orders
+/api/wallet
+/api/deliveries
+/api/disputes
+/api/messages
+/api/reviews
+```
+
+> API routes may change as development continues.
+
+---
+
+# 🚀 Installation
+
+## Requirements
+
+Install the following:
+
+* PHP 8.2+
+* Composer
+* Node.js 18+
+* npm
+* PostgreSQL
+* Git
+
+Check the installed versions:
+
+```bash
+php --version
+composer --version
+node --version
+npm --version
+psql --version
+```
+
+---
+
+## 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd TrustRoute
+```
+
+---
+
+## 2. Setup the Backend
+
+```bash
+cd backend
+composer install
+```
+
+Create the environment file:
+
+```bash
+cp .env.example .env
+```
+
+Generate the Laravel application key:
+
+```bash
+php artisan key:generate
+```
+
+---
+
+## 3. Setup PostgreSQL
+
+Create a PostgreSQL database named:
+
+```text
+trustroute
+```
+
+Configure `backend/.env`:
+
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=trustroute
+DB_USERNAME=postgres
+DB_PASSWORD=your_password
+```
+
+Run the database migrations:
+
+```bash
+php artisan migrate
+```
+
+If seeders are available:
+
+```bash
+php artisan migrate --seed
+```
+
+---
+
+## 4. Start the Backend
+
+From the `backend` directory:
+
+```bash
+php artisan serve
+```
+
+The backend will normally run at:
+
+```text
+http://127.0.0.1:8000
+```
+
+---
+
+## 5. Setup the Frontend
+
+Open another terminal:
+
+```bash
+cd frontend
+npm install
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+The frontend will normally run at:
+
+```text
+http://localhost:5173
+```
+
+---
+
+# 🧪 Development Commands
+
+## Backend
+
+Start Laravel:
+
+```bash
+php artisan serve
+```
+
+Run migrations:
+
+```bash
+php artisan migrate
+```
+
+Reset the database:
+
+```bash
+php artisan migrate:fresh
+```
+
+Reset and seed:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+Run tests:
+
+```bash
+php artisan test
+```
+
+---
+
+## Frontend
+
+Start development server:
+
+```bash
+npm run dev
+```
+
+Build for production:
+
+```bash
+npm run build
+```
+
+Preview production build:
+
+```bash
+npm run preview
+```
+
+---
+
+# 🔒 Security
+
+Because TrustRoute handles user accounts and payments, security is important.
+
+The system should use:
+
+* Password hashing
+* Authentication
+* Role-based authorization
+* Request validation
+* Protected API routes
+* Database transactions
+* Secure environment variables
+* Proper error handling
+
+### Important
+
+Never commit:
+
+```text
+.env
+```
+
+or database passwords and other private credentials to Git.
+
+---
+
+# 📌 Core Transaction Rule
+
+The most important financial rule in TrustRoute is:
+
+```text
+Customer Payment
+       ↓
+ Locked Balance
+       ↓
+Order Completed
+       ↓
+Shopkeeper Wallet
+```
+
+Customer money should remain locked until the order is successfully completed or the dispute process decides what should happen to the payment.
+
+---
+
+# 📄 License
+
+This project is licensed under the **MIT License**.
+
+See the `LICENSE` file for details.
+
+---
+
+# 👨‍💻 Author
+
+**Lwin Ko**
+
+University of Computer Studies, Monywa
+
+---
+
+## 🛡️ TrustRoute
+
+**A marketplace designed to make online shopping safer through escrow-based payments, shop management, delivery tracking, and dispute handling.**
