@@ -856,26 +856,31 @@ npm run preview
 ```mermaid
 flowchart LR
 
-    Customer(("Customer"))
-    Shopkeeper(("Shopkeeper"))
-    Delivery(("Delivery"))
-    Admin(("Admin"))
+    Customer("<img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDQwIDUwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjEwIiByPSI3IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIxNyIgeDI9IjIwIiB5Mj0iMzQiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSI2IiB5MT0iMjQiIHgyPSIzNCIgeTI9IjI0IiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIzNCIgeDI9IjEwIiB5Mj0iNDgiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIyMCIgeTE9IjM0IiB4Mj0iMzAiIHkyPSI0OCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+' width='36'/><br/><b>Customer</b>")
+    
+    Shopkeeper("<img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDQwIDUwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjEwIiByPSI3IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIxNyIgeDI9IjIwIiB5Mj0iMzQiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSI2IiB5MT0iMjQiIHgyPSIzNCIgeTI9IjI0IiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIzNCIgeDI9IjEwIiB5Mj0iNDgiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIyMCIgeTE9IjM0IiB4Mj0iMzAiIHkyPSI0OCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+' width='36'/><br/><b>Shopkeeper</b>")
+    
+    Delivery("<img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDQwIDUwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjEwIiByPSI3IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIxNyIgeDI9IjIwIiB5Mj0iMzQiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSI2IiB5MT0iMjQiIHgyPSIzNCIgeTI9IjI0IiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIzNCIgeDI9IjEwIiB5Mj0iNDgiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIyMCIgeTE9IjM0IiB4Mj0iMzAiIHkyPSI0OCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+' width='36'/><br/><b>Delivery</b>")
+    
+    Admin("<img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDQwIDUwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjEwIiByPSI3IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIxNyIgeDI9IjIwIiB5Mj0iMzQiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSI2IiB5MT0iMjQiIHgyPSIzNCIgeTI9IjI0IiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIzNCIgeDI9IjEwIiB5Mj0iNDgiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIyMCIgeTE9IjM0IiB4Mj0iMzAiIHkyPSI0OCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+' width='36'/><br/><b>Admin</b>")
 
-    UC_Register(["Register / Login"])
-    UC_Address(["Manage Addresses"])
-    UC_Wallet(["Deposit / View Wallet"])
-    UC_Shop(["Manage Shop & Listings"])
-    UC_Browse(["Browse & Review Listings"])
-    UC_Wishlist(["Save to Wishlist"])
-    UC_Order(["Place Order"])
-    UC_Escrow(["Lock Escrow Funds"])
-    UC_Process(["Process / Dispatch Order"])
-    UC_Approve(["Multi-Role Order Approval"])
-    UC_Delivery(["Confirm Delivery"])
-    UC_Message(["Send Direct Message"])
-    UC_Dispute(["Raise Dispute"])
-    UC_Resolve(["Resolve Dispute & Refund"])
-    UC_Nodes(["Manage Peer Nodes"])
+    subgraph TrustRoute["TrustRoute System"]
+        UC_Register(["Register / Login"])
+        UC_Address(["Manage Addresses"])
+        UC_Wallet(["Deposit / View Wallet"])
+        UC_Shop(["Manage Shop & Listings"])
+        UC_Browse(["Browse & Review Listings"])
+        UC_Wishlist(["Save to Wishlist"])
+        UC_Order(["Place Order"])
+        UC_Escrow(["Lock Escrow Funds"])
+        UC_Process(["Process / Dispatch Order"])
+        UC_Approve(["Multi-Role Order Approval"])
+        UC_Delivery(["Confirm Delivery"])
+        UC_Message(["Send Direct Message"])
+        UC_Dispute(["Raise Dispute"])
+        UC_Resolve(["Resolve Dispute & Refund"])
+        UC_Nodes(["Manage Peer Nodes"])
+    end
 
     Customer --- UC_Register
     Customer --- UC_Address
@@ -903,6 +908,9 @@ flowchart LR
     Admin --- UC_Nodes
 
     UC_Order -.->|include| UC_Escrow
+
+    classDef actorNode fill:none,stroke:none;
+    class Customer,Shopkeeper,Delivery,Admin actorNode;
 ```
 
 ---
@@ -1095,34 +1103,99 @@ sequenceDiagram
     autonumber
 
     actor Customer
-    participant OrderInterface
-    participant OrderService
-    participant Database
+    participant Frontend as React Frontend
+    participant OrderCtrl as Order / Escrow Controller
+    participant WalletSvc as Wallet Service
+    participant DB as PostgreSQL Database
+    actor Shopkeeper
+    actor Delivery as Delivery Personnel
 
-    Customer->>OrderInterface: Place Order
-    OrderInterface->>OrderService: Process Order
+    %% -------------------------------------------------
+    %% 1. ORDER CREATION & ESCROW LOCK
+    %% -------------------------------------------------
+    rect rgb(240, 248, 255)
+        Note over Customer, DB: Phase 1: Order Placement & Escrow Fund Locking
+        Customer->>Frontend: Select items & click "Checkout"
+        Frontend->>OrderCtrl: POST /api/orders (items, address_id)
+        
+        OrderCtrl->>DB: Check listings price & stock availability
+        DB-->>OrderCtrl: Stock OK, total calculated
 
-    OrderService->>Database: Get Listing Details
-    Database-->>OrderService: Price and Stock
+        OrderCtrl->>WalletSvc: Verify customer wallet & lock funds
+        WalletSvc->>DB: BEGIN TRANSACTION
+        WalletSvc->>DB: Check balance >= total_amount
+        
+        alt Insufficient Balance or Stock
+            WalletSvc->>DB: ROLLBACK
+            WalletSvc-->>OrderCtrl: Insufficient balance / stock
+            OrderCtrl-->>Frontend: Error: Order could not be processed
+            Frontend-->>Customer: Show error notification
+        else Sufficient Balance & Stock
+            WalletSvc->>DB: Deduct balance & increment locked_balance
+            WalletSvc->>DB: INSERT INTO wallet_transactions (type='escrow_lock', status='completed')[cite: 1]
+            OrderCtrl->>DB: Decrement listings stock[cite: 1]
+            OrderCtrl->>DB: INSERT INTO orders (status='paid', escrow_tx_hash=...)[cite: 1, 2]
+            OrderCtrl->>DB: INSERT INTO order_items (quantity, price_at_purchase)[cite: 1]
+            WalletSvc->>DB: COMMIT TRANSACTION
+            OrderCtrl-->>Frontend: 201 Created (Order ID, Status: paid)[cite: 1]
+            Frontend-->>Customer: Order placed & funds held in escrow[cite: 2]
+        end
+    end
 
-    alt Insufficient Stock
-        OrderService-->>OrderInterface: Out of Stock
-        OrderInterface-->>Customer: Order Failed
-    else Stock Available
-        OrderService->>Database: Get Wallet Balance
-        Database-->>OrderService: Wallet Details
+    %% -------------------------------------------------
+    %% 2. SHOP PROCESSING & ASSIGNMENT
+    %% -------------------------------------------------
+    rect rgb(245, 255, 250)
+        Note over Shopkeeper, Delivery: Phase 2: Fulfillment & Delivery Handover
+        OrderCtrl-->>Shopkeeper: Notification: New Paid Order[cite: 1]
+        Shopkeeper->>Frontend: Accept & package order
+        Frontend->>OrderCtrl: PATCH /api/orders/{id}/status (processing)[cite: 1, 2]
+        OrderCtrl->>DB: UPDATE orders SET status='processing'[cite: 1]
 
-        OrderService->>Database: Lock Payment
-        Database-->>OrderService: Payment Locked
+        Shopkeeper->>Frontend: Assign delivery person
+        Frontend->>OrderCtrl: PATCH /api/orders/{id}/delivery (delivery_id)[cite: 1]
+        OrderCtrl->>DB: UPDATE orders SET delivery_id=...[cite: 1]
 
-        OrderService->>Database: Update Stock
-        Database-->>OrderService: Stock Updated
+        Delivery->>Frontend: Confirm pickup & dispatch package
+        Frontend->>OrderCtrl: POST /api/order-approvals (role='delivery', status='dispatched')[cite: 1]
+        OrderCtrl->>DB: INSERT INTO order_approvals (role='delivery')[cite: 1]
+        OrderCtrl->>DB: UPDATE orders SET status='dispatched'[cite: 1]
+    end
 
-        OrderService->>Database: Create Order & Items
-        Database-->>OrderService: Order Created
+    %% -------------------------------------------------
+    %% 3. DELIVERY CONFIRMATION & ESCROW RELEASE
+    %% -------------------------------------------------
+    rect rgb(255, 250, 240)
+        Note over Customer, Shopkeeper: Phase 3: Order Completion & Escrow Payout
+        Delivery->>Customer: Deliver package to recipient address[cite: 1, 2]
+        
+        Customer->>Frontend: Confirm receipt & complete order[cite: 2]
+        Frontend->>OrderCtrl: POST /api/order-approvals (role='customer')[cite: 1]
+        
+        OrderCtrl->>DB: INSERT INTO order_approvals (role='customer')[cite: 1]
+        OrderCtrl->>DB: UPDATE orders SET status='completed'[cite: 1]
 
-        OrderService-->>OrderInterface: Order Confirmation
-        OrderInterface-->>Customer: Order Placed Successfully
+        OrderCtrl->>WalletSvc: Release escrow funds to Shopkeeper[cite: 2]
+        WalletSvc->>DB: BEGIN TRANSACTION
+        WalletSvc->>DB: Deduct locked_balance from Customer[cite: 1, 2]
+        WalletSvc->>DB: Credit balance to Shopkeeper wallet[cite: 1, 2]
+        WalletSvc->>DB: INSERT INTO wallet_transactions (Shopkeeper, type='escrow_release')[cite: 1]
+        WalletSvc->>DB: COMMIT TRANSACTION
+
+        OrderCtrl-->>Frontend: Order Completed & Funds Released[cite: 2]
+        Frontend-->>Customer: Order Completed! Prompt to leave a review[cite: 1, 2]
+        OrderCtrl-->>Shopkeeper: Funds deposited into shopkeeper wallet[cite: 2]
+    end
+
+    %% -------------------------------------------------
+    %% 4. POST-COMPLETION REVIEW
+    %% -------------------------------------------------
+    rect rgb(250, 245, 255)
+        Note over Customer, DB: Phase 4: Feedback & Rating
+        Customer->>Frontend: Submit rating & comment
+        Frontend->>OrderCtrl: POST /api/reviews (rating, comment, reviewee_id)[cite: 1]
+        OrderCtrl->>DB: INSERT INTO reviews (order_id, reviewer_id, reviewee_id, rating)[cite: 1]
+        OrderCtrl-->>Frontend: Review Saved[cite: 1]
     end
 ```
 
