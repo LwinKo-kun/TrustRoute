@@ -859,58 +859,75 @@ flowchart LR
     Customer("<img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDQwIDUwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjEwIiByPSI3IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIxNyIgeDI9IjIwIiB5Mj0iMzQiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSI2IiB5MT0iMjQiIHgyPSIzNCIgeTI9IjI0IiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIzNCIgeDI9IjEwIiB5Mj0iNDgiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIyMCIgeTE9IjM0IiB4Mj0iMzAiIHkyPSI0OCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+' width='36'/><br/><b>Customer</b>")
     
     Shopkeeper("<img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDQwIDUwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjEwIiByPSI3IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIxNyIgeDI9IjIwIiB5Mj0iMzQiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSI2IiB5MT0iMjQiIHgyPSIzNCIgeTI9IjI0IiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIzNCIgeDI9IjEwIiB5Mj0iNDgiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIyMCIgeTE9IjM0IiB4Mj0iMzAiIHkyPSI0OCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+' width='36'/><br/><b>Shopkeeper</b>")
-    
-    Delivery("<img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDQwIDUwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjEwIiByPSI3IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIxNyIgeDI9IjIwIiB5Mj0iMzQiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSI2IiB5MT0iMjQiIHgyPSIzNCIgeTI9IjI0IiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIzNCIgeDI9IjEwIiB5Mj0iNDgiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIyMCIgeTE9IjM0IiB4Mj0iMzAiIHkyPSI0OCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+' width='36'/><br/><b>Delivery</b>")
-    
-    Admin("<img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDQwIDUwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjEwIiByPSI3IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIxNyIgeDI9IjIwIiB5Mj0iMzQiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSI2IiB5MT0iMjQiIHgyPSIzNCIgeTI9IjI0IiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIzNCIgeDI9IjEwIiB5Mj0iNDgiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIyMCIgeTE9IjM0IiB4Mj0iMzAiIHkyPSI0OCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+' width='36'/><br/><b>Admin</b>")
 
-    subgraph TrustRoute["TrustRoute System"]
+    subgraph TrustRoute[" "]
+        direction TB
+
+        %% Core Primary Use Cases
         UC_Register(["Register / Login"])
-        UC_Address(["Manage Addresses"])
         UC_Wallet(["Deposit / View Wallet"])
-        UC_Shop(["Manage Shop & Listings"])
-        UC_Browse(["Browse & Review Listings"])
-        UC_Wishlist(["Save to Wishlist"])
+        UC_Browse(["Browse Listings"])
         UC_Order(["Place Order"])
-        UC_Escrow(["Lock Escrow Funds"])
-        UC_Process(["Process / Dispatch Order"])
-        UC_Approve(["Multi-Role Order Approval"])
-        UC_Delivery(["Confirm Delivery"])
+        UC_ConfirmReceipt(["Confirm Delivery / Receipt"])
         UC_Message(["Send Direct Message"])
+        UC_Shop(["Manage Shop & Listings"])
+        UC_Process(["Fulfill & Ship Order"])
         UC_Dispute(["Raise Dispute"])
-        UC_Resolve(["Resolve Dispute & Refund"])
+        
+        %% Admin Use Cases
+        UC_Resolve(["Resolve Dispute & Mediate"])
         UC_Nodes(["Manage Peer Nodes"])
+        UC_UserManage(["Manage Users & Status"])
+
+        %% Included / Extended Child Use Cases
+        UC_Escrow(["Lock Escrow Funds"])
+        UC_CheckStock(["Verify Stock & Price"])
+        UC_ReleaseEscrow(["Release Escrow Funds"])
+        UC_AddListing(["Add / Edit Listing"])
+        UC_AttachContext(["Attach Order / Listing Context"])
+        UC_SettleFunds(["Execute Refund / Payout"])
+
+        %% Include Relationships (Mandatory sub-actions)
+        UC_Order -.->|include| UC_CheckStock
+        UC_Order -.->|include| UC_Escrow
+        UC_ConfirmReceipt -.->|include| UC_ReleaseEscrow
+        UC_Resolve -.->|include| UC_SettleFunds
+
+        %% Extend Relationships (Optional branch actions)
+        UC_AddListing -.->|extend| UC_Shop
+        UC_AttachContext -.->|extend| UC_Message
     end
 
-    Customer --- UC_Register
-    Customer --- UC_Address
-    Customer --- UC_Wallet
+    Admin("<img src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI1MCIgdmlld0JveD0iMCAwIDQwIDUwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjEwIiByPSI3IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIxNyIgeDI9IjIwIiB5Mj0iMzQiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSI2IiB5MT0iMjQiIHgyPSIzNCIgeTI9IjI0IiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMjAiIHkxPSIzNCIgeDI9IjEwIiB5Mj0iNDgiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIyMCIgeTE9IjM0IiB4Mj0iMzAiIHkyPSI0OCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+' width='36'/><br/><b>Admin</b>")
+
+    %% Customer Connections
     Customer --- UC_Browse
-    Customer --- UC_Wishlist
     Customer --- UC_Order
-    Customer --- UC_Approve
+    Customer --- UC_Register
+    Customer --- UC_ConfirmReceipt
+    Customer --- UC_Wallet
     Customer --- UC_Message
     Customer --- UC_Dispute
 
+    %% Shopkeeper Connections
     Shopkeeper --- UC_Register
-    Shopkeeper --- UC_Shop
-    Shopkeeper --- UC_Process
-    Shopkeeper --- UC_Approve
+    Shopkeeper --- UC_Wallet
     Shopkeeper --- UC_Message
+    Shopkeeper --- UC_Shop
     Shopkeeper --- UC_Dispute
+    Shopkeeper --- UC_Process
 
-    Delivery --- UC_Register
-    Delivery --- UC_Delivery
-    Delivery --- UC_Approve
-    Delivery --- UC_Message
+    %% Admin Connections
+    UC_Resolve --- Admin
+    UC_Nodes --- Admin
+    UC_UserManage --- Admin
 
-    Admin --- UC_Resolve
-    Admin --- UC_Nodes
-
-    UC_Order -.->|include| UC_Escrow
+    %% Invisible layout ranks to lock Admin to the right boundary
+    UC_Escrow ~~~ Admin
+    UC_SettleFunds ~~~ Admin
 
     classDef actorNode fill:none,stroke:none;
-    class Customer,Shopkeeper,Delivery,Admin actorNode;
+    class Customer,Shopkeeper,Admin actorNode;
 ```
 
 ---
@@ -1103,99 +1120,130 @@ sequenceDiagram
     autonumber
 
     actor Customer
-    participant Frontend as React Frontend
-    participant OrderCtrl as Order / Escrow Controller
-    participant WalletSvc as Wallet Service
-    participant DB as PostgreSQL Database
+    participant React Frontend
+    participant OrderService
+    participant WalletService
+    participant Database
     actor Shopkeeper
-    actor Delivery as Delivery Personnel
+    actor Admin
 
-    %% -------------------------------------------------
-    %% 1. ORDER CREATION & ESCROW LOCK
-    %% -------------------------------------------------
-    rect rgb(240, 248, 255)
-        Note over Customer, DB: Phase 1: Order Placement & Escrow Fund Locking
-        Customer->>Frontend: Select items & click "Checkout"
-        Frontend->>OrderCtrl: POST /api/orders (items, address_id)
+    %% =========================================================
+    %% 1. CHECKOUT & CREATION
+    %% =========================================================
+    rect rgb(238, 246, 255)
+        Note over Customer, Admin: 1. Checkout & Escrow Locking
+        Customer->>React Frontend: Click "Checkout"
+        React Frontend->>OrderService: POST /api/orders
+        OrderService->>Database: Verify listings stock & price
         
-        OrderCtrl->>DB: Check listings price & stock availability
-        DB-->>OrderCtrl: Stock OK, total calculated
-
-        OrderCtrl->>WalletSvc: Verify customer wallet & lock funds
-        WalletSvc->>DB: BEGIN TRANSACTION
-        WalletSvc->>DB: Check balance >= total_amount
-        
-        alt Insufficient Balance or Stock
-            WalletSvc->>DB: ROLLBACK
-            WalletSvc-->>OrderCtrl: Insufficient balance / stock
-            OrderCtrl-->>Frontend: Error: Order could not be processed
-            Frontend-->>Customer: Show error notification
-        else Sufficient Balance & Stock
-            WalletSvc->>DB: Deduct balance & increment locked_balance
-            WalletSvc->>DB: INSERT INTO wallet_transactions (type='escrow_lock', status='completed')[cite: 1]
-            OrderCtrl->>DB: Decrement listings stock[cite: 1]
-            OrderCtrl->>DB: INSERT INTO orders (status='paid', escrow_tx_hash=...)[cite: 1, 2]
-            OrderCtrl->>DB: INSERT INTO order_items (quantity, price_at_purchase)[cite: 1]
-            WalletSvc->>DB: COMMIT TRANSACTION
-            OrderCtrl-->>Frontend: 201 Created (Order ID, Status: paid)[cite: 1]
-            Frontend-->>Customer: Order placed & funds held in escrow[cite: 2]
+        alt Stock Unavailable or Insufficient Wallet Balance
+            OrderService-->>React Frontend: 400 Bad Request (Insufficient Balance / Out of Stock)
+            React Frontend-->>Customer: Order Failed: Prompt to deposit funds or adjust cart
+        else Stock & Balance Available
+            OrderService->>WalletService: Lock funds (total_amount)
+            WalletService->>Database: UPDATE wallets (balance -= amount, locked_balance += amount)
+            WalletService->>Database: INSERT INTO wallet_transactions (type='escrow_lock')
+            OrderService->>Database: UPDATE listings (stock -= quantity)
+            OrderService->>Database: INSERT INTO orders (status='paid', escrow_tx_hash=...)
+            OrderService->>Database: INSERT INTO order_items (...)
+            OrderService-->>React Frontend: 201 Created (Order paid)
+            React Frontend-->>Customer: Order Placed (Funds in Escrow)
         end
     end
 
-    %% -------------------------------------------------
-    %% 2. SHOP PROCESSING & ASSIGNMENT
-    %% -------------------------------------------------
-    rect rgb(245, 255, 250)
-        Note over Shopkeeper, Delivery: Phase 2: Fulfillment & Delivery Handover
-        OrderCtrl-->>Shopkeeper: Notification: New Paid Order[cite: 1]
-        Shopkeeper->>Frontend: Accept & package order
-        Frontend->>OrderCtrl: PATCH /api/orders/{id}/status (processing)[cite: 1, 2]
-        OrderCtrl->>DB: UPDATE orders SET status='processing'[cite: 1]
-
-        Shopkeeper->>Frontend: Assign delivery person
-        Frontend->>OrderCtrl: PATCH /api/orders/{id}/delivery (delivery_id)[cite: 1]
-        OrderCtrl->>DB: UPDATE orders SET delivery_id=...[cite: 1]
-
-        Delivery->>Frontend: Confirm pickup & dispatch package
-        Frontend->>OrderCtrl: POST /api/order-approvals (role='delivery', status='dispatched')[cite: 1]
-        OrderCtrl->>DB: INSERT INTO order_approvals (role='delivery')[cite: 1]
-        OrderCtrl->>DB: UPDATE orders SET status='dispatched'[cite: 1]
+    %% =========================================================
+    %% 2. PRE-FULFILLMENT CANCELLATIONS (FAILURES)
+    %% =========================================================
+    rect rgb(254, 242, 242)
+        Note over Customer, Admin: 2. Pre-Fulfillment Cancellation (Failed Outcomes)
+        alt Shopkeeper Rejects / Cannot Fulfill
+            Shopkeeper->>React Frontend: Reject Order
+            React Frontend->>OrderService: POST /api/orders/{id}/cancel
+            OrderService->>WalletService: Refund Customer
+            WalletService->>Database: UPDATE wallets (locked_balance -= amount, balance += amount)
+            WalletService->>Database: INSERT INTO wallet_transactions (type='refund')
+            OrderService->>Database: UPDATE listings (stock += quantity)
+            OrderService->>Database: UPDATE orders SET status='cancelled'
+            OrderService-->>React Frontend: Order Cancelled & Refunded
+        else Customer Requests Cancellation (status='cancellation_requested')
+            Customer->>React Frontend: Request Cancellation
+            React Frontend->>OrderService: POST /api/orders/{id}/request-cancel
+            OrderService->>Database: UPDATE orders SET status='cancellation_requested'
+            Shopkeeper->>React Frontend: Approve Cancellation
+            React Frontend->>OrderService: POST /api/orders/{id}/confirm-cancel
+            OrderService->>WalletService: Refund Customer
+            WalletService->>Database: UPDATE wallets (locked_balance -= amount, balance += amount)
+            WalletService->>Database: INSERT INTO wallet_transactions (type='refund')
+            OrderService->>Database: UPDATE listings (stock += quantity)
+            OrderService->>Database: UPDATE orders SET status='cancelled'
+        end
     end
 
-    %% -------------------------------------------------
-    %% 3. DELIVERY CONFIRMATION & ESCROW RELEASE
-    %% -------------------------------------------------
-    rect rgb(255, 250, 240)
-        Note over Customer, Shopkeeper: Phase 3: Order Completion & Escrow Payout
-        Delivery->>Customer: Deliver package to recipient address[cite: 1, 2]
-        
-        Customer->>Frontend: Confirm receipt & complete order[cite: 2]
-        Frontend->>OrderCtrl: POST /api/order-approvals (role='customer')[cite: 1]
-        
-        OrderCtrl->>DB: INSERT INTO order_approvals (role='customer')[cite: 1]
-        OrderCtrl->>DB: UPDATE orders SET status='completed'[cite: 1]
+    %% =========================================================
+    %% 3. FULFILLMENT & DISPATCH
+    %% =========================================================
+    rect rgb(240, 253, 244)
+        Note over Customer, Admin: 3. Fulfillment
+        Shopkeeper->>React Frontend: Accept Order
+        React Frontend->>OrderService: PATCH /api/orders/{id}/status (processing)
+        OrderService->>Database: UPDATE orders SET status='processing'
 
-        OrderCtrl->>WalletSvc: Release escrow funds to Shopkeeper[cite: 2]
-        WalletSvc->>DB: BEGIN TRANSACTION
-        WalletSvc->>DB: Deduct locked_balance from Customer[cite: 1, 2]
-        WalletSvc->>DB: Credit balance to Shopkeeper wallet[cite: 1, 2]
-        WalletSvc->>DB: INSERT INTO wallet_transactions (Shopkeeper, type='escrow_release')[cite: 1]
-        WalletSvc->>DB: COMMIT TRANSACTION
-
-        OrderCtrl-->>Frontend: Order Completed & Funds Released[cite: 2]
-        Frontend-->>Customer: Order Completed! Prompt to leave a review[cite: 1, 2]
-        OrderCtrl-->>Shopkeeper: Funds deposited into shopkeeper wallet[cite: 2]
+        Shopkeeper->>React Frontend: Dispatch Package
+        React Frontend->>OrderService: POST /api/order-approvals (role='shopkeeper')
+        OrderService->>Database: INSERT INTO order_approvals (role='shopkeeper')
+        OrderService->>Database: UPDATE orders SET status='dispatched'
     end
 
-    %% -------------------------------------------------
-    %% 4. POST-COMPLETION REVIEW
-    %% -------------------------------------------------
+    %% =========================================================
+    %% 4. COMPLETION PATHS (HAPPY PATHS)
+    %% =========================================================
+    rect rgb(254, 252, 232)
+        Note over Customer, Admin: 4. Completion (Happy Path)
+        Customer->>React Frontend: Confirm Package Receipt
+        React Frontend->>OrderService: POST /api/order-approvals (role='customer')
+        OrderService->>Database: INSERT INTO order_approvals (role='customer')
+        OrderService->>Database: UPDATE orders SET status='completed'
+
+        OrderService->>WalletService: Release Escrow to Shopkeeper
+        WalletService->>Database: UPDATE wallets (customer: locked_balance -= amount)
+        WalletService->>Database: UPDATE wallets (shopkeeper: balance += amount)
+        WalletService->>Database: INSERT INTO wallet_transactions (shopkeeper: type='escrow_release')
+        OrderService-->>React Frontend: Order Completed
+        React Frontend-->>Customer: Prompt for Review (POST /api/reviews)
+    end
+
+    %% =========================================================
+    %% 5. DISPUTE OUTCOMES (DISPUTED -> CANCELLED OR COMPLETED)
+    %% =========================================================
     rect rgb(250, 245, 255)
-        Note over Customer, DB: Phase 4: Feedback & Rating
-        Customer->>Frontend: Submit rating & comment
-        Frontend->>OrderCtrl: POST /api/reviews (rating, comment, reviewee_id)[cite: 1]
-        OrderCtrl->>DB: INSERT INTO reviews (order_id, reviewer_id, reviewee_id, rating)[cite: 1]
-        OrderCtrl-->>Frontend: Review Saved[cite: 1]
+        Note over Customer, Admin: 5. Dispute Resolution Branch
+        Customer->>React Frontend: Raise Dispute (Wrong item / Not delivered)
+        React Frontend->>OrderService: POST /api/disputes
+        OrderService->>Database: INSERT INTO disputes (status='open', reason=...)
+        OrderService->>Database: UPDATE orders SET status='disputed'
+
+        Admin->>React Frontend: Mediate & Choose Resolution
+
+        alt Resolution: Refund Customer (FAILED ORDER)
+            Admin->>React Frontend: resolveDispute(type='resolved_refund')
+            React Frontend->>OrderService: POST /api/disputes/{id}/resolve
+            OrderService->>WalletService: Refund Customer Escrow
+            WalletService->>Database: UPDATE wallets (customer: locked_balance -= amount, balance += amount)
+            WalletService->>Database: INSERT INTO wallet_transactions (customer: type='refund')
+            OrderService->>Database: UPDATE disputes SET status='resolved_refund'
+            OrderService->>Database: UPDATE orders SET status='cancelled'
+            OrderService-->>Customer: Dispute Resolved: Full Refund Issued
+        else Resolution: Payout Shopkeeper (COMPLETED ORDER)
+            Admin->>React Frontend: resolveDispute(type='resolved_penalize' / payout)
+            React Frontend->>OrderService: POST /api/disputes/{id}/resolve
+            OrderService->>WalletService: Release Escrow to Shopkeeper
+            WalletService->>Database: UPDATE wallets (customer: locked_balance -= amount)
+            WalletService->>Database: UPDATE wallets (shopkeeper: balance += amount)
+            WalletService->>Database: INSERT INTO wallet_transactions (shopkeeper: type='escrow_release')
+            OrderService->>Database: UPDATE disputes SET status='closed'
+            OrderService->>Database: UPDATE orders SET status='completed'
+            OrderService-->>Shopkeeper: Dispute Resolved: Funds Released
+        end
     end
 ```
 
